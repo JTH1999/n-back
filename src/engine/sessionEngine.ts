@@ -34,6 +34,18 @@ export interface SessionState {
   readonly status: SessionStatus
 }
 
+function buildStreamsRecord<R>(
+  activeStreams: readonly StreamKind[],
+  fn: (kind: StreamKind) => R | undefined,
+): Partial<Record<StreamKind, R>> {
+  const result: Partial<Record<StreamKind, R>> = {}
+  for (const kind of activeStreams) {
+    const value = fn(kind)
+    if (value !== undefined) result[kind] = value
+  }
+  return result
+}
+
 function randomValue<T>(rng: () => number, pool: readonly T[]): T {
   return pool[Math.floor(rng() * pool.length)]
 }
@@ -82,16 +94,15 @@ export function createSession(
   }
 
   const matchRate = config.matchRate ?? DEFAULT_MATCH_RATE
-  const streams: Partial<Record<StreamKind, StreamState>> = {}
-  for (const kind of config.streams) {
+  const streams = buildStreamsRecord(config.streams, (kind) => {
     const sequence = generateStreamSequence(kind, config.n, config.trialCount, matchRate, rng)
-    streams[kind] = {
+    return {
       kind,
       sequence,
       responded: sequence.map(() => false),
       outcomes: sequence.map(() => null),
     }
-  }
+  })
 
   return {
     n: config.n,
@@ -118,10 +129,9 @@ export function assertMatch(state: SessionState, kind: StreamKind): SessionState
 
 export function advance(state: SessionState): SessionState {
   const { currentTrialIndex, n } = state
-  const streams: Partial<Record<StreamKind, StreamState>> = {}
-  for (const kind of state.activeStreams) {
+  const streams = buildStreamsRecord(state.activeStreams, (kind) => {
     const streamState = state.streams[kind]
-    if (!streamState) continue
+    if (!streamState) return undefined
 
     const isMatch =
       currentTrialIndex >= n &&
@@ -137,8 +147,8 @@ export function advance(state: SessionState): SessionState {
 
     const outcomes = streamState.outcomes.slice()
     outcomes[currentTrialIndex] = outcome
-    streams[kind] = { ...streamState, outcomes }
-  }
+    return { ...streamState, outcomes }
+  })
 
   const nextTrialIndex = currentTrialIndex + 1
   return {
@@ -190,17 +200,16 @@ export function getSummary(state: SessionState): SessionSummary {
     throw new Error('cannot summarize a session that has not completed')
   }
 
-  const streams: Partial<Record<StreamKind, StreamSummary>> = {}
   let hitsAndRejections = 0
   let totalTrials = 0
-  for (const kind of state.activeStreams) {
+  const streams = buildStreamsRecord(state.activeStreams, (kind) => {
     const streamState = state.streams[kind]
-    if (!streamState) continue
+    if (!streamState) return undefined
     const summary = summarizeStream(streamState)
-    streams[kind] = summary
     hitsAndRejections += summary.hits + summary.correctRejections
     totalTrials += summary.totalTrials
-  }
+    return summary
+  })
 
   return {
     totalTrials,

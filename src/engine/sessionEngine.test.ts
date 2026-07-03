@@ -7,7 +7,7 @@ import {
   type SessionState,
   type StreamsState,
 } from './sessionEngine'
-import { GRID_SIZE, STREAM_VALUE_POOLS, type StreamKind } from './streams'
+import { GRID_SIZE, STREAM_KINDS, STREAM_VALUE_POOLS, type StreamKind } from './streams'
 
 function buildState(
   n: number,
@@ -178,78 +178,35 @@ describe('advance', () => {
     expect(next.streams.letter!.outcomes[2]).toBe('correct-rejection')
   })
 
-  it('resolves hit and false-alarm independently for a 2-stream session', () => {
-    const state = buildState(
-      2,
-      ['position', 'shape'],
-      { position: [0, 1, 0], shape: ['circle', 'square', 'triangle'] },
-      { position: [false, false, true], shape: [false, false, true] },
+  function cartesianProduct<T>(arrays: readonly (readonly T[])[]): T[][] {
+    return arrays.reduce<T[][]>(
+      (acc, curr) => acc.flatMap((combo) => curr.map((item) => [...combo, item])),
+      [[]],
     )
+  }
 
-    const next = advance(state)
+  describe.each([1, 2, 3, 4])('every outcome combination across %i active stream(s)', (streamCount) => {
+    const kinds = STREAM_KINDS.slice(0, streamCount)
+    const combos = cartesianProduct(kinds.map(() => outcomeCases)).map((combo) => ({
+      combo,
+      label: combo.map((c) => c.name).join(' + '),
+    }))
 
-    expect(next.streams.position!.outcomes[2]).toBe('hit')
-    expect(next.streams.shape!.outcomes[2]).toBe('false-alarm')
-  })
+    it.each(combos)('resolves $label', ({ combo }) => {
+      const sequences: { [K in StreamKind]?: readonly unknown[] } = {}
+      const responded: { [K in StreamKind]?: readonly boolean[] } = {}
+      kinds.forEach((kind, i) => {
+        sequences[kind] = combo[i].sequence
+        responded[kind] = combo[i].responded
+      })
 
-  it('resolves miss and correct-rejection independently for a 2-stream session', () => {
-    const state = buildState(
-      2,
-      ['position', 'shape'],
-      { position: [0, 1, 0], shape: ['circle', 'square', 'triangle'] },
-      { position: [false, false, false], shape: [false, false, false] },
-    )
+      const state = buildState(2, kinds, sequences, responded)
+      const next = advance(state)
 
-    const next = advance(state)
-
-    expect(next.streams.position!.outcomes[2]).toBe('miss')
-    expect(next.streams.shape!.outcomes[2]).toBe('correct-rejection')
-  })
-
-  it('resolves hit, miss, and false-alarm independently for a 3-stream session', () => {
-    const state = buildState(
-      2,
-      ['position', 'shape', 'color'],
-      {
-        position: [0, 1, 0],
-        shape: ['circle', 'square', 'circle'],
-        color: ['blue', 'orange', 'yellow'],
-      },
-      {
-        position: [false, false, true], // matches, asserted -> hit
-        shape: [false, false, false], // matches, not asserted -> miss
-        color: [false, false, true], // no match, asserted -> false-alarm
-      },
-    )
-
-    const next = advance(state)
-
-    expect(next.streams.position!.outcomes[2]).toBe('hit')
-    expect(next.streams.shape!.outcomes[2]).toBe('miss')
-    expect(next.streams.color!.outcomes[2]).toBe('false-alarm')
-  })
-
-  it('resolves correct-rejection across every stream in a 3-stream session', () => {
-    const state = buildState(
-      2,
-      ['position', 'shape', 'letter'],
-      {
-        position: [0, 1, 5],
-        shape: ['circle', 'square', 'triangle'],
-        letter: ['C', 'H', 'K'],
-      },
-      {
-        position: [false, false, false],
-        shape: [false, false, false],
-        letter: [false, false, false],
-      },
-    )
-
-    const next = advance(state)
-
-    expect(next.streams.position!.outcomes[2]).toBe('correct-rejection')
-    expect(next.streams.shape!.outcomes[2]).toBe('correct-rejection')
-    expect(next.streams.letter!.outcomes[2]).toBe('correct-rejection')
+      kinds.forEach((kind, i) => {
+        expect(next.streams[kind]!.outcomes[2]).toBe(combo[i].expected)
+      })
+    })
   })
 
   it('treats trials before N as ineligible for a match, even with identical stimuli', () => {
