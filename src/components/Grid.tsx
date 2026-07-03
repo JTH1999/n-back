@@ -1,25 +1,42 @@
-import type { GridPosition } from '../engine/sessionEngine'
+import clsx from 'clsx'
+import { COLOR_BG_CLASS, GRID_SIZE, type Color, type GridPosition, type Shape } from '../engine/streams'
 
-const CELL_COUNT = 9
+const CELL_COUNT = GRID_SIZE
 
-export interface GridProps {
-  activeCell: GridPosition | null
+const SHAPE_CLASS: Record<Shape, string> = {
+  circle: 'rounded-full',
+  square: '',
+  triangle: '[clip-path:polygon(50%_0%,0%_100%,100%_100%)]',
+  diamond: 'rotate-45',
 }
 
-export function Grid({ activeCell }: GridProps) {
+export interface StimulusDisplay {
+  cell: GridPosition
+  shape: Shape | null
+  color: Color | null
+}
+
+export interface GridProps {
+  stimulus: StimulusDisplay | null
+}
+
+export function Grid({ stimulus }: GridProps) {
   return (
     <div className="grid grid-cols-3 gap-2 w-64 h-64">
-      {Array.from({ length: CELL_COUNT }, (_, cell) => (
-        <div
-          key={cell}
-          data-testid={`grid-cell-${cell}`}
-          className={
-            cell === activeCell
-              ? 'rounded bg-blue-500'
-              : 'rounded bg-slate-200 dark:bg-slate-700'
-          }
-        />
-      ))}
+      {Array.from({ length: CELL_COUNT }, (_, cell) => {
+        const isActive = stimulus !== null && stimulus.cell === cell
+        return (
+          <div
+            key={cell}
+            data-testid={`grid-cell-${cell}`}
+            className={clsx(
+              !isActive && 'rounded bg-slate-200 dark:bg-slate-700',
+              isActive && (stimulus.shape ? SHAPE_CLASS[stimulus.shape] : 'rounded'),
+              isActive && (stimulus.color ? COLOR_BG_CLASS[stimulus.color] : 'bg-blue-500'),
+            )}
+          />
+        )
+      })}
     </div>
   )
 }
