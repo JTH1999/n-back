@@ -20,13 +20,13 @@ export function SessionRunner({ config, onRestart }: SessionRunnerProps) {
   useEffect(() => {
     if (state.status !== 'active') return
 
-    const onKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() === POSITION_MATCH_KEY) {
         assertPositionMatch()
       }
     }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
   }, [state.status, assertPositionMatch])
 
   if (state.status === 'completed') {

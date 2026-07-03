@@ -3,12 +3,11 @@ import {
   advance,
   assertMatch,
   createSession,
+  type SessionConfig,
   type SessionState,
 } from '../engine/sessionEngine'
 
-export interface SessionRunnerConfig {
-  n: number
-  trialCount: number
+export interface SessionRunnerConfig extends SessionConfig {
   displayDurationMs: number
   trialLengthMs: number
 }
@@ -20,9 +19,7 @@ export interface SessionRunner {
 }
 
 export function useSessionRunner(config: SessionRunnerConfig): SessionRunner {
-  const [state, setState] = useState<SessionState>(() =>
-    createSession({ n: config.n, trialCount: config.trialCount }),
-  )
+  const [state, setState] = useState<SessionState>(() => createSession(config))
   const [stimulusVisible, setStimulusVisible] = useState(true)
 
   useEffect(() => {

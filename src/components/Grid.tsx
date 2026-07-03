@@ -1,7 +1,9 @@
+import type { GridPosition } from '../engine/sessionEngine'
+
 const CELL_COUNT = 9
 
 export interface GridProps {
-  activeCell: number | null
+  activeCell: GridPosition | null
 }
 
 export function Grid({ activeCell }: GridProps) {

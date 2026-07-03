@@ -1,6 +1,8 @@
 export const GRID_SIZE = 9
 const DEFAULT_MATCH_RATE = 0.3
 
+export type GridPosition = number
+
 export interface SessionConfig {
   n: number
   trialCount: number
@@ -13,20 +15,20 @@ export type SessionStatus = 'active' | 'completed'
 
 export interface SessionState {
   readonly n: number
-  readonly sequence: readonly number[]
+  readonly sequence: readonly GridPosition[]
   readonly currentTrialIndex: number
   readonly responded: readonly boolean[]
   readonly outcomes: readonly (TrialOutcome | null)[]
   readonly status: SessionStatus
 }
 
-function randomPosition(rng: () => number): number {
+function randomPosition(rng: () => number): GridPosition {
   return Math.floor(rng() * GRID_SIZE)
 }
 
 // Picks a position, excluding `exclude`, without rejection sampling: pick from
 // the GRID_SIZE-1 remaining positions, then shift up past the excluded one.
-function randomPositionExcluding(rng: () => number, exclude: number): number {
+function randomPositionExcluding(rng: () => number, exclude: GridPosition): GridPosition {
   const position = Math.floor(rng() * (GRID_SIZE - 1))
   return position >= exclude ? position + 1 : position
 }
@@ -36,8 +38,8 @@ function generateSequence(
   trialCount: number,
   matchRate: number,
   rng: () => number,
-): number[] {
-  const sequence: number[] = []
+): GridPosition[] {
+  const sequence: GridPosition[] = []
   for (let i = 0; i < trialCount; i++) {
     if (i >= n && rng() < matchRate) {
       sequence.push(sequence[i - n])
