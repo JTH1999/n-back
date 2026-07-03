@@ -1,0 +1,3 @@
+# Generic multi-stream engine instead of fixed n-back modes
+
+Most n-back tools hardcode a small set of modes (single, dual, triple, quad n-back) as separate configurations. We instead modeled the engine around up to four independently toggleable Streams (Position, Shape, Color, Letter) sharing one global N, so any combination of active streams — not just the conventional dual/quad ladder — is a first-class session configuration. This costs a bit more upfront design (stream toggles, generic per-stream scoring) but avoids a rewrite once "highly customizable" combinations beyond the standard modes are wanted. N stays global (not per-stream) to keep the session model and adaptive-difficulty logic simple, matching how virtually all existing n-back tools work.
