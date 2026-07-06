@@ -3,11 +3,10 @@ import {
   useSessionRunner,
   type SessionRunnerConfig,
 } from '../adapters/useSessionRunner'
-import { getSummary } from '../engine/sessionEngine'
+import { getStimulusDisplay, getSummary } from '../engine/sessionEngine'
+import { STREAM_KEYMAP } from '../config/keymap'
 import { Grid } from './Grid'
 import { SessionSummary } from './SessionSummary'
-
-const POSITION_MATCH_KEY = 'a'
 
 export interface SessionRunnerProps {
   config: SessionRunnerConfig
@@ -15,36 +14,40 @@ export interface SessionRunnerProps {
 }
 
 export function SessionRunner({ config, onRestart }: SessionRunnerProps) {
-  const { state, stimulusVisible, assertPositionMatch } = useSessionRunner(config)
+  const { state, stimulusVisible, assertStreamMatch } = useSessionRunner(config)
 
   useEffect(() => {
     if (state.status !== 'active') return
 
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() === POSITION_MATCH_KEY) {
-        assertPositionMatch()
-      }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase()
+      const kind = state.activeStreams.find((streamKind) => STREAM_KEYMAP[streamKind] === key)
+      if (kind) assertStreamMatch(kind)
     }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [state.status, assertPositionMatch])
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [state.status, state.activeStreams, assertStreamMatch])
 
   if (state.status === 'completed') {
     return <SessionSummary summary={getSummary(state)} onRestart={onRestart} />
   }
 
-  const activeCell = stimulusVisible ? state.sequence[state.currentTrialIndex] : null
+  const stimulus = getStimulusDisplay(state, stimulusVisible)
 
   return (
     <div className="flex flex-col items-center gap-4">
       <p>
-        Trial {state.currentTrialIndex + 1} of {state.sequence.length}
+        Trial {state.currentTrialIndex + 1} of {state.trialCount}
       </p>
-      <Grid activeCell={activeCell} />
-      <p className="text-sm text-slate-500">
-        Press <kbd>{POSITION_MATCH_KEY.toUpperCase()}</kbd> when the position matches{' '}
-        {config.n} trial(s) back
-      </p>
+      <Grid stimulus={stimulus} />
+      <ul className="flex flex-col items-center gap-1 text-sm text-slate-500">
+        {state.activeStreams.map((kind) => (
+          <li key={kind} className="capitalize">
+            Press <kbd>{STREAM_KEYMAP[kind].toUpperCase()}</kbd> when {kind} matches {config.n}{' '}
+            trial(s) back
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }

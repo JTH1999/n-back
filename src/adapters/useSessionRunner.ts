@@ -3,12 +3,13 @@ import {
   advance,
   assertMatch,
   createSession,
+  type SessionConfig,
   type SessionState,
 } from '../engine/sessionEngine'
+import type { StreamKind } from '../engine/streams'
+import { playLetter } from '../audio/letterAudio'
 
-export interface SessionRunnerConfig {
-  n: number
-  trialCount: number
+export interface SessionRunnerConfig extends SessionConfig {
   displayDurationMs: number
   trialLengthMs: number
 }
@@ -16,19 +17,24 @@ export interface SessionRunnerConfig {
 export interface SessionRunner {
   state: SessionState
   stimulusVisible: boolean
-  assertPositionMatch: () => void
+  assertStreamMatch: (kind: StreamKind) => void
 }
 
 export function useSessionRunner(config: SessionRunnerConfig): SessionRunner {
-  const [state, setState] = useState<SessionState>(() =>
-    createSession({ n: config.n, trialCount: config.trialCount }),
-  )
+  const [state, setState] = useState<SessionState>(() => createSession(config))
   const [stimulusVisible, setStimulusVisible] = useState(true)
+  const currentLetter = state.streams.letter?.sequence[state.currentTrialIndex] ?? null
+
+  useEffect(() => {
+    if (state.status !== 'active' || !currentLetter) return
+    playLetter(currentLetter)
+  }, [state.currentTrialIndex, state.status, currentLetter])
 
   useEffect(() => {
     if (state.status !== 'active') return
 
     setStimulusVisible(true)
+
     const hideStimulus = setTimeout(
       () => setStimulusVisible(false),
       config.displayDurationMs,
@@ -41,11 +47,16 @@ export function useSessionRunner(config: SessionRunnerConfig): SessionRunner {
       clearTimeout(hideStimulus)
       clearTimeout(advanceTrial)
     }
-  }, [state.currentTrialIndex, state.status, config.displayDurationMs, config.trialLengthMs])
+  }, [
+    state.currentTrialIndex,
+    state.status,
+    config.displayDurationMs,
+    config.trialLengthMs,
+  ])
 
-  const assertPositionMatch = useCallback(() => {
-    setState((current) => assertMatch(current))
+  const assertStreamMatch = useCallback((kind: StreamKind) => {
+    setState((current) => assertMatch(current, kind))
   }, [])
 
-  return { state, stimulusVisible, assertPositionMatch }
+  return { state, stimulusVisible, assertStreamMatch }
 }
