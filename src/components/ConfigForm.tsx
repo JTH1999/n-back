@@ -19,6 +19,17 @@ function FieldRow({ label, className, children }: FieldRowProps) {
   )
 }
 
+const MAX_N = 20
+const MAX_TRIAL_COUNT = 500
+const MAX_DISPLAY_DURATION_MS = 60_000
+const MAX_TRIAL_LENGTH_MS = 60_000
+
+function checkRange(label: string, value: number, min: number, max: number, unit = ''): string | null {
+  if (value < min) return `${label} must be at least ${min}${unit}.`
+  if (value > max) return `${label} must be at most ${max}${unit}.`
+  return null
+}
+
 const DEFAULT_CONFIG: SessionRunnerConfig = {
   n: 2,
   trialCount: 20,
@@ -46,15 +57,10 @@ export function ConfigForm({ onStart }: ConfigFormProps) {
   const validationMessage =
     config.streams.length < 1
       ? 'Select at least one stream.'
-      : config.n < 1
-        ? 'N-back level must be at least 1.'
-        : config.trialCount < 1
-          ? 'Trial count must be at least 1.'
-          : config.displayDurationMs < 1
-            ? 'Stimulus display duration must be at least 1ms.'
-            : config.trialLengthMs < 1
-              ? 'Trial length must be at least 1ms.'
-              : null
+      : (checkRange('N-back level', config.n, 1, MAX_N) ??
+        checkRange('Trial count', config.trialCount, 1, MAX_TRIAL_COUNT) ??
+        checkRange('Stimulus display duration', config.displayDurationMs, 1, MAX_DISPLAY_DURATION_MS, 'ms') ??
+        checkRange('Trial length', config.trialLengthMs, 1, MAX_TRIAL_LENGTH_MS, 'ms'))
 
   const isValid = validationMessage === null
 
@@ -91,6 +97,7 @@ export function ConfigForm({ onStart }: ConfigFormProps) {
         <input
           type="number"
           min={1}
+          max={MAX_N}
           value={config.n}
           onChange={(event) => setConfig({ ...config, n: Number(event.target.value) })}
           className="w-20 rounded border px-2 py-1"
@@ -100,6 +107,7 @@ export function ConfigForm({ onStart }: ConfigFormProps) {
         <input
           type="number"
           min={1}
+          max={MAX_TRIAL_COUNT}
           value={config.trialCount}
           onChange={(event) => setConfig({ ...config, trialCount: Number(event.target.value) })}
           className="w-20 rounded border px-2 py-1"
@@ -109,6 +117,7 @@ export function ConfigForm({ onStart }: ConfigFormProps) {
         <input
           type="number"
           min={1}
+          max={MAX_DISPLAY_DURATION_MS}
           value={config.displayDurationMs}
           onChange={(event) =>
             setConfig({ ...config, displayDurationMs: Number(event.target.value) })
@@ -120,6 +129,7 @@ export function ConfigForm({ onStart }: ConfigFormProps) {
         <input
           type="number"
           min={1}
+          max={MAX_TRIAL_LENGTH_MS}
           value={config.trialLengthMs}
           onChange={(event) =>
             setConfig({ ...config, trialLengthMs: Number(event.target.value) })
