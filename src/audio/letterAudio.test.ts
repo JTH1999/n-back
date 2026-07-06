@@ -41,7 +41,7 @@ describe('playLetter', () => {
   it('plays the pre-recorded clip for the letter', () => {
     playLetter('C')
 
-    expect(constructedWith).toEqual(['/audio/letters/C.mp3'])
+    expect(constructedWith).toEqual(['/audio/letters/C.wav'])
     expect(play).toHaveBeenCalled()
     expect(speak).not.toHaveBeenCalled()
   })

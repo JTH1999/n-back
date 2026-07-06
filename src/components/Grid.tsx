@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { COLOR_BG_CLASS, GRID_SIZE, type Color, type GridPosition, type Shape } from '../engine/streams'
+import { COLOR_BG_CLASS, GRID_SIZE, type Shape, type StimulusDisplay } from '../engine/streams'
 
 const CELL_COUNT = GRID_SIZE
 
@@ -8,12 +8,6 @@ const SHAPE_CLASS: Record<Shape, string> = {
   square: '',
   triangle: '[clip-path:polygon(50%_0%,0%_100%,100%_100%)]',
   diamond: 'rotate-45',
-}
-
-export interface StimulusDisplay {
-  cell: GridPosition
-  shape: Shape | null
-  color: Color | null
 }
 
 export interface GridProps {

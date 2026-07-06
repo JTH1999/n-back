@@ -9,12 +9,14 @@ import {
 } from './sessionEngine'
 import { GRID_SIZE, STREAM_KINDS, STREAM_VALUE_POOLS, type StreamKind } from './streams'
 
-function buildState(
-  n: number,
-  activeStreams: readonly StreamKind[],
-  sequences: { [K in StreamKind]?: readonly unknown[] },
-  responded: { [K in StreamKind]?: readonly boolean[] },
-): SessionState {
+interface StateFixture {
+  n: number
+  activeStreams: readonly StreamKind[]
+  sequences: { [K in StreamKind]?: readonly unknown[] }
+  responded?: { [K in StreamKind]?: readonly boolean[] }
+}
+
+function buildState({ n, activeStreams, sequences, responded = {} }: StateFixture): SessionState {
   const trialCount = sequences[activeStreams[0]]!.length
   const streams: StreamsState = {}
   for (const kind of activeStreams) {
@@ -145,7 +147,12 @@ describe('advance', () => {
   ] as const
 
   it.each(outcomeCases)('resolves $expected for a single active stream', ({ sequence, responded, expected }) => {
-    const state = buildState(2, ['position'], { position: sequence }, { position: responded })
+    const state = buildState({
+      n: 2,
+      activeStreams: ['position'],
+      sequences: { position: sequence },
+      responded: { position: responded },
+    })
 
     const next = advance(state)
 
@@ -153,22 +160,22 @@ describe('advance', () => {
   })
 
   it('resolves each active stream independently in the same trial', () => {
-    const state = buildState(
-      2,
-      ['position', 'shape', 'color', 'letter'],
-      {
+    const state = buildState({
+      n: 2,
+      activeStreams: ['position', 'shape', 'color', 'letter'],
+      sequences: {
         position: [0, 1, 0], // matches -> hit or miss depending on response
         shape: ['circle', 'square', 'triangle'], // does not match -> false-alarm or correct-rejection
         color: ['blue', 'orange', 'blue'], // matches
         letter: ['C', 'H', 'K'], // does not match
       },
-      {
+      responded: {
         position: [false, false, true], // asserted on a match -> hit
         shape: [false, false, true], // asserted on a non-match -> false-alarm
         color: [false, false, false], // not asserted on a match -> miss
         letter: [false, false, false], // not asserted on a non-match -> correct-rejection
       },
-    )
+    })
 
     const next = advance(state)
 
@@ -200,7 +207,7 @@ describe('advance', () => {
         responded[kind] = combo[i].responded
       })
 
-      const state = buildState(2, kinds, sequences, responded)
+      const state = buildState({ n: 2, activeStreams: kinds, sequences, responded })
       const next = advance(state)
 
       kinds.forEach((kind, i) => {
@@ -210,14 +217,14 @@ describe('advance', () => {
   })
 
   it('treats trials before N as ineligible for a match, even with identical stimuli', () => {
-    const state = buildState(2, ['position'], { position: [3, 3] }, {})
+    const state = buildState({ n: 2, activeStreams: ['position'], sequences: { position: [3, 3] } })
     const stateAtTrial1 = { ...state, currentTrialIndex: 1 }
 
     expect(advance(stateAtTrial1).streams.position!.outcomes[1]).toBe('correct-rejection')
   })
 
   it('transitions to completed status after advancing past the last trial', () => {
-    const state = buildState(1, ['position'], { position: [0, 1] }, {})
+    const state = buildState({ n: 1, activeStreams: ['position'], sequences: { position: [0, 1] } })
 
     const next = advance(state)
 
@@ -226,7 +233,7 @@ describe('advance', () => {
   })
 
   it('stays active after advancing past a non-final trial', () => {
-    const state = buildState(1, ['position'], { position: [0, 1, 2] }, {})
+    const state = buildState({ n: 1, activeStreams: ['position'], sequences: { position: [0, 1, 2] } })
     const stateAtTrial0 = { ...state, currentTrialIndex: 0 }
 
     expect(advance(stateAtTrial0).status).toBe('active')
@@ -235,7 +242,11 @@ describe('advance', () => {
 
 describe('assertMatch', () => {
   it('records a match assertion for only the asserted stream', () => {
-    const state = buildState(2, ['position', 'shape'], { position: [0, 1, 0], shape: ['circle', 'square', 'circle'] }, {})
+    const state = buildState({
+      n: 2,
+      activeStreams: ['position', 'shape'],
+      sequences: { position: [0, 1, 0], shape: ['circle', 'square', 'circle'] },
+    })
 
     const next = assertMatch(state, 'position')
 
@@ -245,7 +256,7 @@ describe('assertMatch', () => {
   })
 
   it('does not affect other trials', () => {
-    const state = buildState(2, ['position'], { position: [0, 1, 0] }, {})
+    const state = buildState({ n: 2, activeStreams: ['position'], sequences: { position: [0, 1, 0] } })
 
     const next = assertMatch(state, 'position')
 
@@ -254,13 +265,16 @@ describe('assertMatch', () => {
   })
 
   it('is a no-op for a stream kind that is not active', () => {
-    const state = buildState(2, ['position'], { position: [0, 1, 0] }, {})
+    const state = buildState({ n: 2, activeStreams: ['position'], sequences: { position: [0, 1, 0] } })
 
     expect(assertMatch(state, 'shape')).toEqual(state)
   })
 
   it('is a no-op once the session has completed', () => {
-    const state = { ...buildState(2, ['position'], { position: [0, 1, 0] }, {}), status: 'completed' as const }
+    const state = {
+      ...buildState({ n: 2, activeStreams: ['position'], sequences: { position: [0, 1, 0] } }),
+      status: 'completed' as const,
+    }
 
     expect(assertMatch(state, 'position')).toEqual(state)
   })
@@ -268,7 +282,7 @@ describe('assertMatch', () => {
 
 describe('getSummary', () => {
   it('throws if the session has not completed', () => {
-    const state = buildState(2, ['position'], { position: [0, 1, 0] }, {})
+    const state = buildState({ n: 2, activeStreams: ['position'], sequences: { position: [0, 1, 0] } })
 
     expect(() => getSummary(state)).toThrow(/complete/i)
   })

@@ -37,3 +37,11 @@ export const STREAM_VALUE_POOLS: { [K in StreamKind]: readonly StreamValueMap[K]
   color: COLOR_VALUES,
   letter: LETTER_VALUES,
 }
+
+export const CENTER_CELL: GridPosition = Math.floor(GRID_SIZE / 2)
+
+export interface StimulusDisplay {
+  cell: GridPosition
+  shape: Shape | null
+  color: Color | null
+}

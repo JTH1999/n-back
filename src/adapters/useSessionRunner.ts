@@ -26,12 +26,14 @@ export function useSessionRunner(config: SessionRunnerConfig): SessionRunner {
   const currentLetter = state.streams.letter?.sequence[state.currentTrialIndex] ?? null
 
   useEffect(() => {
+    if (state.status !== 'active' || !currentLetter) return
+    playLetter(currentLetter)
+  }, [state.currentTrialIndex, state.status, currentLetter])
+
+  useEffect(() => {
     if (state.status !== 'active') return
 
     setStimulusVisible(true)
-    if (currentLetter) {
-      playLetter(currentLetter)
-    }
 
     const hideStimulus = setTimeout(
       () => setStimulusVisible(false),
@@ -48,7 +50,6 @@ export function useSessionRunner(config: SessionRunnerConfig): SessionRunner {
   }, [
     state.currentTrialIndex,
     state.status,
-    currentLetter,
     config.displayDurationMs,
     config.trialLengthMs,
   ])

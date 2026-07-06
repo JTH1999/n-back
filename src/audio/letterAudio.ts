@@ -1,8 +1,6 @@
 import type { Letter } from '../engine/streams'
 
-// Pre-recorded clips belong here, one file per letter (e.g. /audio/letters/C.mp3).
-// TODO: record and add the actual clips — until then, playback falls back to TTS.
-const letterClipPath = (letter: Letter) => `/audio/letters/${letter}.mp3`
+const letterClipPath = (letter: Letter) => `/audio/letters/${letter}.wav`
 
 function speakLetter(letter: Letter): void {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return

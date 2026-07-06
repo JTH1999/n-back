@@ -1,7 +1,10 @@
-import { STREAM_VALUE_POOLS, type StreamKind, type StreamValueMap } from './streams'
-
-export type { StreamKind } from './streams'
-export { STREAM_KINDS } from './streams'
+import {
+  CENTER_CELL,
+  STREAM_VALUE_POOLS,
+  type StimulusDisplay,
+  type StreamKind,
+  type StreamValueMap,
+} from './streams'
 
 const DEFAULT_MATCH_RATE = 0.3
 
@@ -124,6 +127,22 @@ export function assertMatch(state: SessionState, kind: StreamKind): SessionState
   return {
     ...state,
     streams: { ...state.streams, [kind]: { ...streamState, responded } },
+  }
+}
+
+export function getStimulusDisplay(
+  state: SessionState,
+  stimulusVisible: boolean,
+): StimulusDisplay | null {
+  if (!stimulusVisible) return null
+  const { position, shape, color } = state.streams
+  if (!position && !shape && !color) return null
+
+  const index = state.currentTrialIndex
+  return {
+    cell: position ? position.sequence[index] : CENTER_CELL,
+    shape: shape ? shape.sequence[index] : null,
+    color: color ? color.sequence[index] : null,
   }
 }
 

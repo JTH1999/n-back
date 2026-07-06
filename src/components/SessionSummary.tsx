@@ -9,7 +9,10 @@ export function SessionSummary({ summary, onRestart }: SessionSummaryProps) {
   return (
     <div className="flex flex-col items-center gap-4">
       <h2 className="text-2xl font-semibold">Session complete</h2>
-      <p className="text-4xl font-bold">{Math.round(summary.accuracy * 100)}%</p>
+      <div className="flex flex-col items-center gap-1">
+        <p className="text-4xl font-bold">{Math.round(summary.accuracy * 100)}%</p>
+        <p className="text-sm text-slate-500">Overall accuracy</p>
+      </div>
       <div className="flex w-full flex-col gap-4">
         {Object.values(summary.streams).map((streamSummary) => (
           <div key={streamSummary.kind} className="flex flex-col items-center gap-1">

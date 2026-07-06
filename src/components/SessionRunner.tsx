@@ -3,30 +3,14 @@ import {
   useSessionRunner,
   type SessionRunnerConfig,
 } from '../adapters/useSessionRunner'
-import { getSummary, type SessionState } from '../engine/sessionEngine'
-import { GRID_SIZE } from '../engine/streams'
+import { getStimulusDisplay, getSummary } from '../engine/sessionEngine'
 import { STREAM_KEYMAP } from '../config/keymap'
-import { Grid, type StimulusDisplay } from './Grid'
+import { Grid } from './Grid'
 import { SessionSummary } from './SessionSummary'
-
-const CENTER_CELL = Math.floor(GRID_SIZE / 2)
 
 export interface SessionRunnerProps {
   config: SessionRunnerConfig
   onRestart: () => void
-}
-
-function buildStimulusDisplay(state: SessionState, stimulusVisible: boolean): StimulusDisplay | null {
-  if (!stimulusVisible) return null
-  const { position, shape, color } = state.streams
-  if (!position && !shape && !color) return null
-
-  const index = state.currentTrialIndex
-  return {
-    cell: position ? position.sequence[index] : CENTER_CELL,
-    shape: shape ? shape.sequence[index] : null,
-    color: color ? color.sequence[index] : null,
-  }
 }
 
 export function SessionRunner({ config, onRestart }: SessionRunnerProps) {
@@ -48,7 +32,7 @@ export function SessionRunner({ config, onRestart }: SessionRunnerProps) {
     return <SessionSummary summary={getSummary(state)} onRestart={onRestart} />
   }
 
-  const stimulus = buildStimulusDisplay(state, stimulusVisible)
+  const stimulus = getStimulusDisplay(state, stimulusVisible)
 
   return (
     <div className="flex flex-col items-center gap-4">
