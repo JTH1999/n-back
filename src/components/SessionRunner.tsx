@@ -7,6 +7,7 @@ import { getStimulusDisplay, getSummary } from '../engine/sessionEngine'
 import { STREAM_KEYMAP } from '../config/keymap'
 import { Grid } from './Grid'
 import { SessionSummary } from './SessionSummary'
+import { StreamButtons } from './StreamButtons'
 
 export interface SessionRunnerProps {
   config: SessionRunnerConfig
@@ -35,19 +36,22 @@ export function SessionRunner({ config, onRestart }: SessionRunnerProps) {
   const stimulus = getStimulusDisplay(state, stimulusVisible)
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <p>
-        Trial {state.currentTrialIndex + 1} of {state.trialCount}
-      </p>
-      <Grid stimulus={stimulus} />
-      <ul className="flex flex-col items-center gap-1 text-sm text-slate-500">
-        {state.activeStreams.map((kind) => (
-          <li key={kind} className="capitalize">
-            Press <kbd>{STREAM_KEYMAP[kind].toUpperCase()}</kbd> when {kind} matches {config.n}{' '}
-            trial(s) back
-          </li>
-        ))}
-      </ul>
-    </div>
+    <>
+      <div className="flex flex-col items-center gap-4 pb-24">
+        <p>
+          Trial {state.currentTrialIndex + 1} of {state.trialCount}
+        </p>
+        <Grid stimulus={stimulus} />
+        <ul className="flex flex-col items-center gap-1 text-sm text-slate-500">
+          {state.activeStreams.map((kind) => (
+            <li key={kind} className="capitalize">
+              Press <kbd>{STREAM_KEYMAP[kind].toUpperCase()}</kbd> or tap the button below when{' '}
+              {kind} matches {config.n} trial(s) back
+            </li>
+          ))}
+        </ul>
+      </div>
+      <StreamButtons activeStreams={state.activeStreams} onAssert={assertStreamMatch} />
+    </>
   )
 }
