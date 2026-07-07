@@ -63,4 +63,35 @@ describe('playLetter', () => {
 
     expect(speak).toHaveBeenCalled()
   })
+
+  it('applies the given volume to the clip', () => {
+    const appliedVolumes: number[] = []
+    class VolumeAwareAudio {
+      play = play
+      addEventListener = addEventListener
+      set volume(value: number) {
+        appliedVolumes.push(value)
+      }
+    }
+    vi.stubGlobal('Audio', VolumeAwareAudio)
+
+    playLetter('C', 0.4)
+
+    expect(appliedVolumes).toEqual([0.4])
+  })
+
+  it('applies the given volume to the speech-synthesis fallback', () => {
+    playLetter('H', 0.6)
+
+    errorHandler?.()
+
+    expect(speak).toHaveBeenCalledWith(expect.objectContaining({ volume: 0.6 }))
+  })
+
+  it('does not play or speak when muted', () => {
+    playLetter('L', 1, true)
+
+    expect(play).not.toHaveBeenCalled()
+    expect(speak).not.toHaveBeenCalled()
+  })
 })

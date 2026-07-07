@@ -12,6 +12,8 @@ import { playLetter } from '../audio/letterAudio'
 export interface SessionRunnerConfig extends SessionConfig {
   displayDurationMs: number
   trialLengthMs: number
+  volume: number
+  muted: boolean
 }
 
 export interface SessionRunner {
@@ -27,8 +29,8 @@ export function useSessionRunner(config: SessionRunnerConfig): SessionRunner {
 
   useEffect(() => {
     if (state.status !== 'active' || !currentLetter) return
-    playLetter(currentLetter)
-  }, [state.currentTrialIndex, state.status, currentLetter])
+    playLetter(currentLetter, config.volume, config.muted)
+  }, [state.currentTrialIndex, state.status, currentLetter, config.volume, config.muted])
 
   useEffect(() => {
     if (state.status !== 'active') return
