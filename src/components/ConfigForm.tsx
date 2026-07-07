@@ -1,8 +1,10 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import clsx from 'clsx'
 import type { SessionRunnerConfig } from '../adapters/useSessionRunner'
+import type { Keymap } from '../config/keymap'
 import { STREAM_KINDS, type StreamKind } from '../engine/streams'
 import { loadDraftSettings, saveDraftSettings } from '../persistence/settingsStorage'
+import { KeymapEditor } from './KeymapEditor'
 
 interface FieldRowProps {
   label: string
@@ -42,9 +44,11 @@ const DEFAULT_CONFIG: SessionRunnerConfig = {
 
 export interface ConfigFormProps {
   onStart: (config: SessionRunnerConfig) => void
+  keymap: Keymap
+  onRebindKey: (kind: StreamKind, key: string) => void
 }
 
-export function ConfigForm({ onStart }: ConfigFormProps) {
+export function ConfigForm({ onStart, keymap, onRebindKey }: ConfigFormProps) {
   const [config, setConfig] = useState(() => ({
     ...DEFAULT_CONFIG,
     ...loadDraftSettings<SessionRunnerConfig>(),
@@ -158,6 +162,7 @@ export function ConfigForm({ onStart }: ConfigFormProps) {
           />
         </FieldRow>
       </fieldset>
+      <KeymapEditor keymap={keymap} onRebind={onRebindKey} />
       {validationMessage && <p className="text-sm text-red-500">{validationMessage}</p>}
       <button
         type="submit"

@@ -4,7 +4,7 @@ import {
   type SessionRunnerConfig,
 } from '../adapters/useSessionRunner'
 import { getStimulusDisplay, getSummary } from '../engine/sessionEngine'
-import { STREAM_KEYMAP } from '../config/keymap'
+import type { Keymap } from '../config/keymap'
 import type { StreamKind } from '../engine/streams'
 import { Grid } from './Grid'
 import { SessionSummary } from './SessionSummary'
@@ -12,10 +12,11 @@ import { StreamButtons } from './StreamButtons'
 
 export interface SessionRunnerProps {
   config: SessionRunnerConfig
+  keymap: Keymap
   onRestart: () => void
 }
 
-export function SessionRunner({ config, onRestart }: SessionRunnerProps) {
+export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps) {
   const { state, stimulusVisible, assertStreamMatch } = useSessionRunner(config)
   const [pressedStreams, setPressedStreams] = useState<ReadonlySet<StreamKind>>(new Set())
 
@@ -36,12 +37,12 @@ export function SessionRunner({ config, onRestart }: SessionRunnerProps) {
 
     const handleKeyDown = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase()
-      const kind = state.activeStreams.find((streamKind) => STREAM_KEYMAP[streamKind] === key)
+      const kind = state.activeStreams.find((streamKind) => keymap[streamKind] === key)
       if (kind) handleAssert(kind)
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [state.status, state.activeStreams, handleAssert])
+  }, [state.status, state.activeStreams, keymap, handleAssert])
 
   if (state.status === 'completed') {
     return <SessionSummary summary={getSummary(state)} onRestart={onRestart} />
@@ -59,7 +60,7 @@ export function SessionRunner({ config, onRestart }: SessionRunnerProps) {
         <ul className="flex flex-col items-center gap-1 text-sm text-slate-500">
           {state.activeStreams.map((kind) => (
             <li key={kind} className="capitalize">
-              Press <kbd>{STREAM_KEYMAP[kind].toUpperCase()}</kbd> or tap the button below when{' '}
+              Press <kbd>{keymap[kind].toUpperCase()}</kbd> or tap the button below when{' '}
               {kind} matches {config.n} trial(s) back
             </li>
           ))}
