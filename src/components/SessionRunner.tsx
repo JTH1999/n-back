@@ -1,10 +1,11 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   useSessionRunner,
   type SessionRunnerConfig,
 } from '../adapters/useSessionRunner'
 import { getStimulusDisplay, getSummary } from '../engine/sessionEngine'
 import { STREAM_KEYMAP } from '../config/keymap'
+import type { StreamKind } from '../engine/streams'
 import { Grid } from './Grid'
 import { SessionSummary } from './SessionSummary'
 import { StreamButtons } from './StreamButtons'
@@ -16,6 +17,19 @@ export interface SessionRunnerProps {
 
 export function SessionRunner({ config, onRestart }: SessionRunnerProps) {
   const { state, stimulusVisible, assertStreamMatch } = useSessionRunner(config)
+  const [pressedStreams, setPressedStreams] = useState<ReadonlySet<StreamKind>>(new Set())
+
+  useEffect(() => {
+    setPressedStreams(new Set())
+  }, [state.currentTrialIndex])
+
+  const handleAssert = useCallback(
+    (kind: StreamKind) => {
+      assertStreamMatch(kind)
+      setPressedStreams((current) => (current.has(kind) ? current : new Set(current).add(kind)))
+    },
+    [assertStreamMatch],
+  )
 
   useEffect(() => {
     if (state.status !== 'active') return
@@ -23,11 +37,11 @@ export function SessionRunner({ config, onRestart }: SessionRunnerProps) {
     const handleKeyDown = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase()
       const kind = state.activeStreams.find((streamKind) => STREAM_KEYMAP[streamKind] === key)
-      if (kind) assertStreamMatch(kind)
+      if (kind) handleAssert(kind)
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [state.status, state.activeStreams, assertStreamMatch])
+  }, [state.status, state.activeStreams, handleAssert])
 
   if (state.status === 'completed') {
     return <SessionSummary summary={getSummary(state)} onRestart={onRestart} />
@@ -51,7 +65,11 @@ export function SessionRunner({ config, onRestart }: SessionRunnerProps) {
           ))}
         </ul>
       </div>
-      <StreamButtons activeStreams={state.activeStreams} onAssert={assertStreamMatch} />
+      <StreamButtons
+        activeStreams={state.activeStreams}
+        pressedStreams={pressedStreams}
+        onAssert={handleAssert}
+      />
     </>
   )
 }
