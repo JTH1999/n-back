@@ -7,7 +7,7 @@ const SHAPE_CLASS: Record<Shape, string> = {
   circle: 'rounded-full',
   square: '',
   triangle: '[clip-path:polygon(50%_0%,0%_100%,100%_100%)]',
-  diamond: 'rotate-45',
+  diamond: 'rotate-45 scale-[0.7071]',
 }
 
 export interface GridProps {
@@ -23,12 +23,18 @@ export function Grid({ stimulus }: GridProps) {
           <div
             key={cell}
             data-testid={`grid-cell-${cell}`}
-            className={clsx(
-              !isActive && 'rounded bg-slate-200 dark:bg-slate-700',
-              isActive && (stimulus.shape ? SHAPE_CLASS[stimulus.shape] : 'rounded'),
-              isActive && (stimulus.color ? COLOR_BG_CLASS[stimulus.color] : 'bg-blue-500'),
+            className="relative rounded bg-slate-200 dark:bg-slate-700"
+          >
+            {isActive && (
+              <div
+                className={clsx(
+                  'absolute inset-0',
+                  stimulus.shape ? SHAPE_CLASS[stimulus.shape] : 'rounded',
+                  stimulus.color ? COLOR_BG_CLASS[stimulus.color] : 'bg-blue-500',
+                )}
+              />
             )}
-          />
+          </div>
         )
       })}
     </div>
