@@ -34,7 +34,7 @@ type Phase = 'trial' | 'feedback'
 
 // A quick flash, deliberately shorter than the stimulus display duration —
 // long enough to register, brief enough not to slow down the session.
-export const FEEDBACK_FLASH_MS = 300
+export const FEEDBACK_FLASH_MS = 500
 
 export function useSessionRunner(config: SessionRunnerConfig): SessionRunner {
   const [state, setState] = useState<SessionState>(() => createSession(config))
