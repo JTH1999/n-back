@@ -3,10 +3,12 @@ import {
   useSessionRunner,
   type SessionRunnerConfig,
 } from '../adapters/useSessionRunner'
-import { getStimulusDisplay, getSummary } from '../engine/sessionEngine'
+import { computeRecommendedN, getStimulusDisplay, getSummary } from '../engine/sessionEngine'
 import type { Keymap } from '../config/keymap'
 import type { StreamKind } from '../engine/streams'
 import { appendHistoryRecord } from '../persistence/historyStorage'
+import { saveDraftSettings } from '../persistence/settingsStorage'
+import { MAX_N } from './ConfigForm'
 import { Grid } from './Grid'
 import { SessionSummary } from './SessionSummary'
 import { StreamButtons } from './StreamButtons'
@@ -22,6 +24,7 @@ export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps)
     useSessionRunner(config)
   const [pressedStreams, setPressedStreams] = useState<ReadonlySet<StreamKind>>(new Set())
   const hasRecordedHistory = useRef(false)
+  const hasAppliedAdaptiveN = useRef(false)
   const summary = useMemo(() => (readyForSummary ? getSummary(state) : null), [readyForSummary, state])
 
   useEffect(() => {
@@ -32,6 +35,13 @@ export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps)
     if (!summary || hasRecordedHistory.current) return
     hasRecordedHistory.current = true
     appendHistoryRecord({ timestamp: new Date().toISOString(), config, summary })
+  }, [summary, config])
+
+  useEffect(() => {
+    if (!summary || hasAppliedAdaptiveN.current || !config.adaptive.enabled) return
+    hasAppliedAdaptiveN.current = true
+    const recommendedN = computeRecommendedN(config.n, summary.accuracy, config.adaptive)
+    saveDraftSettings({ ...config, n: Math.min(recommendedN, MAX_N) })
   }, [summary, config])
 
   const handleAssert = useCallback(

@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FEEDBACK_FLASH_MS, type SessionRunnerConfig } from '../adapters/useSessionRunner'
 import { loadHistory } from '../persistence/historyStorage'
+import { loadDraftSettings } from '../persistence/settingsStorage'
 import { SessionRunner } from './SessionRunner'
 
 const config: SessionRunnerConfig = {
@@ -13,6 +14,7 @@ const config: SessionRunnerConfig = {
   volume: 1,
   muted: true,
   liveFeedback: false,
+  adaptive: { enabled: false, lowerThreshold: 0.5, upperThreshold: 0.8 },
 }
 
 describe('SessionRunner keyboard handling', () => {
@@ -94,6 +96,88 @@ describe('SessionRunner history persistence', () => {
     )
 
     expect(loadHistory()).toHaveLength(0)
+  })
+})
+
+describe('SessionRunner adaptive mode', () => {
+  beforeEach(() => {
+    window.localStorage.clear()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('saves a recommended N to draft settings when accuracy exceeds the upper threshold', () => {
+    vi.useFakeTimers()
+    render(
+      <SessionRunner
+        config={{
+          ...config,
+          n: 1,
+          trialCount: 1,
+          displayDurationMs: 100,
+          trialLengthMs: 200,
+          adaptive: { enabled: true, lowerThreshold: 0.5, upperThreshold: 0.8 },
+        }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={vi.fn()}
+      />,
+    )
+
+    act(() => {
+      vi.advanceTimersByTime(200)
+    })
+
+    expect(loadDraftSettings<SessionRunnerConfig>()?.n).toBe(2)
+  })
+
+  it('clamps the recommended N to the maximum allowed level', () => {
+    vi.useFakeTimers()
+    render(
+      <SessionRunner
+        config={{
+          ...config,
+          n: 20,
+          trialCount: 1,
+          displayDurationMs: 100,
+          trialLengthMs: 200,
+          adaptive: { enabled: true, lowerThreshold: 0.5, upperThreshold: 0.8 },
+        }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={vi.fn()}
+      />,
+    )
+
+    act(() => {
+      vi.advanceTimersByTime(200)
+    })
+
+    expect(loadDraftSettings<SessionRunnerConfig>()?.n).toBe(20)
+  })
+
+  it('does not touch draft settings when adaptive mode is disabled', () => {
+    vi.useFakeTimers()
+    render(
+      <SessionRunner
+        config={{
+          ...config,
+          n: 1,
+          trialCount: 1,
+          displayDurationMs: 100,
+          trialLengthMs: 200,
+          adaptive: { enabled: false, lowerThreshold: 0.5, upperThreshold: 0.8 },
+        }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={vi.fn()}
+      />,
+    )
+
+    act(() => {
+      vi.advanceTimersByTime(200)
+    })
+
+    expect(loadDraftSettings<SessionRunnerConfig>()).toBeNull()
   })
 })
 

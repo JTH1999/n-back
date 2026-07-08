@@ -11,12 +11,19 @@ import {
 import type { StreamKind } from '../engine/streams'
 import { playLetter } from '../audio/letterAudio'
 
+export interface AdaptiveConfig {
+  enabled: boolean
+  lowerThreshold: number
+  upperThreshold: number
+}
+
 export interface SessionRunnerConfig extends SessionConfig {
   displayDurationMs: number
   trialLengthMs: number
   volume: number
   muted: boolean
   liveFeedback: boolean
+  adaptive: AdaptiveConfig
 }
 
 export interface SessionRunner {
