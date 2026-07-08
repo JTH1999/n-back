@@ -8,6 +8,7 @@ function renderConfigForm(overrides: Partial<ConfigFormProps> = {}) {
     onStart: vi.fn(),
     keymap: DEFAULT_KEYMAP,
     onRebindKey: vi.fn(),
+    onApplyKeymap: vi.fn(),
     ...overrides,
   }
   return { ...render(<ConfigForm {...props} />), props }
@@ -147,5 +148,48 @@ describe('ConfigForm', () => {
     fireEvent.keyDown(window, { key: 'g' })
 
     expect(onRebindKey).toHaveBeenCalledWith('position', 'g')
+  })
+
+  it('saves the current settings and keymap as a named preset', () => {
+    renderConfigForm({ keymap: { ...DEFAULT_KEYMAP, position: 'g' } })
+
+    fireEvent.change(screen.getByLabelText(/n-back level/i), { target: { value: '5' } })
+    fireEvent.change(screen.getByLabelText(/preset name/i), { target: { value: 'Warm-up' } })
+    fireEvent.click(screen.getByRole('button', { name: /save preset/i }))
+
+    expect(screen.getByRole('option', { name: 'Warm-up (active)' })).toBeInTheDocument()
+  })
+
+  it('loads a saved preset, replacing the current config and keymap', () => {
+    const onApplyKeymap = vi.fn()
+    renderConfigForm({ keymap: { ...DEFAULT_KEYMAP, position: 'g' }, onApplyKeymap })
+
+    fireEvent.change(screen.getByLabelText(/n-back level/i), { target: { value: '5' } })
+    fireEvent.change(screen.getByLabelText(/preset name/i), { target: { value: 'Hard mode' } })
+    fireEvent.click(screen.getByRole('button', { name: /save preset/i }))
+
+    fireEvent.change(screen.getByLabelText(/n-back level/i), { target: { value: '2' } })
+
+    fireEvent.change(screen.getByLabelText(/select a preset/i), {
+      target: { value: screen.getByRole('option', { name: /hard mode/i }).getAttribute('value') },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /^load$/i }))
+
+    expect(screen.getByLabelText(/n-back level/i)).toHaveValue(5)
+    expect(onApplyKeymap).toHaveBeenCalledWith({ ...DEFAULT_KEYMAP, position: 'g' })
+  })
+
+  it('restores the most recently used preset on mount instead of the plain draft settings', () => {
+    const { unmount } = renderConfigForm()
+
+    fireEvent.change(screen.getByLabelText(/n-back level/i), { target: { value: '5' } })
+    fireEvent.change(screen.getByLabelText(/preset name/i), { target: { value: 'Warm-up' } })
+    fireEvent.click(screen.getByRole('button', { name: /save preset/i }))
+    unmount()
+
+    renderConfigForm()
+
+    expect(screen.getByLabelText(/n-back level/i)).toHaveValue(5)
+    expect(screen.getByRole('option', { name: 'Warm-up (active)' })).toBeInTheDocument()
   })
 })

@@ -8,7 +8,7 @@ import { SessionRunner } from './components/SessionRunner'
 function App() {
   const [config, setConfig] = useState<SessionRunnerConfig | null>(null)
   const [showHistory, setShowHistory] = useState(false)
-  const { keymap, rebind } = useKeymap()
+  const { keymap, rebind, setKeymap } = useKeymap()
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-8 p-4">
@@ -19,7 +19,12 @@ function App() {
         <HistoryView onBack={() => setShowHistory(false)} />
       ) : (
         <>
-          <ConfigForm onStart={setConfig} keymap={keymap} onRebindKey={rebind} />
+          <ConfigForm
+            onStart={setConfig}
+            keymap={keymap}
+            onRebindKey={rebind}
+            onApplyKeymap={setKeymap}
+          />
           <button
             type="button"
             onClick={() => setShowHistory(true)}

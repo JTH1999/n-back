@@ -1,10 +1,12 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import clsx from 'clsx'
+import { getActivePreset, usePresets } from '../adapters/usePresets'
 import type { SessionRunnerConfig } from '../adapters/useSessionRunner'
 import type { Keymap } from '../config/keymap'
 import { STREAM_KINDS, type StreamKind } from '../engine/streams'
 import { loadDraftSettings, saveDraftSettings } from '../persistence/settingsStorage'
 import { KeymapEditor } from './KeymapEditor'
+import { PresetManager } from './PresetManager'
 
 interface FieldRowProps {
   label: string
@@ -52,17 +54,30 @@ export interface ConfigFormProps {
   onStart: (config: SessionRunnerConfig) => void
   keymap: Keymap
   onRebindKey: (kind: StreamKind, key: string) => void
+  onApplyKeymap: (keymap: Keymap) => void
 }
 
-export function ConfigForm({ onStart, keymap, onRebindKey }: ConfigFormProps) {
+export function ConfigForm({ onStart, keymap, onRebindKey, onApplyKeymap }: ConfigFormProps) {
   const [config, setConfig] = useState(() => ({
     ...DEFAULT_CONFIG,
-    ...loadDraftSettings<SessionRunnerConfig>(),
+    ...(getActivePreset()?.config ?? loadDraftSettings<SessionRunnerConfig>()),
   }))
+  const { presets, activePresetId, savePreset, loadPreset } = usePresets()
 
   useEffect(() => {
     saveDraftSettings(config)
   }, [config])
+
+  const handleSavePreset = (name: string) => {
+    savePreset(name, config, keymap)
+  }
+
+  const handleLoadPreset = (id: string) => {
+    const preset = loadPreset(id)
+    if (!preset) return
+    setConfig(preset.config)
+    onApplyKeymap(preset.keymap)
+  }
 
   const validationMessage =
     config.streams.length < 1
@@ -237,6 +252,12 @@ export function ConfigForm({ onStart, keymap, onRebindKey }: ConfigFormProps) {
         )}
       </fieldset>
       <KeymapEditor keymap={keymap} onRebind={onRebindKey} />
+      <PresetManager
+        presets={presets}
+        activePresetId={activePresetId}
+        onSave={handleSavePreset}
+        onLoad={handleLoadPreset}
+      />
       {validationMessage && <p className="text-sm text-red-500">{validationMessage}</p>}
       <button
         type="submit"
