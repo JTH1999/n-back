@@ -24,12 +24,17 @@ export interface SessionRunner {
   stimulusVisible: boolean
   feedback: Partial<Record<StreamKind, TrialOutcome>>
   readyForSummary: boolean
+  acceptingInput: boolean
   assertStreamMatch: (kind: StreamKind) => void
 }
 
 // Between trials, once a trial resolves. Feedback occupies this whole gap, and
 // no stimulus is shown, so it never overlaps the next trial's question.
 type Phase = 'trial' | 'feedback'
+
+// A quick flash, deliberately shorter than the stimulus display duration —
+// long enough to register, brief enough not to slow down the session.
+export const FEEDBACK_FLASH_MS = 300
 
 export function useSessionRunner(config: SessionRunnerConfig): SessionRunner {
   const [state, setState] = useState<SessionState>(() => createSession(config))
@@ -71,16 +76,22 @@ export function useSessionRunner(config: SessionRunnerConfig): SessionRunner {
 
   useEffect(() => {
     if (phase !== 'feedback') return
-    const endFeedback = setTimeout(() => setPhase('trial'), config.displayDurationMs)
+    const endFeedback = setTimeout(() => setPhase('trial'), FEEDBACK_FLASH_MS)
     return () => clearTimeout(endFeedback)
-  }, [phase, config.displayDurationMs])
+  }, [phase])
 
-  const assertStreamMatch = useCallback((kind: StreamKind) => {
-    setState((current) => assertMatch(current, kind))
-  }, [])
+  const acceptingInput = state.status === 'active' && phase === 'trial'
+
+  const assertStreamMatch = useCallback(
+    (kind: StreamKind) => {
+      if (!acceptingInput) return
+      setState((current) => assertMatch(current, kind))
+    },
+    [acceptingInput],
+  )
 
   const feedback = phase === 'feedback' ? getLiveFeedback(state) : {}
   const readyForSummary = state.status === 'completed' && (!config.liveFeedback || phase !== 'feedback')
 
-  return { state, stimulusVisible, feedback, readyForSummary, assertStreamMatch }
+  return { state, stimulusVisible, feedback, readyForSummary, acceptingInput, assertStreamMatch }
 }

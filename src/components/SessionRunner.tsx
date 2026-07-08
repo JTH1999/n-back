@@ -17,7 +17,7 @@ export interface SessionRunnerProps {
 }
 
 export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps) {
-  const { state, stimulusVisible, feedback, readyForSummary, assertStreamMatch } =
+  const { state, stimulusVisible, feedback, readyForSummary, acceptingInput, assertStreamMatch } =
     useSessionRunner(config)
   const [pressedStreams, setPressedStreams] = useState<ReadonlySet<StreamKind>>(new Set())
 
@@ -27,10 +27,11 @@ export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps)
 
   const handleAssert = useCallback(
     (kind: StreamKind) => {
+      if (!acceptingInput) return
       assertStreamMatch(kind)
       setPressedStreams((current) => (current.has(kind) ? current : new Set(current).add(kind)))
     },
-    [assertStreamMatch],
+    [acceptingInput, assertStreamMatch],
   )
 
   useEffect(() => {

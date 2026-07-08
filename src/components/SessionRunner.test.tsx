@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { SessionRunnerConfig } from '../adapters/useSessionRunner'
+import { FEEDBACK_FLASH_MS, type SessionRunnerConfig } from '../adapters/useSessionRunner'
 import { SessionRunner } from './SessionRunner'
 
 const config: SessionRunnerConfig = {
@@ -132,13 +132,13 @@ describe('SessionRunner live feedback', () => {
 
     // Still within the feedback pause: no next-trial stimulus overlap yet.
     act(() => {
-      vi.advanceTimersByTime(50)
+      vi.advanceTimersByTime(FEEDBACK_FLASH_MS / 2)
     })
     expect(positionButtonOutline()).toMatch(/outline-(green|red)-500/)
 
-    // Feedback pause elapses (100ms after trial 1 ended); trial 2 begins now.
+    // Feedback pause elapses; trial 2 begins now.
     act(() => {
-      vi.advanceTimersByTime(50)
+      vi.advanceTimersByTime(FEEDBACK_FLASH_MS / 2)
     })
     expect(positionButtonOutline()).toContain('outline-transparent')
   })
@@ -167,7 +167,7 @@ describe('SessionRunner live feedback', () => {
     expect(screen.queryByText(/session complete/i)).not.toBeInTheDocument()
 
     act(() => {
-      vi.advanceTimersByTime(100)
+      vi.advanceTimersByTime(FEEDBACK_FLASH_MS)
     })
 
     expect(screen.getByText(/session complete/i)).toBeInTheDocument()
