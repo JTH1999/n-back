@@ -50,12 +50,16 @@ describe('SessionRunner keyboard handling', () => {
   })
 })
 
+function positionButtonOutline() {
+  return screen.getByRole('button', { name: /position/i }).className
+}
+
 describe('SessionRunner live feedback', () => {
   afterEach(() => {
     vi.useRealTimers()
   })
 
-  it('shows a per-stream feedback indicator once a trial resolves, when enabled', () => {
+  it('flashes the outline for the resolved outcome, when enabled', () => {
     vi.useFakeTimers()
     render(
       <SessionRunner
@@ -71,16 +75,16 @@ describe('SessionRunner live feedback', () => {
       />,
     )
 
-    expect(screen.queryByTestId('feedback-position')).not.toBeInTheDocument()
+    expect(positionButtonOutline()).toContain('outline-transparent')
 
     act(() => {
       vi.advanceTimersByTime(200)
     })
 
-    expect(screen.getByTestId('feedback-position')).toBeInTheDocument()
+    expect(positionButtonOutline()).toMatch(/outline-(green|red)-500/)
   })
 
-  it('never shows a feedback indicator when disabled', () => {
+  it('never flashes a feedback outline when disabled', () => {
     vi.useFakeTimers()
     render(
       <SessionRunner
@@ -100,7 +104,43 @@ describe('SessionRunner live feedback', () => {
       vi.advanceTimersByTime(200)
     })
 
-    expect(screen.queryByTestId('feedback-position')).not.toBeInTheDocument()
+    expect(positionButtonOutline()).toContain('outline-transparent')
+  })
+
+  it('pauses between trials to show feedback, without overlapping the next stimulus', () => {
+    vi.useFakeTimers()
+    render(
+      <SessionRunner
+        config={{
+          ...config,
+          trialCount: 2,
+          displayDurationMs: 100,
+          trialLengthMs: 200,
+          liveFeedback: true,
+        }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={vi.fn()}
+      />,
+    )
+
+    // Trial 1 ends at 200ms; feedback pause should follow, not the next stimulus.
+    act(() => {
+      vi.advanceTimersByTime(200)
+    })
+    expect(positionButtonOutline()).toMatch(/outline-(green|red)-500/)
+    expect(screen.getByText(/trial 2 of 2/i)).toBeInTheDocument()
+
+    // Still within the feedback pause: no next-trial stimulus overlap yet.
+    act(() => {
+      vi.advanceTimersByTime(50)
+    })
+    expect(positionButtonOutline()).toMatch(/outline-(green|red)-500/)
+
+    // Feedback pause elapses (100ms after trial 1 ended); trial 2 begins now.
+    act(() => {
+      vi.advanceTimersByTime(50)
+    })
+    expect(positionButtonOutline()).toContain('outline-transparent')
   })
 
   it('shows feedback for the final trial before revealing the summary', () => {
@@ -123,7 +163,7 @@ describe('SessionRunner live feedback', () => {
       vi.advanceTimersByTime(200)
     })
 
-    expect(screen.getByTestId('feedback-position')).toBeInTheDocument()
+    expect(positionButtonOutline()).toMatch(/outline-(green|red)-500/)
     expect(screen.queryByText(/session complete/i)).not.toBeInTheDocument()
 
     act(() => {

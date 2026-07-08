@@ -30,24 +30,18 @@ export function StreamButtons({
               type="button"
               onClick={() => onAssert(kind)}
               className={clsx(
-                'relative flex-1 min-w-0 max-w-32 px-2 py-3 min-h-12 rounded-lg bg-blue-500 text-sm font-medium capitalize text-white active:bg-blue-600',
+                'flex-1 min-w-0 max-w-32 px-2 py-3 min-h-12 rounded-lg bg-blue-500 text-sm font-medium capitalize text-white active:bg-blue-600',
                 'outline outline-4 outline-offset-2 transition-colors',
-                pressedStreams.has(kind)
-                  ? 'outline-slate-900 dark:outline-white'
-                  : 'outline-transparent',
+                outcome
+                  ? isCorrectOutcome(outcome)
+                    ? 'outline-green-500'
+                    : 'outline-red-500'
+                  : pressedStreams.has(kind)
+                    ? 'outline-slate-900 dark:outline-white'
+                    : 'outline-transparent',
               )}
             >
               {kind}
-              {outcome && (
-                <span
-                  data-testid={`feedback-${kind}`}
-                  aria-hidden="true"
-                  className={clsx(
-                    'absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-white dark:border-slate-900',
-                    isCorrectOutcome(outcome) ? 'bg-green-500' : 'bg-red-500',
-                  )}
-                />
-              )}
             </button>
           )
         })}

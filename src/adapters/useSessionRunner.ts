@@ -23,12 +23,18 @@ export interface SessionRunner {
   state: SessionState
   stimulusVisible: boolean
   feedback: Partial<Record<StreamKind, TrialOutcome>>
+  readyForSummary: boolean
   assertStreamMatch: (kind: StreamKind) => void
 }
+
+// Between trials, once a trial resolves. Feedback occupies this whole gap, and
+// no stimulus is shown, so it never overlaps the next trial's question.
+type Phase = 'trial' | 'feedback'
 
 export function useSessionRunner(config: SessionRunnerConfig): SessionRunner {
   const [state, setState] = useState<SessionState>(() => createSession(config))
   const [stimulusVisible, setStimulusVisible] = useState(true)
+  const [phase, setPhase] = useState<Phase>('trial')
   const currentLetter = state.streams.letter?.sequence[state.currentTrialIndex] ?? null
 
   useEffect(() => {
@@ -37,7 +43,7 @@ export function useSessionRunner(config: SessionRunnerConfig): SessionRunner {
   }, [state.currentTrialIndex, state.status, currentLetter, config.volume, config.muted])
 
   useEffect(() => {
-    if (state.status !== 'active') return
+    if (state.status !== 'active' || phase !== 'trial') return
 
     setStimulusVisible(true)
 
@@ -45,36 +51,36 @@ export function useSessionRunner(config: SessionRunnerConfig): SessionRunner {
       () => setStimulusVisible(false),
       config.displayDurationMs,
     )
-    const advanceTrial = setTimeout(() => {
+    const endTrial = setTimeout(() => {
       setState((current) => advance(current))
+      if (config.liveFeedback) setPhase('feedback')
     }, config.trialLengthMs)
 
     return () => {
       clearTimeout(hideStimulus)
-      clearTimeout(advanceTrial)
+      clearTimeout(endTrial)
     }
   }, [
     state.currentTrialIndex,
     state.status,
+    phase,
     config.displayDurationMs,
     config.trialLengthMs,
+    config.liveFeedback,
   ])
+
+  useEffect(() => {
+    if (phase !== 'feedback') return
+    const endFeedback = setTimeout(() => setPhase('trial'), config.displayDurationMs)
+    return () => clearTimeout(endFeedback)
+  }, [phase, config.displayDurationMs])
 
   const assertStreamMatch = useCallback((kind: StreamKind) => {
     setState((current) => assertMatch(current, kind))
   }, [])
 
-  const [feedbackVisible, setFeedbackVisible] = useState(false)
+  const feedback = phase === 'feedback' ? getLiveFeedback(state) : {}
+  const readyForSummary = state.status === 'completed' && (!config.liveFeedback || phase !== 'feedback')
 
-  useEffect(() => {
-    if (!config.liveFeedback || state.currentTrialIndex === 0) return
-
-    setFeedbackVisible(true)
-    const hideFeedback = setTimeout(() => setFeedbackVisible(false), config.displayDurationMs)
-    return () => clearTimeout(hideFeedback)
-  }, [state.currentTrialIndex, config.liveFeedback, config.displayDurationMs])
-
-  const feedback = feedbackVisible ? getLiveFeedback(state) : {}
-
-  return { state, stimulusVisible, feedback, assertStreamMatch }
+  return { state, stimulusVisible, feedback, readyForSummary, assertStreamMatch }
 }

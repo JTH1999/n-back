@@ -17,25 +17,13 @@ export interface SessionRunnerProps {
 }
 
 export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps) {
-  const { state, stimulusVisible, feedback, assertStreamMatch } = useSessionRunner(config)
+  const { state, stimulusVisible, feedback, readyForSummary, assertStreamMatch } =
+    useSessionRunner(config)
   const [pressedStreams, setPressedStreams] = useState<ReadonlySet<StreamKind>>(new Set())
-  const [showSummary, setShowSummary] = useState(false)
 
   useEffect(() => {
     setPressedStreams(new Set())
   }, [state.currentTrialIndex])
-
-  // Hold the final trial's feedback indicator on screen before swapping to the
-  // summary, so the last trial's outcome isn't the only one that never resolves visibly.
-  useEffect(() => {
-    if (state.status !== 'completed') return
-    if (!config.liveFeedback) {
-      setShowSummary(true)
-      return
-    }
-    const revealSummary = setTimeout(() => setShowSummary(true), config.displayDurationMs)
-    return () => clearTimeout(revealSummary)
-  }, [state.status, config.liveFeedback, config.displayDurationMs])
 
   const handleAssert = useCallback(
     (kind: StreamKind) => {
@@ -57,7 +45,7 @@ export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [state.status, state.activeStreams, keymap, handleAssert])
 
-  if (showSummary) {
+  if (readyForSummary) {
     return <SessionSummary summary={getSummary(state)} onRestart={onRestart} />
   }
 
