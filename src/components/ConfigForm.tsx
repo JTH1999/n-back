@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import clsx from 'clsx'
-import { getActivePreset, usePresets } from '../adapters/usePresets'
+import { usePresets } from '../adapters/usePresets'
 import type { SessionRunnerConfig } from '../adapters/useSessionRunner'
 import type { Keymap } from '../config/keymap'
 import { STREAM_KINDS, type StreamKind } from '../engine/streams'
@@ -60,7 +60,7 @@ export interface ConfigFormProps {
 export function ConfigForm({ onStart, keymap, onRebindKey, onApplyKeymap }: ConfigFormProps) {
   const [config, setConfig] = useState(() => ({
     ...DEFAULT_CONFIG,
-    ...(getActivePreset()?.config ?? loadDraftSettings<SessionRunnerConfig>()),
+    ...loadDraftSettings<SessionRunnerConfig>(),
   }))
   const { presets, activePresetId, savePreset, loadPreset } = usePresets()
 

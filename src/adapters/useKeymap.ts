@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { DEFAULT_KEYMAP, rebindKeymap, type Keymap } from '../config/keymap'
 import type { StreamKind } from '../engine/streams'
 import { loadKeymap, saveKeymap } from '../persistence/keymapStorage'
-import { getActivePreset } from './usePresets'
 
 export interface UseKeymapResult {
   keymap: Keymap
@@ -13,7 +12,7 @@ export interface UseKeymapResult {
 export function useKeymap(): UseKeymapResult {
   const [keymap, setKeymap] = useState<Keymap>(() => ({
     ...DEFAULT_KEYMAP,
-    ...(getActivePreset()?.keymap ?? loadKeymap()),
+    ...loadKeymap(),
   }))
 
   useEffect(() => {

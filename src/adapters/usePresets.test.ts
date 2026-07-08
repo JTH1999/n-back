@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { DEFAULT_KEYMAP } from '../config/keymap'
-import { getActivePreset, usePresets } from './usePresets'
+import { usePresets } from './usePresets'
 import type { SessionRunnerConfig } from './useSessionRunner'
 
 const config: SessionRunnerConfig = {
@@ -87,21 +87,5 @@ describe('usePresets', () => {
 
     expect(remounted.current.presets).toHaveLength(1)
     expect(remounted.current.activePresetId).toBe(id)
-  })
-})
-
-describe('getActivePreset', () => {
-  it('returns null when no preset has ever been saved', () => {
-    expect(getActivePreset()).toBeNull()
-  })
-
-  it('returns the most recently saved or loaded preset', () => {
-    const { result } = renderHook(() => usePresets())
-
-    act(() => {
-      result.current.savePreset('Warm-up', config, DEFAULT_KEYMAP)
-    })
-
-    expect(getActivePreset()).toMatchObject({ name: 'Warm-up' })
   })
 })

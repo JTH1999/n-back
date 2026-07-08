@@ -179,7 +179,7 @@ describe('ConfigForm', () => {
     expect(onApplyKeymap).toHaveBeenCalledWith({ ...DEFAULT_KEYMAP, position: 'g' })
   })
 
-  it('restores the most recently used preset on mount instead of the plain draft settings', () => {
+  it('restores the most recently saved preset on mount, including which preset is marked active', () => {
     const { unmount } = renderConfigForm()
 
     fireEvent.change(screen.getByLabelText(/n-back level/i), { target: { value: '5' } })
@@ -191,5 +191,20 @@ describe('ConfigForm', () => {
 
     expect(screen.getByLabelText(/n-back level/i)).toHaveValue(5)
     expect(screen.getByRole('option', { name: 'Warm-up (active)' })).toBeInTheDocument()
+  })
+
+  it('keeps manually-adjusted settings on mount rather than reverting to a previously used preset', () => {
+    const { unmount } = renderConfigForm()
+
+    fireEvent.change(screen.getByLabelText(/n-back level/i), { target: { value: '5' } })
+    fireEvent.change(screen.getByLabelText(/preset name/i), { target: { value: 'Warm-up' } })
+    fireEvent.click(screen.getByRole('button', { name: /save preset/i }))
+
+    fireEvent.change(screen.getByLabelText(/n-back level/i), { target: { value: '7' } })
+    unmount()
+
+    renderConfigForm()
+
+    expect(screen.getByLabelText(/n-back level/i)).toHaveValue(7)
   })
 })

@@ -15,13 +15,6 @@ export interface Preset {
   keymap: Keymap
 }
 
-export function getActivePreset(): Preset | null {
-  const lastId = loadLastPresetId()
-  if (!lastId) return null
-  const presets = loadPresets<Preset[]>() ?? []
-  return presets.find((preset) => preset.id === lastId) ?? null
-}
-
 export interface UsePresetsResult {
   presets: Preset[]
   activePresetId: string | null
