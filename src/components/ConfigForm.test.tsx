@@ -92,6 +92,53 @@ describe('ConfigForm', () => {
     expect(screen.getByLabelText(/mute/i)).not.toBeChecked()
   })
 
+  it('defaults adaptive mode to off', () => {
+    renderConfigForm()
+
+    expect(screen.getByLabelText(/adaptive mode/i)).not.toBeChecked()
+    expect(screen.queryByLabelText(/lower accuracy threshold/i)).not.toBeInTheDocument()
+  })
+
+  it('starts a session with adaptive mode disabled by default', () => {
+    const onStart = vi.fn()
+    renderConfigForm({ onStart })
+
+    fireEvent.click(screen.getByRole('button', { name: /start session/i }))
+
+    expect(onStart).toHaveBeenCalledWith(
+      expect.objectContaining({
+        adaptive: { enabled: false, lowerThreshold: 0.5, upperThreshold: 0.8 },
+      }),
+    )
+  })
+
+  it('reveals and applies adaptive thresholds when enabled', () => {
+    const onStart = vi.fn()
+    renderConfigForm({ onStart })
+
+    fireEvent.click(screen.getByLabelText(/adaptive mode/i))
+    fireEvent.change(screen.getByLabelText(/lower accuracy threshold/i), { target: { value: '0.4' } })
+    fireEvent.change(screen.getByLabelText(/upper accuracy threshold/i), { target: { value: '0.9' } })
+    fireEvent.click(screen.getByRole('button', { name: /start session/i }))
+
+    expect(onStart).toHaveBeenCalledWith(
+      expect.objectContaining({
+        adaptive: { enabled: true, lowerThreshold: 0.4, upperThreshold: 0.9 },
+      }),
+    )
+  })
+
+  it('rejects a lower adaptive threshold above the upper threshold', () => {
+    renderConfigForm()
+
+    fireEvent.click(screen.getByLabelText(/adaptive mode/i))
+    fireEvent.change(screen.getByLabelText(/lower accuracy threshold/i), { target: { value: '0.9' } })
+    fireEvent.change(screen.getByLabelText(/upper accuracy threshold/i), { target: { value: '0.4' } })
+
+    expect(screen.getByText(/lower accuracy threshold must not exceed/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /start session/i })).toBeDisabled()
+  })
+
   it('renders the keymap editor and reports rebinds', () => {
     const onRebindKey = vi.fn()
     renderConfigForm({ onRebindKey })

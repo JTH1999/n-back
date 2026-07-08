@@ -21,7 +21,7 @@ function FieldRow({ label, className, children }: FieldRowProps) {
   )
 }
 
-const MAX_N = 20
+export const MAX_N = 20
 const MAX_TRIAL_COUNT = 500
 const MAX_DISPLAY_DURATION_MS = 60_000
 const MAX_TRIAL_LENGTH_MS = 60_000
@@ -41,6 +41,11 @@ const DEFAULT_CONFIG: SessionRunnerConfig = {
   volume: 1,
   muted: false,
   liveFeedback: false,
+  adaptive: {
+    enabled: false,
+    lowerThreshold: 0.5,
+    upperThreshold: 0.8,
+  },
 }
 
 export interface ConfigFormProps {
@@ -65,7 +70,14 @@ export function ConfigForm({ onStart, keymap, onRebindKey }: ConfigFormProps) {
       : (checkRange('N-back level', config.n, 1, MAX_N) ??
         checkRange('Trial count', config.trialCount, 1, MAX_TRIAL_COUNT) ??
         checkRange('Stimulus display duration', config.displayDurationMs, 1, MAX_DISPLAY_DURATION_MS, 'ms') ??
-        checkRange('Trial length', config.trialLengthMs, 1, MAX_TRIAL_LENGTH_MS, 'ms'))
+        checkRange('Trial length', config.trialLengthMs, 1, MAX_TRIAL_LENGTH_MS, 'ms') ??
+        (config.adaptive.enabled
+          ? (checkRange('Lower accuracy threshold', config.adaptive.lowerThreshold, 0, 1) ??
+            checkRange('Upper accuracy threshold', config.adaptive.upperThreshold, 0, 1) ??
+            (config.adaptive.lowerThreshold > config.adaptive.upperThreshold
+              ? 'Lower accuracy threshold must not exceed the upper threshold.'
+              : null))
+          : null))
 
   const isValid = validationMessage === null
 
@@ -172,6 +184,57 @@ export function ConfigForm({ onStart, keymap, onRebindKey }: ConfigFormProps) {
             onChange={(event) => setConfig({ ...config, liveFeedback: event.target.checked })}
           />
         </FieldRow>
+      </fieldset>
+      <fieldset className="flex flex-col gap-2">
+        <legend>Adaptive difficulty</legend>
+        <FieldRow label="Adaptive mode (auto-adjust N between sessions)">
+          <input
+            type="checkbox"
+            checked={config.adaptive.enabled}
+            onChange={(event) =>
+              setConfig({
+                ...config,
+                adaptive: { ...config.adaptive, enabled: event.target.checked },
+              })
+            }
+          />
+        </FieldRow>
+        {config.adaptive.enabled && (
+          <>
+            <FieldRow label="Lower accuracy threshold (decrease N below this)">
+              <input
+                type="number"
+                min={0}
+                max={1}
+                step={0.05}
+                value={config.adaptive.lowerThreshold}
+                onChange={(event) =>
+                  setConfig({
+                    ...config,
+                    adaptive: { ...config.adaptive, lowerThreshold: Number(event.target.value) },
+                  })
+                }
+                className="w-20 rounded border px-2 py-1"
+              />
+            </FieldRow>
+            <FieldRow label="Upper accuracy threshold (increase N above this)">
+              <input
+                type="number"
+                min={0}
+                max={1}
+                step={0.05}
+                value={config.adaptive.upperThreshold}
+                onChange={(event) =>
+                  setConfig({
+                    ...config,
+                    adaptive: { ...config.adaptive, upperThreshold: Number(event.target.value) },
+                  })
+                }
+                className="w-20 rounded border px-2 py-1"
+              />
+            </FieldRow>
+          </>
+        )}
       </fieldset>
       <KeymapEditor keymap={keymap} onRebind={onRebindKey} />
       {validationMessage && <p className="text-sm text-red-500">{validationMessage}</p>}

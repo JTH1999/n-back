@@ -188,6 +188,23 @@ export function advance(state: SessionState): SessionState {
   }
 }
 
+export interface AdaptiveThresholds {
+  lowerThreshold: number
+  upperThreshold: number
+}
+
+// Boundary accuracy values fall inside the "unchanged" band, so only accuracy
+// strictly beyond a threshold triggers a change.
+export function computeRecommendedN(
+  currentN: number,
+  accuracy: number,
+  thresholds: AdaptiveThresholds,
+): number {
+  if (accuracy > thresholds.upperThreshold) return currentN + 1
+  if (accuracy < thresholds.lowerThreshold) return Math.max(1, currentN - 1)
+  return currentN
+}
+
 export interface StreamSummary {
   kind: StreamKind
   totalTrials: number

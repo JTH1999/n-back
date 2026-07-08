@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   advance,
   assertMatch,
+  computeRecommendedN,
   createSession,
   getLiveFeedback,
   getSummary,
@@ -410,5 +411,33 @@ describe('getSummary', () => {
         streamSummary.hits + streamSummary.misses + streamSummary.falseAlarms + streamSummary.correctRejections,
       ).toBe(trialCount)
     }
+  })
+})
+
+describe('computeRecommendedN', () => {
+  const thresholds = { lowerThreshold: 0.5, upperThreshold: 0.8 }
+
+  it('increases N when accuracy exceeds the upper threshold', () => {
+    expect(computeRecommendedN(3, 0.81, thresholds)).toBe(4)
+  })
+
+  it('decreases N when accuracy is below the lower threshold', () => {
+    expect(computeRecommendedN(3, 0.49, thresholds)).toBe(2)
+  })
+
+  it('leaves N unchanged at the upper threshold boundary', () => {
+    expect(computeRecommendedN(3, 0.8, thresholds)).toBe(3)
+  })
+
+  it('leaves N unchanged at the lower threshold boundary', () => {
+    expect(computeRecommendedN(3, 0.5, thresholds)).toBe(3)
+  })
+
+  it('leaves N unchanged inside the band', () => {
+    expect(computeRecommendedN(3, 0.65, thresholds)).toBe(3)
+  })
+
+  it('never decreases N below 1', () => {
+    expect(computeRecommendedN(1, 0, thresholds)).toBe(1)
   })
 })
