@@ -3,6 +3,7 @@ import {
   advance,
   assertMatch,
   createSession,
+  getLiveFeedback,
   getSummary,
   type SessionState,
   type StreamsState,
@@ -277,6 +278,35 @@ describe('assertMatch', () => {
     }
 
     expect(assertMatch(state, 'position')).toEqual(state)
+  })
+})
+
+describe('getLiveFeedback', () => {
+  it('returns no feedback before any trial has resolved', () => {
+    const state = buildState({ n: 2, activeStreams: ['position'], sequences: { position: [0, 1, 0] } })
+    const stateAtTrial0 = { ...state, currentTrialIndex: 0 }
+
+    expect(getLiveFeedback(stateAtTrial0)).toEqual({})
+  })
+
+  it('returns the outcome of the trial that just resolved for each active stream', () => {
+    const state = buildState({
+      n: 2,
+      activeStreams: ['position', 'shape'],
+      sequences: { position: [0, 1, 0], shape: ['circle', 'square', 'triangle'] },
+      responded: { position: [false, false, true], shape: [false, false, false] },
+    })
+
+    const next = advance(state)
+
+    expect(getLiveFeedback(next)).toEqual({ position: 'hit', shape: 'correct-rejection' })
+  })
+
+  it('omits streams that have not resolved that trial yet', () => {
+    const state = buildState({ n: 2, activeStreams: ['position'], sequences: { position: [0, 1, 0] } })
+    const stateAtTrial1 = { ...state, currentTrialIndex: 1 }
+
+    expect(getLiveFeedback(stateAtTrial1)).toEqual({})
   })
 })
 

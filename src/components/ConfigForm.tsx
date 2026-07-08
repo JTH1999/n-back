@@ -40,6 +40,7 @@ const DEFAULT_CONFIG: SessionRunnerConfig = {
   trialLengthMs: 2500,
   volume: 1,
   muted: false,
+  liveFeedback: false,
 }
 
 export interface ConfigFormProps {
@@ -159,6 +160,16 @@ export function ConfigForm({ onStart, keymap, onRebindKey }: ConfigFormProps) {
             type="checkbox"
             checked={config.muted}
             onChange={(event) => setConfig({ ...config, muted: event.target.checked })}
+          />
+        </FieldRow>
+      </fieldset>
+      <fieldset className="flex flex-col gap-2">
+        <legend>Feedback</legend>
+        <FieldRow label="Live feedback (show per-trial results)">
+          <input
+            type="checkbox"
+            checked={config.liveFeedback}
+            onChange={(event) => setConfig({ ...config, liveFeedback: event.target.checked })}
           />
         </FieldRow>
       </fieldset>

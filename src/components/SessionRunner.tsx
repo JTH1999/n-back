@@ -17,7 +17,8 @@ export interface SessionRunnerProps {
 }
 
 export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps) {
-  const { state, stimulusVisible, assertStreamMatch } = useSessionRunner(config)
+  const { state, stimulusVisible, feedback, readyForSummary, acceptingInput, assertStreamMatch } =
+    useSessionRunner(config)
   const [pressedStreams, setPressedStreams] = useState<ReadonlySet<StreamKind>>(new Set())
 
   useEffect(() => {
@@ -26,10 +27,11 @@ export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps)
 
   const handleAssert = useCallback(
     (kind: StreamKind) => {
+      if (!acceptingInput) return
       assertStreamMatch(kind)
       setPressedStreams((current) => (current.has(kind) ? current : new Set(current).add(kind)))
     },
-    [assertStreamMatch],
+    [acceptingInput, assertStreamMatch],
   )
 
   useEffect(() => {
@@ -44,7 +46,7 @@ export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [state.status, state.activeStreams, keymap, handleAssert])
 
-  if (state.status === 'completed') {
+  if (readyForSummary) {
     return <SessionSummary summary={getSummary(state)} onRestart={onRestart} />
   }
 
@@ -54,7 +56,7 @@ export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps)
     <>
       <div className="flex flex-col items-center gap-4 pb-24">
         <p>
-          Trial {state.currentTrialIndex + 1} of {state.trialCount}
+          Trial {Math.min(state.currentTrialIndex + 1, state.trialCount)} of {state.trialCount}
         </p>
         <Grid stimulus={stimulus} />
         <ul className="flex flex-col items-center gap-1 text-sm text-slate-500">
@@ -69,6 +71,7 @@ export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps)
       <StreamButtons
         activeStreams={state.activeStreams}
         pressedStreams={pressedStreams}
+        feedback={feedback}
         onAssert={handleAssert}
       />
     </>

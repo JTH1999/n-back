@@ -146,6 +146,16 @@ export function getStimulusDisplay(
   }
 }
 
+export function getLiveFeedback(state: SessionState): Partial<Record<StreamKind, TrialOutcome>> {
+  const resolvedTrialIndex = state.currentTrialIndex - 1
+  if (resolvedTrialIndex < 0) return {}
+
+  return buildStreamsRecord(
+    state.activeStreams,
+    (kind) => state.streams[kind]?.outcomes[resolvedTrialIndex] ?? undefined,
+  )
+}
+
 export function advance(state: SessionState): SessionState {
   const { currentTrialIndex, n } = state
   const streams = buildStreamsRecord(state.activeStreams, (kind) => {
