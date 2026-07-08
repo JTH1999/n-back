@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   useSessionRunner,
   type SessionRunnerConfig,
@@ -6,6 +6,7 @@ import {
 import { getStimulusDisplay, getSummary } from '../engine/sessionEngine'
 import type { Keymap } from '../config/keymap'
 import type { StreamKind } from '../engine/streams'
+import { appendHistoryRecord } from '../persistence/historyStorage'
 import { Grid } from './Grid'
 import { SessionSummary } from './SessionSummary'
 import { StreamButtons } from './StreamButtons'
@@ -20,10 +21,18 @@ export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps)
   const { state, stimulusVisible, feedback, readyForSummary, acceptingInput, assertStreamMatch } =
     useSessionRunner(config)
   const [pressedStreams, setPressedStreams] = useState<ReadonlySet<StreamKind>>(new Set())
+  const hasRecordedHistory = useRef(false)
+  const summary = useMemo(() => (readyForSummary ? getSummary(state) : null), [readyForSummary, state])
 
   useEffect(() => {
     setPressedStreams(new Set())
   }, [state.currentTrialIndex])
+
+  useEffect(() => {
+    if (!summary || hasRecordedHistory.current) return
+    hasRecordedHistory.current = true
+    appendHistoryRecord({ timestamp: new Date().toISOString(), config, summary })
+  }, [summary, config])
 
   const handleAssert = useCallback(
     (kind: StreamKind) => {
@@ -46,8 +55,8 @@ export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [state.status, state.activeStreams, keymap, handleAssert])
 
-  if (readyForSummary) {
-    return <SessionSummary summary={getSummary(state)} onRestart={onRestart} />
+  if (summary) {
+    return <SessionSummary summary={summary} onRestart={onRestart} />
   }
 
   const stimulus = getStimulusDisplay(state, stimulusVisible)

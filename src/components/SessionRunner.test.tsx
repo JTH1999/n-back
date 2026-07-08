@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FEEDBACK_FLASH_MS, type SessionRunnerConfig } from '../adapters/useSessionRunner'
+import { loadHistory } from '../persistence/historyStorage'
 import { SessionRunner } from './SessionRunner'
 
 const config: SessionRunnerConfig = {
@@ -53,6 +54,48 @@ describe('SessionRunner keyboard handling', () => {
 function positionButtonOutline() {
   return screen.getByRole('button', { name: /position/i }).className
 }
+
+describe('SessionRunner history persistence', () => {
+  beforeEach(() => {
+    window.localStorage.clear()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('records a history entry once the summary is reached', () => {
+    vi.useFakeTimers()
+    render(
+      <SessionRunner
+        config={{ ...config, trialCount: 1, displayDurationMs: 100, trialLengthMs: 200 }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={vi.fn()}
+      />,
+    )
+
+    act(() => {
+      vi.advanceTimersByTime(200)
+    })
+
+    const history = loadHistory()
+    expect(history).toHaveLength(1)
+    expect(history[0].config.n).toBe(config.n)
+    expect(history[0].summary.totalTrials).toBe(1)
+  })
+
+  it('does not record history while a session is still in progress', () => {
+    render(
+      <SessionRunner
+        config={{ ...config, trialCount: 5 }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={vi.fn()}
+      />,
+    )
+
+    expect(loadHistory()).toHaveLength(0)
+  })
+})
 
 describe('SessionRunner live feedback', () => {
   afterEach(() => {
