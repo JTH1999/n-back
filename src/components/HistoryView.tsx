@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { loadHistory } from '../persistence/historyStorage'
-import { TrendChart } from './TrendChart'
+import { TrendChart, type TrendPoint } from './TrendChart'
 
 export interface HistoryViewProps {
   onBack: () => void
@@ -9,24 +9,21 @@ export interface HistoryViewProps {
 export function HistoryView({ onBack }: HistoryViewProps) {
   const [history] = useState(() => loadHistory())
 
+  const trendData: TrendPoint[] = history.map((record) => ({
+    date: new Date(record.timestamp).toLocaleDateString(),
+    accuracy: Math.round(record.summary.accuracy * 100),
+    n: record.config.n,
+  }))
+
   return (
     <div className="flex w-full flex-col gap-6">
       {history.length === 0 ? (
         <p className="text-sm text-slate-500">No completed sessions yet.</p>
       ) : (
         <>
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
             <h2 className="text-xl font-semibold">Trends</h2>
-            <TrendChart
-              label="Accuracy"
-              values={history.map((record) => record.summary.accuracy)}
-              formatValue={(value) => `${Math.round(value * 100)}%`}
-            />
-            <TrendChart
-              label="N-back level"
-              values={history.map((record) => record.config.n)}
-              formatValue={(value) => String(value)}
-            />
+            <TrendChart data={trendData} />
           </div>
           <div className="flex flex-col gap-2">
             <h2 className="text-xl font-semibold">Past sessions</h2>
