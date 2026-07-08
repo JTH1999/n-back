@@ -17,12 +17,25 @@ export interface SessionRunnerProps {
 }
 
 export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps) {
-  const { state, stimulusVisible, assertStreamMatch } = useSessionRunner(config)
+  const { state, stimulusVisible, feedback, assertStreamMatch } = useSessionRunner(config)
   const [pressedStreams, setPressedStreams] = useState<ReadonlySet<StreamKind>>(new Set())
+  const [showSummary, setShowSummary] = useState(false)
 
   useEffect(() => {
     setPressedStreams(new Set())
   }, [state.currentTrialIndex])
+
+  // Hold the final trial's feedback indicator on screen before swapping to the
+  // summary, so the last trial's outcome isn't the only one that never resolves visibly.
+  useEffect(() => {
+    if (state.status !== 'completed') return
+    if (!config.liveFeedback) {
+      setShowSummary(true)
+      return
+    }
+    const revealSummary = setTimeout(() => setShowSummary(true), config.displayDurationMs)
+    return () => clearTimeout(revealSummary)
+  }, [state.status, config.liveFeedback, config.displayDurationMs])
 
   const handleAssert = useCallback(
     (kind: StreamKind) => {
@@ -44,7 +57,7 @@ export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [state.status, state.activeStreams, keymap, handleAssert])
 
-  if (state.status === 'completed') {
+  if (showSummary) {
     return <SessionSummary summary={getSummary(state)} onRestart={onRestart} />
   }
 
@@ -54,7 +67,7 @@ export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps)
     <>
       <div className="flex flex-col items-center gap-4 pb-24">
         <p>
-          Trial {state.currentTrialIndex + 1} of {state.trialCount}
+          Trial {Math.min(state.currentTrialIndex + 1, state.trialCount)} of {state.trialCount}
         </p>
         <Grid stimulus={stimulus} />
         <ul className="flex flex-col items-center gap-1 text-sm text-slate-500">
@@ -69,6 +82,7 @@ export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps)
       <StreamButtons
         activeStreams={state.activeStreams}
         pressedStreams={pressedStreams}
+        feedback={feedback}
         onAssert={handleAssert}
       />
     </>

@@ -48,6 +48,7 @@ describe('ConfigForm', () => {
     fireEvent.change(screen.getByLabelText(/n-back level/i), { target: { value: '5' } })
     fireEvent.click(screen.getByLabelText(/letter/i))
     fireEvent.click(screen.getByLabelText(/mute/i))
+    fireEvent.click(screen.getByLabelText(/live feedback/i))
     unmount()
 
     renderConfigForm()
@@ -55,6 +56,22 @@ describe('ConfigForm', () => {
     expect(screen.getByLabelText(/n-back level/i)).toHaveValue(5)
     expect(screen.getByLabelText(/letter/i)).toBeChecked()
     expect(screen.getByLabelText(/mute/i)).toBeChecked()
+    expect(screen.getByLabelText(/live feedback/i)).toBeChecked()
+  })
+
+  it('defaults live feedback to off', () => {
+    renderConfigForm()
+
+    expect(screen.getByLabelText(/live feedback/i)).not.toBeChecked()
+  })
+
+  it('starts a session with live feedback disabled by default', () => {
+    const onStart = vi.fn()
+    renderConfigForm({ onStart })
+
+    fireEvent.click(screen.getByRole('button', { name: /start session/i }))
+
+    expect(onStart).toHaveBeenCalledWith(expect.objectContaining({ liveFeedback: false }))
   })
 
   it('disables the volume slider while muted', () => {

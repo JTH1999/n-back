@@ -49,4 +49,35 @@ describe('StreamButtons', () => {
       'outline-transparent',
     )
   })
+
+  it('shows no feedback indicator when no feedback is provided', () => {
+    render(
+      <StreamButtons
+        activeStreams={['position']}
+        pressedStreams={new Set()}
+        onAssert={vi.fn()}
+      />,
+    )
+
+    expect(screen.queryByTestId('feedback-position')).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['hit', 'bg-green-500'],
+    ['correct-rejection', 'bg-green-500'],
+    ['miss', 'bg-red-500'],
+    ['false-alarm', 'bg-red-500'],
+  ] as const)('renders a %s indicator with the expected color', (outcome, colorClass) => {
+    render(
+      <StreamButtons
+        activeStreams={['position', 'shape']}
+        pressedStreams={new Set()}
+        feedback={{ position: outcome }}
+        onAssert={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByTestId('feedback-position').className).toContain(colorClass)
+    expect(screen.queryByTestId('feedback-shape')).not.toBeInTheDocument()
+  })
 })

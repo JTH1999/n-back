@@ -3,8 +3,10 @@ import {
   advance,
   assertMatch,
   createSession,
+  getLiveFeedback,
   type SessionConfig,
   type SessionState,
+  type TrialOutcome,
 } from '../engine/sessionEngine'
 import type { StreamKind } from '../engine/streams'
 import { playLetter } from '../audio/letterAudio'
@@ -14,11 +16,13 @@ export interface SessionRunnerConfig extends SessionConfig {
   trialLengthMs: number
   volume: number
   muted: boolean
+  liveFeedback: boolean
 }
 
 export interface SessionRunner {
   state: SessionState
   stimulusVisible: boolean
+  feedback: Partial<Record<StreamKind, TrialOutcome>>
   assertStreamMatch: (kind: StreamKind) => void
 }
 
@@ -60,5 +64,17 @@ export function useSessionRunner(config: SessionRunnerConfig): SessionRunner {
     setState((current) => assertMatch(current, kind))
   }, [])
 
-  return { state, stimulusVisible, assertStreamMatch }
+  const [feedbackVisible, setFeedbackVisible] = useState(false)
+
+  useEffect(() => {
+    if (!config.liveFeedback || state.currentTrialIndex === 0) return
+
+    setFeedbackVisible(true)
+    const hideFeedback = setTimeout(() => setFeedbackVisible(false), config.displayDurationMs)
+    return () => clearTimeout(hideFeedback)
+  }, [state.currentTrialIndex, config.liveFeedback, config.displayDurationMs])
+
+  const feedback = feedbackVisible ? getLiveFeedback(state) : {}
+
+  return { state, stimulusVisible, feedback, assertStreamMatch }
 }
