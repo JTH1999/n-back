@@ -11,6 +11,7 @@ const config: SessionRunnerConfig = {
   volume: 1,
   muted: true,
   liveFeedback: true,
+  adaptive: { enabled: false, lowerThreshold: 0.5, upperThreshold: 0.8 },
 }
 
 describe('useSessionRunner input gating during the feedback pause', () => {

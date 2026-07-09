@@ -12,6 +12,7 @@ const config: SessionRunnerConfig = {
   volume: 1,
   muted: false,
   liveFeedback: false,
+  adaptive: { enabled: false, lowerThreshold: 0.5, upperThreshold: 0.8 },
 }
 
 const summary: SessionSummary = {

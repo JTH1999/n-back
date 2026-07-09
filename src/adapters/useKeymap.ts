@@ -6,6 +6,7 @@ import { loadKeymap, saveKeymap } from '../persistence/keymapStorage'
 export interface UseKeymapResult {
   keymap: Keymap
   rebind: (kind: StreamKind, key: string) => void
+  setKeymap: (keymap: Keymap) => void
 }
 
 export function useKeymap(): UseKeymapResult {
@@ -22,5 +23,5 @@ export function useKeymap(): UseKeymapResult {
     setKeymap((current) => rebindKeymap(current, kind, key))
   }, [])
 
-  return { keymap, rebind }
+  return { keymap, rebind, setKeymap }
 }
