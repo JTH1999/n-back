@@ -5,6 +5,7 @@ import type { SessionRunnerConfig } from '../adapters/useSessionRunner'
 import type { Keymap } from '../config/keymap'
 import { STREAM_KINDS, type StreamKind } from '../engine/streams'
 import { loadDraftSettings, saveDraftSettings } from '../persistence/settingsStorage'
+import { ExportImportPanel } from './ExportImportPanel'
 import { KeymapEditor } from './KeymapEditor'
 import { PresetManager } from './PresetManager'
 
@@ -258,6 +259,7 @@ export function ConfigForm({ onStart, keymap, onRebindKey, onApplyKeymap }: Conf
         onSave={handleSavePreset}
         onLoad={handleLoadPreset}
       />
+      <ExportImportPanel />
       {validationMessage && <p className="text-sm text-red-500">{validationMessage}</p>}
       <button
         type="submit"

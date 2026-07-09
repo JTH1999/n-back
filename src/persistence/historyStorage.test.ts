@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { SessionRunnerConfig } from '../adapters/useSessionRunner'
 import type { SessionSummary } from '../engine/sessionEngine'
-import { appendHistoryRecord, loadHistory } from './historyStorage'
+import { appendHistoryRecord, loadHistory, replaceHistory } from './historyStorage'
 
 const config: SessionRunnerConfig = {
   n: 2,
@@ -64,5 +64,25 @@ describe('appendHistoryRecord', () => {
     appendHistoryRecord(second)
 
     expect(loadHistory()).toEqual([first, second])
+  })
+})
+
+describe('replaceHistory', () => {
+  it('overwrites any existing history', () => {
+    const first = { timestamp: '2026-07-08T12:00:00.000Z', config, summary }
+    appendHistoryRecord(first)
+
+    const second = { timestamp: '2026-07-08T12:05:00.000Z', config, summary }
+    replaceHistory([second])
+
+    expect(loadHistory()).toEqual([second])
+  })
+
+  it('can clear history by replacing it with an empty array', () => {
+    appendHistoryRecord({ timestamp: '2026-07-08T12:00:00.000Z', config, summary })
+
+    replaceHistory([])
+
+    expect(loadHistory()).toEqual([])
   })
 })
