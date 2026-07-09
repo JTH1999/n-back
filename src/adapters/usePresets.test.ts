@@ -74,6 +74,72 @@ describe('usePresets', () => {
     expect(result.current.activePresetId).toBeNull()
   })
 
+  it('deletes a preset by id', () => {
+    const { result } = renderHook(() => usePresets())
+
+    act(() => {
+      result.current.savePreset('Warm-up', config, DEFAULT_KEYMAP)
+    })
+    const id = result.current.presets[0].id
+
+    act(() => {
+      result.current.deletePreset(id)
+    })
+
+    expect(result.current.presets).toEqual([])
+  })
+
+  it('clears the active preset id when the active preset is deleted', () => {
+    const { result } = renderHook(() => usePresets())
+
+    act(() => {
+      result.current.savePreset('Warm-up', config, DEFAULT_KEYMAP)
+    })
+    const id = result.current.presets[0].id
+
+    act(() => {
+      result.current.deletePreset(id)
+    })
+
+    expect(result.current.activePresetId).toBeNull()
+  })
+
+  it('leaves the active preset id untouched when a different preset is deleted', () => {
+    const { result } = renderHook(() => usePresets())
+
+    act(() => {
+      result.current.savePreset('Warm-up', config, DEFAULT_KEYMAP)
+    })
+    const warmUpId = result.current.presets[0].id
+    act(() => {
+      result.current.savePreset('Hard mode', { ...config, n: 4 }, DEFAULT_KEYMAP)
+    })
+
+    act(() => {
+      result.current.deletePreset(warmUpId)
+    })
+
+    expect(result.current.activePresetId).not.toBe(warmUpId)
+    expect(result.current.presets).toHaveLength(1)
+  })
+
+  it('persists deletions across remounts', () => {
+    const { result, unmount } = renderHook(() => usePresets())
+
+    act(() => {
+      result.current.savePreset('Warm-up', config, DEFAULT_KEYMAP)
+    })
+    const id = result.current.presets[0].id
+    act(() => {
+      result.current.deletePreset(id)
+    })
+    unmount()
+
+    const { result: remounted } = renderHook(() => usePresets())
+
+    expect(remounted.current.presets).toEqual([])
+  })
+
   it('persists the saved preset list and active id across remounts', () => {
     const { result, unmount } = renderHook(() => usePresets())
 

@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import type { Keymap } from '../config/keymap'
 import {
+  clearLastPresetId,
   loadLastPresetId,
   loadPresets,
   saveLastPresetId,
@@ -20,6 +21,7 @@ export interface UsePresetsResult {
   activePresetId: string | null
   savePreset: (name: string, config: SessionRunnerConfig, keymap: Keymap) => void
   loadPreset: (id: string) => Preset | undefined
+  deletePreset: (id: string) => void
 }
 
 export function usePresets(): UsePresetsResult {
@@ -48,5 +50,21 @@ export function usePresets(): UsePresetsResult {
     [presets],
   )
 
-  return { presets, activePresetId, savePreset, loadPreset }
+  const deletePreset = useCallback(
+    (id: string) => {
+      setPresets((current) => {
+        const next = current.filter((preset) => preset.id !== id)
+        savePresets(next)
+        return next
+      })
+      setActivePresetId((current) => {
+        if (current !== id) return current
+        clearLastPresetId()
+        return null
+      })
+    },
+    [],
+  )
+
+  return { presets, activePresetId, savePreset, loadPreset, deletePreset }
 }

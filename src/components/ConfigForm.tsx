@@ -1,15 +1,13 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import clsx from 'clsx'
-import { usePresets } from '../adapters/usePresets'
+import { useDraftConfig } from '../adapters/useDraftConfig'
 import type { SessionRunnerConfig } from '../adapters/useSessionRunner'
 import type { Keymap } from '../config/keymap'
 import type { ThemeOverride } from '../config/theme'
 import { STREAM_KINDS, type StreamKind } from '../engine/streams'
-import { loadDraftSettings, saveDraftSettings } from '../persistence/settingsStorage'
 import { BORDERED_CONTROL_CLASS } from '../styles/controls'
 import { ExportImportPanel } from './ExportImportPanel'
 import { KeymapEditor } from './KeymapEditor'
-import { PresetManager } from './PresetManager'
 import { ThemeToggle } from './ThemeToggle'
 
 interface FieldRowProps {
@@ -38,27 +36,10 @@ function checkRange(label: string, value: number, min: number, max: number, unit
   return null
 }
 
-const DEFAULT_CONFIG: SessionRunnerConfig = {
-  n: 2,
-  trialCount: 20,
-  streams: ['position'],
-  displayDurationMs: 500,
-  trialLengthMs: 2500,
-  volume: 1,
-  muted: false,
-  liveFeedback: false,
-  adaptive: {
-    enabled: false,
-    lowerThreshold: 0.5,
-    upperThreshold: 0.8,
-  },
-}
-
 export interface ConfigFormProps {
   onStart: (config: SessionRunnerConfig) => void
   keymap: Keymap
   onRebindKey: (kind: StreamKind, key: string) => void
-  onApplyKeymap: (keymap: Keymap) => void
   themeOverride: ThemeOverride | null
   onChangeTheme: (theme: ThemeOverride | null) => void
 }
@@ -67,30 +48,10 @@ export function ConfigForm({
   onStart,
   keymap,
   onRebindKey,
-  onApplyKeymap,
   themeOverride,
   onChangeTheme,
 }: ConfigFormProps) {
-  const [config, setConfig] = useState(() => ({
-    ...DEFAULT_CONFIG,
-    ...loadDraftSettings<SessionRunnerConfig>(),
-  }))
-  const { presets, activePresetId, savePreset, loadPreset } = usePresets()
-
-  useEffect(() => {
-    saveDraftSettings(config)
-  }, [config])
-
-  const handleSavePreset = (name: string) => {
-    savePreset(name, config, keymap)
-  }
-
-  const handleLoadPreset = (id: string) => {
-    const preset = loadPreset(id)
-    if (!preset) return
-    setConfig(preset.config)
-    onApplyKeymap(preset.keymap)
-  }
+  const [config, setConfig] = useDraftConfig()
 
   const validationMessage =
     config.streams.length < 1
@@ -266,12 +227,6 @@ export function ConfigForm({
       </fieldset>
       <ThemeToggle override={themeOverride} onChange={onChangeTheme} />
       <KeymapEditor keymap={keymap} onRebind={onRebindKey} />
-      <PresetManager
-        presets={presets}
-        activePresetId={activePresetId}
-        onSave={handleSavePreset}
-        onLoad={handleLoadPreset}
-      />
       <ExportImportPanel />
       {validationMessage && <p className="text-sm text-red-500">{validationMessage}</p>}
       <button
