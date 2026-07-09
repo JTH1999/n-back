@@ -157,6 +157,38 @@ describe('parseExportedState', () => {
     expect(() => parseExportedState(JSON.stringify(payload))).toThrow(ImportValidationError)
   })
 
+  it('backfills history and preset configs recorded before liveFeedback/adaptive existed', () => {
+    const legacyConfig = {
+      n: 2,
+      trialCount: 20,
+      streams: ['position'],
+      displayDurationMs: 500,
+      trialLengthMs: 2500,
+      volume: 1,
+    }
+    const payload = {
+      version: EXPORT_FORMAT_VERSION,
+      exportedAt: '2026-07-08T12:00:00.000Z',
+      history: [{ ...historyRecord, config: legacyConfig }],
+      presets: [{ ...preset, config: legacyConfig }],
+      lastPresetId: preset.id,
+      draftSettings: legacyConfig,
+      keymap: null,
+    }
+
+    const result = parseExportedState(JSON.stringify(payload))
+
+    expect(result.history[0].config.adaptive).toEqual({
+      enabled: false,
+      lowerThreshold: 0.5,
+      upperThreshold: 0.8,
+    })
+    expect(result.history[0].config.muted).toBe(false)
+    expect(result.history[0].config.liveFeedback).toBe(false)
+    expect(result.presets[0].config.adaptive).toBeDefined()
+    expect(result.draftSettings?.adaptive).toBeDefined()
+  })
+
   it('throws ImportValidationError when presets are malformed', () => {
     const payload = {
       version: EXPORT_FORMAT_VERSION,

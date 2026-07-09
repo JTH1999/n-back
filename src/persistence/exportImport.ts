@@ -58,22 +58,29 @@ export function parseExportedState(raw: string): ExportedState {
   if (typeof parsed.exportedAt !== 'string') {
     throw new ImportValidationError('Backup is missing an export date.')
   }
-  if (!Array.isArray(parsed.history) || !parsed.history.every(isHistoryRecord)) {
+  if (!Array.isArray(parsed.history)) {
     throw new ImportValidationError('Session history is missing or malformed.')
   }
-  if (!Array.isArray(parsed.presets) || !parsed.presets.every(isPreset)) {
+  const history = parsed.history.map(normalizeHistoryRecord)
+  if (!history.every(isHistoryRecord)) {
+    throw new ImportValidationError('Session history is missing or malformed.')
+  }
+  if (!Array.isArray(parsed.presets)) {
+    throw new ImportValidationError('Presets are missing or malformed.')
+  }
+  const presets = parsed.presets.map(normalizePreset)
+  if (!presets.every(isPreset)) {
     throw new ImportValidationError('Presets are missing or malformed.')
   }
   if (parsed.lastPresetId !== null && typeof parsed.lastPresetId !== 'string') {
     throw new ImportValidationError('Last-used preset id is malformed.')
   }
-  if (
-    parsed.lastPresetId !== null &&
-    !parsed.presets.some((preset) => preset.id === parsed.lastPresetId)
-  ) {
+  if (parsed.lastPresetId !== null && !presets.some((preset) => preset.id === parsed.lastPresetId)) {
     throw new ImportValidationError('Last-used preset id does not match any imported preset.')
   }
-  if (parsed.draftSettings !== null && !isSessionRunnerConfig(parsed.draftSettings)) {
+  const draftSettings =
+    parsed.draftSettings !== null ? normalizeSessionRunnerConfig(parsed.draftSettings) : null
+  if (draftSettings !== null && !isSessionRunnerConfig(draftSettings)) {
     throw new ImportValidationError('Settings are missing or malformed.')
   }
   if (parsed.keymap !== null && !isPartialKeymap(parsed.keymap)) {
@@ -83,10 +90,10 @@ export function parseExportedState(raw: string): ExportedState {
   return {
     version: parsed.version,
     exportedAt: parsed.exportedAt,
-    history: parsed.history,
-    presets: parsed.presets,
+    history,
+    presets,
     lastPresetId: parsed.lastPresetId,
-    draftSettings: parsed.draftSettings,
+    draftSettings,
     keymap: parsed.keymap,
   }
 }
@@ -107,6 +114,34 @@ export function applyExportedState(state: ExportedState): void {
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+// Backfills config fields added after the app's initial release (liveFeedback,
+// adaptive) so history/presets/settings saved before those features shipped
+// still pass import validation instead of being rejected as malformed.
+function normalizeSessionRunnerConfig(value: unknown): unknown {
+  if (!isPlainObject(value)) return value
+  const adaptive = isPlainObject(value.adaptive) ? value.adaptive : {}
+  return {
+    ...value,
+    muted: typeof value.muted === 'boolean' ? value.muted : false,
+    liveFeedback: typeof value.liveFeedback === 'boolean' ? value.liveFeedback : false,
+    adaptive: {
+      enabled: typeof adaptive.enabled === 'boolean' ? adaptive.enabled : false,
+      lowerThreshold: typeof adaptive.lowerThreshold === 'number' ? adaptive.lowerThreshold : 0.5,
+      upperThreshold: typeof adaptive.upperThreshold === 'number' ? adaptive.upperThreshold : 0.8,
+    },
+  }
+}
+
+function normalizeHistoryRecord(value: unknown): unknown {
+  if (!isPlainObject(value)) return value
+  return { ...value, config: normalizeSessionRunnerConfig(value.config) }
+}
+
+function normalizePreset(value: unknown): unknown {
+  if (!isPlainObject(value)) return value
+  return { ...value, config: normalizeSessionRunnerConfig(value.config) }
 }
 
 function isSessionRunnerConfig(value: unknown): value is SessionRunnerConfig {
