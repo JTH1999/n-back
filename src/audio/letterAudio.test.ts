@@ -28,7 +28,10 @@ describe('playLetter', () => {
     cancel = vi.fn()
     vi.stubGlobal('speechSynthesis', { speak, cancel })
     class MockUtterance {
-      constructor(public text: string) {}
+      text: string
+      constructor(text: string) {
+        this.text = text
+      }
     }
     vi.stubGlobal('SpeechSynthesisUtterance', MockUtterance)
   })
