@@ -2,25 +2,36 @@ import { useState } from 'react'
 import { useKeymap } from './adapters/useKeymap'
 import type { SessionRunnerConfig } from './adapters/useSessionRunner'
 import { useTheme } from './adapters/useTheme'
+import { AppShell, type NavItem } from './components/AppShell'
 import { ConfigForm } from './components/ConfigForm'
 import { HistoryView } from './components/HistoryView'
 import { SessionRunner } from './components/SessionRunner'
 
+type Screen = 'train' | 'history'
+
+const NAV_ITEMS: NavItem<Screen>[] = [
+  { id: 'train', label: 'Train' },
+  { id: 'history', label: 'History' },
+]
+
 function App() {
+  const [screen, setScreen] = useState<Screen>('train')
   const [config, setConfig] = useState<SessionRunnerConfig | null>(null)
-  const [showHistory, setShowHistory] = useState(false)
   const { keymap, rebind, setKeymap } = useKeymap()
   const { override: themeOverride, resolvedTheme, setOverride: setThemeOverride } = useTheme()
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-8 p-4 bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-100">
-      <h1 className="text-3xl font-bold">N-Back Trainer</h1>
-      {config ? (
-        <SessionRunner config={config} keymap={keymap} onRestart={() => setConfig(null)} />
-      ) : showHistory ? (
-        <HistoryView onBack={() => setShowHistory(false)} resolvedTheme={resolvedTheme} />
-      ) : (
-        <>
+    <AppShell
+      navItems={NAV_ITEMS}
+      activeId={screen}
+      onNavigate={setScreen}
+      themeOverride={themeOverride}
+      onChangeTheme={setThemeOverride}
+    >
+      {screen === 'train' ? (
+        config ? (
+          <SessionRunner config={config} keymap={keymap} onRestart={() => setConfig(null)} />
+        ) : (
           <ConfigForm
             onStart={setConfig}
             keymap={keymap}
@@ -29,16 +40,11 @@ function App() {
             themeOverride={themeOverride}
             onChangeTheme={setThemeOverride}
           />
-          <button
-            type="button"
-            onClick={() => setShowHistory(true)}
-            className="text-sm text-slate-500 underline dark:text-slate-400"
-          >
-            View history
-          </button>
-        </>
+        )
+      ) : (
+        <HistoryView onBack={() => setScreen('train')} resolvedTheme={resolvedTheme} />
       )}
-    </main>
+    </AppShell>
   )
 }
 
