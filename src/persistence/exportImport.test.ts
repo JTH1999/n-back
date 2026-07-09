@@ -170,6 +170,34 @@ describe('parseExportedState', () => {
 
     expect(() => parseExportedState(JSON.stringify(payload))).toThrow(ImportValidationError)
   })
+
+  it('throws ImportValidationError when a preset keymap is missing stream bindings', () => {
+    const payload = {
+      version: EXPORT_FORMAT_VERSION,
+      exportedAt: '2026-07-08T12:00:00.000Z',
+      history: [],
+      presets: [{ ...preset, keymap: { position: 'a' } }],
+      lastPresetId: null,
+      draftSettings: null,
+      keymap: null,
+    }
+
+    expect(() => parseExportedState(JSON.stringify(payload))).toThrow(ImportValidationError)
+  })
+
+  it('throws ImportValidationError when lastPresetId does not match any imported preset', () => {
+    const payload = {
+      version: EXPORT_FORMAT_VERSION,
+      exportedAt: '2026-07-08T12:00:00.000Z',
+      history: [],
+      presets: [preset],
+      lastPresetId: 'some-other-id',
+      draftSettings: null,
+      keymap: null,
+    }
+
+    expect(() => parseExportedState(JSON.stringify(payload))).toThrow(ImportValidationError)
+  })
 })
 
 describe('applyExportedState', () => {
@@ -213,7 +241,7 @@ describe('applyExportedState', () => {
     expect(loadPresets()).toEqual([])
   })
 
-  it('leaves last preset id, settings, and keymap untouched when they are null in the import', () => {
+  it('clears last preset id, settings, and keymap when they are null in the import', () => {
     window.localStorage.setItem('n-back:last-preset-id', 'existing-id')
     window.localStorage.setItem('n-back:draft-settings', JSON.stringify(config))
     window.localStorage.setItem('n-back:keymap', JSON.stringify(keymap))
@@ -230,8 +258,8 @@ describe('applyExportedState', () => {
 
     applyExportedState(state)
 
-    expect(loadLastPresetId()).toBe('existing-id')
-    expect(loadDraftSettings()).toEqual(config)
-    expect(loadKeymap()).toEqual(keymap)
+    expect(loadLastPresetId()).toBeNull()
+    expect(loadDraftSettings()).toBeNull()
+    expect(loadKeymap()).toBeNull()
   })
 })

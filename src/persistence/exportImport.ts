@@ -3,9 +3,15 @@ import type { SessionRunnerConfig } from '../adapters/useSessionRunner'
 import type { Keymap } from '../config/keymap'
 import { STREAM_KINDS } from '../engine/streams'
 import { loadHistory, replaceHistory, type SessionHistoryRecord } from './historyStorage'
-import { loadKeymap, saveKeymap } from './keymapStorage'
-import { loadLastPresetId, loadPresets, saveLastPresetId, savePresets } from './presetStorage'
-import { loadDraftSettings, saveDraftSettings } from './settingsStorage'
+import { clearKeymap, loadKeymap, saveKeymap } from './keymapStorage'
+import {
+  clearLastPresetId,
+  loadLastPresetId,
+  loadPresets,
+  saveLastPresetId,
+  savePresets,
+} from './presetStorage'
+import { clearDraftSettings, loadDraftSettings, saveDraftSettings } from './settingsStorage'
 
 export const EXPORT_FORMAT_VERSION = 1
 
@@ -61,10 +67,16 @@ export function parseExportedState(raw: string): ExportedState {
   if (parsed.lastPresetId !== null && typeof parsed.lastPresetId !== 'string') {
     throw new ImportValidationError('Last-used preset id is malformed.')
   }
+  if (
+    parsed.lastPresetId !== null &&
+    !parsed.presets.some((preset) => preset.id === parsed.lastPresetId)
+  ) {
+    throw new ImportValidationError('Last-used preset id does not match any imported preset.')
+  }
   if (parsed.draftSettings !== null && !isSessionRunnerConfig(parsed.draftSettings)) {
     throw new ImportValidationError('Settings are missing or malformed.')
   }
-  if (parsed.keymap !== null && !isKeymap(parsed.keymap)) {
+  if (parsed.keymap !== null && !isPartialKeymap(parsed.keymap)) {
     throw new ImportValidationError('Keymap is malformed.')
   }
 
@@ -82,9 +94,15 @@ export function parseExportedState(raw: string): ExportedState {
 export function applyExportedState(state: ExportedState): void {
   replaceHistory(state.history)
   savePresets(state.presets)
+
   if (state.lastPresetId !== null) saveLastPresetId(state.lastPresetId)
+  else clearLastPresetId()
+
   if (state.draftSettings !== null) saveDraftSettings(state.draftSettings)
+  else clearDraftSettings()
+
   if (state.keymap !== null) saveKeymap(state.keymap as Keymap)
+  else clearKeymap()
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -129,11 +147,15 @@ function isHistoryRecord(value: unknown): value is SessionHistoryRecord {
   )
 }
 
-function isKeymap(value: unknown): value is Partial<Keymap> {
+function isPartialKeymap(value: unknown): value is Partial<Keymap> {
   if (!isPlainObject(value)) return false
   return Object.entries(value).every(
     ([kind, key]) => STREAM_KINDS.includes(kind as (typeof STREAM_KINDS)[number]) && typeof key === 'string',
   )
+}
+
+function isKeymap(value: unknown): value is Keymap {
+  return isPartialKeymap(value) && STREAM_KINDS.every((kind) => typeof value[kind] === 'string')
 }
 
 function isPreset(value: unknown): value is Preset {
