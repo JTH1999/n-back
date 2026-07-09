@@ -3,11 +3,13 @@ import clsx from 'clsx'
 import { usePresets } from '../adapters/usePresets'
 import type { SessionRunnerConfig } from '../adapters/useSessionRunner'
 import type { Keymap } from '../config/keymap'
+import type { ThemeOverride } from '../config/theme'
 import { STREAM_KINDS, type StreamKind } from '../engine/streams'
 import { loadDraftSettings, saveDraftSettings } from '../persistence/settingsStorage'
 import { ExportImportPanel } from './ExportImportPanel'
 import { KeymapEditor } from './KeymapEditor'
 import { PresetManager } from './PresetManager'
+import { ThemeToggle } from './ThemeToggle'
 
 interface FieldRowProps {
   label: string
@@ -56,9 +58,18 @@ export interface ConfigFormProps {
   keymap: Keymap
   onRebindKey: (kind: StreamKind, key: string) => void
   onApplyKeymap: (keymap: Keymap) => void
+  themeOverride: ThemeOverride | null
+  onChangeTheme: (theme: ThemeOverride | null) => void
 }
 
-export function ConfigForm({ onStart, keymap, onRebindKey, onApplyKeymap }: ConfigFormProps) {
+export function ConfigForm({
+  onStart,
+  keymap,
+  onRebindKey,
+  onApplyKeymap,
+  themeOverride,
+  onChangeTheme,
+}: ConfigFormProps) {
   const [config, setConfig] = useState(() => ({
     ...DEFAULT_CONFIG,
     ...loadDraftSettings<SessionRunnerConfig>(),
@@ -133,7 +144,7 @@ export function ConfigForm({ onStart, keymap, onRebindKey, onApplyKeymap }: Conf
           max={MAX_N}
           value={config.n}
           onChange={(event) => setConfig({ ...config, n: Number(event.target.value) })}
-          className="w-20 rounded border px-2 py-1"
+          className="w-20 rounded border border-slate-300 px-2 py-1 dark:border-slate-600 dark:bg-slate-800"
         />
       </FieldRow>
       <FieldRow label="Trial count">
@@ -143,7 +154,7 @@ export function ConfigForm({ onStart, keymap, onRebindKey, onApplyKeymap }: Conf
           max={MAX_TRIAL_COUNT}
           value={config.trialCount}
           onChange={(event) => setConfig({ ...config, trialCount: Number(event.target.value) })}
-          className="w-20 rounded border px-2 py-1"
+          className="w-20 rounded border border-slate-300 px-2 py-1 dark:border-slate-600 dark:bg-slate-800"
         />
       </FieldRow>
       <FieldRow label="Stimulus display duration (ms)">
@@ -155,7 +166,7 @@ export function ConfigForm({ onStart, keymap, onRebindKey, onApplyKeymap }: Conf
           onChange={(event) =>
             setConfig({ ...config, displayDurationMs: Number(event.target.value) })
           }
-          className="w-20 rounded border px-2 py-1"
+          className="w-20 rounded border border-slate-300 px-2 py-1 dark:border-slate-600 dark:bg-slate-800"
         />
       </FieldRow>
       <FieldRow label="Trial length (ms)">
@@ -167,7 +178,7 @@ export function ConfigForm({ onStart, keymap, onRebindKey, onApplyKeymap }: Conf
           onChange={(event) =>
             setConfig({ ...config, trialLengthMs: Number(event.target.value) })
           }
-          className="w-20 rounded border px-2 py-1"
+          className="w-20 rounded border border-slate-300 px-2 py-1 dark:border-slate-600 dark:bg-slate-800"
         />
       </FieldRow>
       <fieldset className="flex flex-col gap-2">
@@ -230,7 +241,7 @@ export function ConfigForm({ onStart, keymap, onRebindKey, onApplyKeymap }: Conf
                     adaptive: { ...config.adaptive, lowerThreshold: Number(event.target.value) },
                   })
                 }
-                className="w-20 rounded border px-2 py-1"
+                className="w-20 rounded border border-slate-300 px-2 py-1 dark:border-slate-600 dark:bg-slate-800"
               />
             </FieldRow>
             <FieldRow label="Upper accuracy threshold (increase N above this)">
@@ -246,12 +257,13 @@ export function ConfigForm({ onStart, keymap, onRebindKey, onApplyKeymap }: Conf
                     adaptive: { ...config.adaptive, upperThreshold: Number(event.target.value) },
                   })
                 }
-                className="w-20 rounded border px-2 py-1"
+                className="w-20 rounded border border-slate-300 px-2 py-1 dark:border-slate-600 dark:bg-slate-800"
               />
             </FieldRow>
           </>
         )}
       </fieldset>
+      <ThemeToggle override={themeOverride} onChange={onChangeTheme} />
       <KeymapEditor keymap={keymap} onRebind={onRebindKey} />
       <PresetManager
         presets={presets}

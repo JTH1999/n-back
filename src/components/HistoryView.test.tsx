@@ -37,7 +37,7 @@ beforeEach(() => {
 
 describe('HistoryView', () => {
   it('shows an empty state when no sessions have been recorded', () => {
-    render(<HistoryView onBack={vi.fn()} />)
+    render(<HistoryView onBack={vi.fn()} resolvedTheme="light" />)
 
     expect(screen.getByText(/no completed sessions yet/i)).toBeInTheDocument()
   })
@@ -45,7 +45,7 @@ describe('HistoryView', () => {
   it('lists recorded sessions with key details', () => {
     appendHistoryRecord({ timestamp: '2026-07-08T12:00:00.000Z', config, summary })
 
-    render(<HistoryView onBack={vi.fn()} />)
+    render(<HistoryView onBack={vi.fn()} resolvedTheme="light" />)
 
     expect(screen.getByText(/75% accuracy/i)).toBeInTheDocument()
     expect(screen.getByText(/N=3/)).toBeInTheDocument()

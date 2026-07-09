@@ -56,14 +56,14 @@ export function ExportImportPanel({
         <button
           type="button"
           onClick={handleExport}
-          className="rounded border px-2 py-1 text-sm"
+          className="rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-800"
         >
           Export data
         </button>
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="rounded border px-2 py-1 text-sm"
+          className="rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-800"
         >
           Import data
         </button>

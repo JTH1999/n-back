@@ -22,7 +22,8 @@ export interface SessionRunnerProps {
 
 const ABORT_CONFIRM_MESSAGE = 'Abort this session? Your progress will not be saved.'
 
-const CONTROL_BUTTON_CLASS = 'rounded border px-3 py-1 text-sm'
+const CONTROL_BUTTON_CLASS =
+  'rounded border border-slate-300 px-3 py-1 text-sm dark:border-slate-600 dark:bg-slate-800'
 
 export function SessionRunner({
   config,

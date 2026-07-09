@@ -29,13 +29,13 @@ export function PresetManager({ presets, activePresetId, onSave, onLoad }: Prese
           onChange={(event) => setName(event.target.value)}
           placeholder="Preset name"
           aria-label="Preset name"
-          className="flex-1 rounded border px-2 py-1"
+          className="flex-1 rounded border border-slate-300 px-2 py-1 dark:border-slate-600 dark:bg-slate-800"
         />
         <button
           type="button"
           disabled={!name.trim()}
           onClick={handleSave}
-          className="rounded border px-2 py-1 text-sm disabled:opacity-50"
+          className="rounded border border-slate-300 px-2 py-1 text-sm disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800"
         >
           Save preset
         </button>
@@ -46,7 +46,7 @@ export function PresetManager({ presets, activePresetId, onSave, onLoad }: Prese
             value={selectedId}
             onChange={(event) => setSelectedId(event.target.value)}
             aria-label="Select a preset"
-            className="flex-1 rounded border px-2 py-1"
+            className="flex-1 rounded border border-slate-300 px-2 py-1 dark:border-slate-600 dark:bg-slate-800"
           >
             <option value="" disabled>
               Select a preset…
@@ -62,7 +62,7 @@ export function PresetManager({ presets, activePresetId, onSave, onLoad }: Prese
             type="button"
             disabled={!selectedId}
             onClick={() => onLoad(selectedId)}
-            className="rounded border px-2 py-1 text-sm disabled:opacity-50"
+            className="rounded border border-slate-300 px-2 py-1 text-sm disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800"
           >
             Load
           </button>

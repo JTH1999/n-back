@@ -42,7 +42,7 @@ export function KeymapEditor({ keymap, onRebind }: KeymapEditorProps) {
               <button
                 type="button"
                 onClick={() => setListeningFor(kind)}
-                className="rounded border px-2 py-1 text-sm"
+                className="rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-800"
               >
                 Rebind {kind}
               </button>
