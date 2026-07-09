@@ -65,7 +65,7 @@ export function AppShell<TId extends string>({
             theme
           </span>
           <div
-            className="flex gap-1 p-[3px] rounded-lg border border-border bg-panel shell:flex-col"
+            className="flex gap-1 p-[3px] rounded-lg border border-border bg-panel"
             role="radiogroup"
             aria-label="Theme"
           >
