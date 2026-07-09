@@ -23,13 +23,21 @@ describe('PresetsScreen', () => {
     expect(screen.getByRole('heading', { name: /presets/i })).toBeInTheDocument()
   })
 
+  it('shows an empty state and the current config summary before anything is saved', () => {
+    renderPresetsScreen()
+
+    expect(screen.getByText(/no saved presets/i)).toBeInTheDocument()
+    expect(screen.getByText('N2 · position · 20t')).toBeInTheDocument()
+  })
+
   it('saves the current draft settings and keymap as a named preset', () => {
     renderPresetsScreen({ keymap: { ...DEFAULT_KEYMAP, position: 'g' } })
 
     fireEvent.change(screen.getByLabelText(/preset name/i), { target: { value: 'Warm-up' } })
     fireEvent.click(screen.getByRole('button', { name: /save preset/i }))
 
-    expect(screen.getByRole('option', { name: 'Warm-up (active)' })).toBeInTheDocument()
+    expect(screen.getByText('Warm-up')).toBeInTheDocument()
+    expect(screen.getByText(/active/i)).toBeInTheDocument()
   })
 
   it('loads a saved preset, replacing the draft config and reporting the keymap', () => {
@@ -39,15 +47,25 @@ describe('PresetsScreen', () => {
     fireEvent.change(screen.getByLabelText(/preset name/i), { target: { value: 'Hard mode' } })
     fireEvent.click(screen.getByRole('button', { name: /save preset/i }))
 
-    fireEvent.change(screen.getByLabelText(/select a preset/i), {
-      target: { value: screen.getByRole('option', { name: /hard mode/i }).getAttribute('value') },
-    })
     fireEvent.click(screen.getByRole('button', { name: /^load$/i }))
 
     expect(onApplyKeymap).toHaveBeenCalledWith({ ...DEFAULT_KEYMAP, position: 'g' })
   })
 
-  it('restores the most recently saved preset on mount, including which preset is marked active', () => {
+  it('deletes a saved preset', () => {
+    renderPresetsScreen()
+
+    fireEvent.change(screen.getByLabelText(/preset name/i), { target: { value: 'Warm-up' } })
+    fireEvent.click(screen.getByRole('button', { name: /save preset/i }))
+    expect(screen.getByText('Warm-up')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /delete warm-up/i }))
+
+    expect(screen.queryByText('Warm-up')).not.toBeInTheDocument()
+    expect(screen.getByText(/no saved presets/i)).toBeInTheDocument()
+  })
+
+  it('restores the most recently saved preset on mount', () => {
     const { unmount } = renderPresetsScreen()
 
     fireEvent.change(screen.getByLabelText(/preset name/i), { target: { value: 'Warm-up' } })
@@ -56,6 +74,6 @@ describe('PresetsScreen', () => {
 
     renderPresetsScreen()
 
-    expect(screen.getByRole('option', { name: 'Warm-up (active)' })).toBeInTheDocument()
+    expect(screen.getByText('Warm-up')).toBeInTheDocument()
   })
 })

@@ -1,7 +1,9 @@
 import { useDraftConfig } from '../adapters/useDraftConfig'
 import { usePresets } from '../adapters/usePresets'
 import type { Keymap } from '../config/keymap'
-import { PresetManager } from './PresetManager'
+import { summarizePresetConfig } from '../config/presetSummary'
+import { PresetList } from './PresetList'
+import { SavePresetPanel } from './SavePresetPanel'
 
 export interface PresetsScreenProps {
   keymap: Keymap
@@ -10,7 +12,7 @@ export interface PresetsScreenProps {
 
 export function PresetsScreen({ keymap, onApplyKeymap }: PresetsScreenProps) {
   const [config, setConfig] = useDraftConfig()
-  const { presets, activePresetId, savePreset, loadPreset } = usePresets()
+  const { presets, activePresetId, savePreset, loadPreset, deletePreset } = usePresets()
 
   const handleSavePreset = (name: string) => {
     savePreset(name, config, keymap)
@@ -31,13 +33,21 @@ export function PresetsScreen({ keymap, onApplyKeymap }: PresetsScreenProps) {
         </span>
         <h1 className="text-[22px] font-semibold">Presets</h1>
       </header>
-      <div className="rounded-xl border border-border bg-panel p-[18px]">
-        <PresetManager
-          presets={presets}
-          activePresetId={activePresetId}
-          onSave={handleSavePreset}
-          onLoad={handleLoadPreset}
-        />
+      <div className="flex flex-col items-stretch gap-5 shell:flex-row shell:items-start">
+        <div className="min-w-0 flex-1">
+          <PresetList
+            presets={presets}
+            activePresetId={activePresetId}
+            onLoad={handleLoadPreset}
+            onDelete={deletePreset}
+          />
+        </div>
+        <div className="shell:w-[290px] shell:flex-none">
+          <SavePresetPanel
+            currentSummary={summarizePresetConfig(config)}
+            onSave={handleSavePreset}
+          />
+        </div>
       </div>
     </section>
   )
