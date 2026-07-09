@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style data-dc-atomics></style>
+<style>
+*{box-sizing:border-box}
+.app.dark{--bg:#0a0c0d;--panel:#111417;--panel2:#0d1013;--border:#20262b;--fg:#e7edf0;--dim:#7c878e;--dim2:#4f5a61;--accent:#5ef2c9;--accent-fg:#04140f;--accent-dim:#16332d;--tile:#39434a;--danger:#ff6b6b}
+.app.light{--bg:#f2f5f6;--panel:#ffffff;--panel2:#e9edef;--border:#d6dde1;--fg:#141a1d;--dim:#5b666d;--dim2:#9aa4ab;--accent:#0b9f81;--accent-fg:#ffffff;--accent-dim:#d0efe8;--tile:#c3ccd2;--danger:#d63c3c}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:'IBM Plex Sans',sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}a:hover{color:var(--fg)}
+.app{display:flex;min-height:100vh;background:var(--bg);color:var(--fg)}
+.mono{font-family:'IBM Plex Mono',monospace}
+.dim{color:var(--dim)}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+.h1{font-weight:600;font-size:22px;margin:2px 0 0}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px}
+.w100{width:100%}.ta-r{text-align:right}.col{flex-direction:column}
+.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}
+.sidebar{width:216px;flex:0 0 216px;border-right:1px solid var(--border);background:var(--panel2);padding:22px 16px;display:flex;flex-direction:column;gap:26px;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:10px;font-family:'IBM Plex Mono',monospace;font-weight:600;letter-spacing:.14em;font-size:14px}
+.brand-mark{color:var(--accent);font-size:18px}
+.nav{display:flex;flex-direction:column;gap:4px}
+.nav-item{text-align:left;background:none;border:none;color:var(--dim);font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:.04em;padding:9px 12px;border-radius:8px;cursor:pointer;transition:.14s}
+.nav-item:hover{color:var(--fg);background:var(--panel)}
+.nav-item.active{color:var(--accent-fg);background:var(--accent)}
+.side-foot{margin-top:auto;display:flex;flex-direction:column;gap:8px}
+.seg-group{display:flex;gap:4px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:3px}
+.seg-group.col{flex-direction:column}
+.seg{flex:1;background:none;border:none;color:var(--dim);font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:capitalize;padding:6px 8px;border-radius:6px;cursor:pointer;transition:.12s}
+.seg:hover{color:var(--fg)}
+.seg.on{background:var(--accent);color:var(--accent-fg)}
+.seg-group.col .seg{text-align:left;font-size:13px;padding:9px 10px}
+.main{flex:1;min-width:0;padding:34px 40px 60px;overflow-x:hidden}
+.screen{max-width:960px;margin:0 auto}
+.screen-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:28px}
+.head-actions{display:flex;gap:10px}
+.btn{font-family:'IBM Plex Mono',monospace;font-size:13px;border-radius:8px;padding:11px 18px;border:1px solid var(--border);background:var(--panel);color:var(--fg);cursor:pointer;transition:.14s;white-space:nowrap}
+.btn:hover{border-color:var(--dim)}
+.btn-primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:600}
+.btn-primary:hover{filter:brightness(1.08);border-color:var(--accent)}
+.btn-primary[disabled]{background:var(--panel);color:var(--dim2);border-color:var(--border);cursor:not-allowed;filter:none}
+.btn-ghost{background:none}
+.btn-danger{background:var(--danger);border-color:var(--danger);color:#fff}
+.btn-danger-ghost{background:none;color:var(--danger);border-color:transparent}
+.btn-danger-ghost:hover{border-color:var(--danger)}
+.cols{display:flex;gap:20px;align-items:flex-start}
+.col-main{flex:1;min-width:0}.col-side{width:290px;flex:0 0 290px}
+.kbd{font-family:'IBM Plex Mono',monospace;font-size:11px;background:var(--panel2);border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:2px 7px;color:var(--dim);min-width:20px;text-align:center;display:inline-block}
+.stream-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px}
+.stream-card{position:relative;text-align:left;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px 14px 13px;cursor:pointer;transition:.14s;display:flex;flex-direction:column;gap:2px;color:var(--fg)}
+.stream-card:hover{border-color:var(--dim)}
+.stream-card.on{border-color:var(--accent)}
+.stream-prev{height:52px;display:flex;align-items:center;justify-content:center;margin-bottom:8px;transition:.14s}
+.stream-card:not(.on) .stream-prev{opacity:.32;filter:grayscale(.7)}
+.mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;width:44px;height:44px}
+.mini-grid span{background:var(--border);border-radius:2px}
+.prev-shape{width:38px;height:38px}
+.prev-swatches{display:flex;gap:5px}
+.prev-swatches span{width:12px;height:32px;border-radius:3px}
+.psw1{background:#0072B2}.psw2{background:#E69F00}.psw3{background:#009E73}
+.prev-wave{display:flex;align-items:center;gap:8px}
+.prev-wave b{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600}
+.prev-bars{display:flex;align-items:center;gap:3px;height:34px}
+.prev-bars i{width:4px;background:currentColor;border-radius:2px}
+.prev-bars i:nth-child(1){height:40%}.prev-bars i:nth-child(2){height:78%}.prev-bars i:nth-child(3){height:100%}.prev-bars i:nth-child(4){height:56%}
+.stream-foot{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.stream-name{font-weight:600;font-size:15px;color:var(--fg)}
+.stream-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:3px}
+.stream-hint{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim)}
+.stream-foot .sw{transform:scale(.82);transform-origin:right}
+.params{padding:6px 20px}
+.param{display:flex;flex-direction:column;gap:9px;padding:16px 0;border-bottom:1px solid var(--border)}
+.param:last-child{border-bottom:none}
+.param.row{flex-direction:row;align-items:center;justify-content:space-between}
+.param-label{font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px}
+.param-label .dim,.pv{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:400}
+.pv{color:var(--accent);margin-left:auto}
+.stepper{display:flex;align-items:center;gap:2px;align-self:flex-start;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:3px}
+.step{width:34px;height:30px;background:none;border:none;color:var(--fg);font-size:18px;cursor:pointer;border-radius:6px}
+.step:hover{background:var(--panel)}
+.step-val{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;min-width:34px;text-align:center}
+.range{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:var(--border);border-radius:3px;outline:none}
+.range::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid var(--panel)}
+.range::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid var(--panel)}
+.sw{width:42px;height:24px;border-radius:13px;background:var(--border);border:none;position:relative;cursor:pointer;transition:.16s;flex:0 0 auto;padding:0}
+.sw.on{background:var(--accent)}
+.sw i{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.16s}
+.sw.on i{left:21px}
+.thresholds{display:flex;flex-direction:column;gap:16px;padding:14px 0 4px}
+.side-card{padding:18px}
+.val-msg{color:var(--danger);font-family:'IBM Plex Mono',monospace;font-size:12px;margin-top:14px;display:flex;gap:8px}
+.info-line{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--dim);display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)}
+.info-line:last-child{border:none}
+.info-line b{color:var(--fg);font-weight:600}
+.session{display:flex;flex-direction:column;align-items:center;min-height:calc(100vh - 94px);max-width:640px;margin:0 auto}
+.session-top{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:auto}
+.badge{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent);border-radius:7px;padding:6px 12px;font-weight:600;white-space:nowrap}
+.trial-count{font-size:14px;color:var(--dim);letter-spacing:.08em}
+.session-ctrls{display:flex;gap:8px}
+.stage{display:flex;flex-direction:column;align-items:center;gap:22px;margin:auto 0}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:min(74vw,380px);aspect-ratio:1}
+.cell{background:var(--panel2);border:1px solid var(--border);border-radius:14px;display:flex;align-items:center;justify-content:center;transition:border-color .1s}
+.cell.on{border-color:var(--dim2)}
+.tile{width:62%;height:62%;background:var(--tile)}
+.sh-square{border-radius:8px}
+.sh-circle{border-radius:50%}
+.sh-triangle{clip-path:polygon(50% 4%,96% 96%,4% 96%)}
+.sh-diamond{clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.sh-cross{clip-path:polygon(36% 0,64% 0,64% 36%,100% 36%,100% 64%,64% 64%,64% 100%,36% 100%,36% 64%,0 64%,0 36%,36% 36%)}
+.sh-hexagon{clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+.audio-cue{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--dim2);display:flex;align-items:center;gap:8px;letter-spacing:.1em;opacity:.4;transition:.15s}
+.audio-cue .spk{font-size:16px}
+.audio-cue.on{opacity:1;color:#c98bbf}
+.audio-cue.on .spk{animation:pulse .5s ease-out}
+@keyframes pulse{0%{transform:scale(.7);opacity:.4}100%{transform:scale(1);opacity:1}}
+.resp-row{display:flex;gap:12px;width:100%;margin-top:auto;flex-wrap:wrap}
+.resp{flex:1;min-width:130px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;transition:.08s;border-top:3px solid var(--sc)}
+.resp:hover{border-color:var(--dim)}
+.resp:active{transform:scale(.97)}
+.resp.f-ack{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.resp.f-correct{border-color:#3ddc84;background:rgba(61,220,132,.14)}
+.resp.f-wrong{border-color:var(--danger);background:rgba(255,107,107,.14)}
+.resp-label{font-size:13px;font-weight:500}
+.progress{width:100%;height:4px;background:var(--border);border-radius:3px;margin-top:20px;overflow:hidden}
+.progress-bar{height:100%;background:var(--accent);border-radius:3px;transition:width .3s linear}
+.overlay{position:fixed;inset:0;background:rgba(4,6,8,.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:40}
+.overlay-card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:32px;max-width:380px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
+.overlay-card p{margin:0;font-size:14px}
+.modal-actions{display:flex;gap:10px;margin-top:12px}
+.overall{padding:26px;text-align:center}
+.overall-num{font-family:'IBM Plex Mono',monospace;font-size:64px;font-weight:600;line-height:1;margin:12px 0 6px}
+.overall-num .pct{font-size:26px;color:var(--dim)}
+.rec{margin-top:20px;padding-top:18px;border-top:1px solid var(--border);text-align:left}
+.rec-line{font-size:14px;margin-top:8px}.rec-line b{color:var(--accent)}
+.res-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.res-card{padding:16px}
+.res-head{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.res-name{font-weight:600;font-size:15px}
+.res-acc{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-weight:600}
+.res-bar{height:6px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:14px}
+.res-bar-fill{height:100%;border-radius:4px}
+.res-stats{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px}
+.stat{display:flex;flex-direction:column;align-items:center;background:var(--panel2);border-radius:8px;padding:8px 4px}
+.stat-n{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600}
+.stat-l{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px}
+.table{padding:6px 20px}
+.tr{display:grid;grid-template-columns:90px 1fr 60px 96px 64px;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid var(--border);font-size:14px}
+.tr:last-child{border:none}
+.tr.th{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--dim);padding:14px 0 10px}
+.stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px}
+.kpi{padding:20px}
+.kpi-n{font-family:'IBM Plex Mono',monospace;font-size:32px;font-weight:600;margin-bottom:4px}
+.chart-panel{padding:20px}
+.chart-legend{display:flex;gap:18px;margin-bottom:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim)}
+.lg{display:flex;align-items:center;gap:7px}
+.lg::before{content:"";width:14px;height:3px;border-radius:2px}
+.lg-acc::before{background:var(--accent)}
+.lg-n::before{background:#c98bbf}
+.preset-list{display:flex;flex-direction:column;gap:12px}
+.preset{padding:16px 18px;display:flex;align-items:center;gap:12px}
+.preset-info{flex:1;min-width:0}
+.preset-name{font-weight:600;font-size:15px}
+.preset-sum{font-size:12px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.preset-actions{display:flex;gap:8px;align-items:center}
+.icon-btn{background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:8px;border-radius:6px}
+.icon-btn:hover{color:var(--danger);background:var(--panel2)}
+.save-panel{padding:18px}
+.text-input{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:11px 12px;color:var(--fg);font-family:'IBM Plex Mono',monospace;font-size:14px;outline:none}
+.text-input:focus{border-color:var(--accent)}
+.keymap{display:flex;flex-direction:column;gap:10px}
+.keymap-row{display:flex;align-items:center;gap:12px}
+.keymap-label{flex:1;font-size:14px;font-weight:500}
+.keycap{font-family:'IBM Plex Mono',monospace;font-size:14px;background:var(--panel2);border:1px solid var(--border);border-bottom-width:3px;border-radius:7px;padding:8px 0;width:64px;text-align:center;cursor:pointer;color:var(--fg)}
+.keycap:hover{border-color:var(--dim)}
+.keycap.rebinding{border-color:var(--accent);color:var(--accent);font-size:11px}
+.vol-row{display:flex;align-items:center;gap:12px}
+.err{color:var(--danger);font-family:'IBM Plex Mono',monospace;font-size:12px}
+@media(max-width:820px){
+.app{flex-direction:column}
+.sidebar{width:100%;flex:none;height:auto;position:static;flex-direction:row;flex-wrap:wrap;align-items:center;gap:14px;padding:14px 16px}
+.nav{flex-direction:row;flex-wrap:wrap;flex:1}
+.side-foot{margin:0;flex-direction:row;align-items:center;gap:10px}
+.side-foot .eyebrow{display:none}
+.main{padding:24px 18px 80px}
+.cols{flex-direction:column}
+.col-side{width:100%;flex:none}
+.stream-grid{grid-template-columns:1fr 1fr}
+.res-grid{grid-template-columns:1fr}
+.tr{grid-template-columns:74px 1fr 52px 56px;font-size:13px}
+.tr span:nth-child(4){display:none}
+.stat-row{grid-template-columns:1fr 1fr 1fr}
+.screen-head{flex-direction:column;align-items:stretch;gap:14px}
+}
+</style>
+</helmet>
+<div class="app {{themeClass}}">
+<aside class="sidebar">
+<div class="brand"><span class="brand-mark">◫</span><span>N-BACK</span></div>
+<nav class="nav"><sc-for list="{{nav}}" as="item" hint-placeholder-count="5"><button class="{{item.cls}}" onClick="{{item.onClick}}">{{item.label}}</button></sc-for></nav>
+<div class="side-foot"><div class="eyebrow">theme</div><div class="seg-group"><sc-for list="{{themeOpts}}" as="t" hint-placeholder-count="3"><button class="{{t.cls}}" onClick="{{t.onClick}}">{{t.label}}</button></sc-for></div></div>
+</aside>
+<main class="main">
+
+<sc-if value="{{isSetup}}" hint-placeholder-val="{{true}}"><section class="screen">
+<div class="screen-head"><div><div class="eyebrow">configure</div><h1 class="h1">Session Setup</h1></div><button class="btn btn-primary" onClick="{{onStart}}" disabled="{{startDisabled}}">Start Session →</button></div>
+<div class="eyebrow mb8">Streams · toggle 1–4</div>
+<div class="stream-grid"><sc-for list="{{allStreams}}" as="s" hint-placeholder-count="4"><button class="{{s.cardCls}}" onClick="{{s.onToggle}}"><div class="stream-prev" style="{{s.colorStyle}}"><sc-if value="{{s.isPos}}" hint-placeholder-val="{{false}}"><div class="mini-grid"><span></span><span></span><span></span><span></span><span style="{{s.dotStyle}}"></span><span></span><span></span><span></span><span></span></div></sc-if><sc-if value="{{s.isShape}}" hint-placeholder-val="{{false}}"><div class="prev-shape sh-diamond" style="{{s.dotStyle}}"></div></sc-if><sc-if value="{{s.isColor}}" hint-placeholder-val="{{false}}"><div class="prev-swatches"><span class="psw1"></span><span class="psw2"></span><span class="psw3"></span></div></sc-if><sc-if value="{{s.isLetter}}" hint-placeholder-val="{{false}}"><div class="prev-wave"><b>K</b><span class="prev-bars"><i></i><i></i><i></i><i></i></span></div></sc-if></div><div class="stream-foot"><span class="stream-name">{{s.label}}</span><span class="{{s.swCls}}"><i></i></span></div><div class="stream-meta"><span class="stream-hint">{{s.hint}}</span><span class="kbd">{{s.keyName}}</span></div></button></sc-for></div>
+<div class="cols"><div class="col-main">
+<div class="panel params">
+<div class="param row"><div class="param-label">Global N <span class="dim">back-distance</span></div><div class="stepper"><button class="step" onClick="{{decN}}">−</button><span class="step-val">{{config.n}}</span><button class="step" onClick="{{incN}}">+</button></div></div>
+<div class="param"><div class="param-label">Stimulus duration<span class="pv">{{stimLabel}}</span></div><input class="range" type="range" min="200" max="2000" step="50" value="{{config.stimMs}}" onChange="{{onStim}}"/></div>
+<div class="param"><div class="param-label">Trial length<span class="pv">{{trialMsLabel}}</span></div><input class="range" type="range" min="1500" max="6000" step="100" value="{{config.trialMs}}" onChange="{{onTrialMs}}"/></div>
+<div class="param"><div class="param-label">Trials per session<span class="pv">{{trialsLabel}}</span></div><input class="range" type="range" min="5" max="60" step="1" value="{{config.trials}}" onChange="{{onTrials}}"/></div>
+<div class="param row"><div class="param-label">Live feedback <span class="dim">show correctness mid-trial</span></div><button class="{{fbCls}}" onClick="{{toggleFb}}"><i></i></button></div>
+<div class="param row"><div class="param-label">Adaptive N <span class="dim">auto-adjust next N</span></div><button class="{{adCls}}" onClick="{{toggleAd}}"><i></i></button></div>
+<sc-if value="{{config.adaptive}}" hint-placeholder-val="{{false}}"><div class="thresholds"><div class="param" style="padding:0;border:none"><div class="param-label">Increase above<span class="pv">{{upLabel}}</span></div><input class="range" type="range" min="60" max="95" step="1" value="{{config.up}}" onChange="{{onUp}}"/></div><div class="param" style="padding:0;border:none"><div class="param-label">Decrease below<span class="pv">{{lowLabel}}</span></div><input class="range" type="range" min="30" max="70" step="1" value="{{config.low}}" onChange="{{onLow}}"/></div></div></sc-if>
+</div>
+</div>
+<div class="col-side">
+<div class="panel side-card"><div class="eyebrow mb12">Configuration</div>
+<div class="info-line"><span>Active streams</span><b>{{summaryStreams}}</b></div>
+<div class="info-line"><span>Match rate</span><b>30%</b></div>
+<div class="info-line"><span>Est. duration</span><b>{{estDuration}}</b></div>
+<div class="info-line"><span>Judged trials</span><b>{{judgedCount}}</b></div>
+<sc-if value="{{validationMsg}}" hint-placeholder-val="{{false}}"><div class="val-msg"><span>⚠</span><span>{{validationMsg}}</span></div></sc-if>
+</div>
+</div></div>
+</section></sc-if>
+
+<sc-if value="{{isSession}}" hint-placeholder-val="{{false}}"><section class="screen session">
+<div class="session-top"><span class="badge">N = {{sessionN}}</span><span class="trial-count mono">{{trialLabel}}</span><div class="session-ctrls"><button class="btn btn-ghost" onClick="{{onPause}}">Pause</button><button class="btn btn-danger-ghost" onClick="{{onAbortAsk}}">Abort</button></div></div>
+<div class="stage"><div class="grid3"><sc-for list="{{gridCells}}" as="cell" hint-placeholder-count="9"><div class="{{cell.cls}}"><sc-if value="{{cell.isTile}}" hint-placeholder-val="{{false}}"><div class="{{tileClass}}" style="{{tileStyle}}"></div></sc-if></div></sc-for></div><div class="{{audioCls}}"><span class="spk">♪</span> audio letter</div></div>
+<div class="resp-row"><sc-for list="{{respButtons}}" as="b" hint-placeholder-count="2"><button class="{{b.cls}}" style="{{b.style}}" onClick="{{b.onClick}}"><span class="kbd">{{b.keyName}}</span><span class="resp-label">{{b.label}} match</span></button></sc-for></div>
+<div class="progress"><div class="progress-bar" style="{{progressStyle}}"></div></div>
+<sc-if value="{{paused}}" hint-placeholder-val="{{false}}"><div class="overlay"><div class="overlay-card"><h2 class="h1">Paused</h2><p class="dim">Trial timing is frozen. Resume when you're ready.</p><button class="btn btn-primary" onClick="{{onResume}}">Resume →</button></div></div></sc-if>
+</section></sc-if>
+
+<sc-if value="{{isResults}}" hint-placeholder-val="{{false}}"><section class="screen">
+<div class="screen-head"><div><div class="eyebrow">complete · saved to history</div><h1 class="h1">Session Results</h1></div><div class="head-actions"><button class="btn btn-ghost" onClick="{{onRetry}}">Retry</button><button class="btn btn-primary" onClick="{{onDone}}">Done →</button></div></div>
+<div class="cols"><div class="col-side"><div class="panel overall"><div class="eyebrow">overall accuracy</div><div class="overall-num" style="{{overallStyle}}">{{overall}}<span class="pct">%</span></div><div class="dim mono" style="font-size:12px">{{resultMeta}}</div>
+<sc-if value="{{adaptiveOn}}" hint-placeholder-val="{{false}}"><div class="rec"><span class="eyebrow">adaptive</span><div class="rec-line">Next session → <b>N = {{recN}}</b> · {{recNote}}</div></div></sc-if>
+</div></div>
+<div class="col-main"><div class="res-grid"><sc-for list="{{resStreams}}" as="r" hint-placeholder-count="2"><div class="panel res-card"><div class="res-head"><span class="stream-dot" style="{{r.dotStyle}}"></span><span class="res-name">{{r.label}}</span><span class="res-acc">{{r.acc}}%</span></div><div class="res-bar"><div class="res-bar-fill" style="{{r.barStyle}}"></div></div><div class="res-stats"><div class="stat"><span class="stat-n">{{r.h}}</span><span class="stat-l">hits</span></div><div class="stat"><span class="stat-n">{{r.m}}</span><span class="stat-l">miss</span></div><div class="stat"><span class="stat-n">{{r.fa}}</span><span class="stat-l">false</span></div><div class="stat"><span class="stat-n">{{r.cr}}</span><span class="stat-l">corr rej</span></div></div></div></sc-for></div></div></div>
+</section></sc-if>
+
+<sc-if value="{{isHistory}}" hint-placeholder-val="{{false}}"><section class="screen">
+<div class="screen-head"><div><div class="eyebrow">log</div><h1 class="h1">History</h1></div><span class="dim mono">{{historyCount}} sessions</span></div>
+<div class="panel table"><div class="tr th"><span>Date</span><span>Streams</span><span>N</span><span>Trials</span><span class="ta-r">Acc</span></div><sc-for list="{{historyRows}}" as="r" hint-placeholder-count="8"><div class="tr"><span class="mono dim">{{r.date}}</span><span>{{r.streams}}</span><span class="mono">{{r.n}}</span><span class="mono dim">{{r.trials}}</span><span class="ta-r mono" style="{{r.accStyle}}">{{r.acc}}</span></div></sc-for></div>
+</section></sc-if>
+
+<sc-if value="{{isTrends}}" hint-placeholder-val="{{false}}"><section class="screen">
+<div class="screen-head"><div><div class="eyebrow">progress</div><h1 class="h1">Trends</h1></div></div>
+<div class="stat-row"><div class="panel kpi"><div class="kpi-n">{{trendStats.sessions}}</div><div class="eyebrow">sessions</div></div><div class="panel kpi"><div class="kpi-n">{{trendStats.avg}}</div><div class="eyebrow">avg accuracy</div></div><div class="panel kpi"><div class="kpi-n">{{trendStats.bestN}}</div><div class="eyebrow">peak level</div></div></div>
+<div class="panel chart-panel"><div class="chart-legend"><span class="lg lg-acc">accuracy %</span><span class="lg lg-n">N level</span></div>{{trendChart}}</div>
+</section></sc-if>
+
+<sc-if value="{{isPresets}}" hint-placeholder-val="{{false}}"><section class="screen">
+<div class="screen-head"><div><div class="eyebrow">saved setups</div><h1 class="h1">Presets</h1></div></div>
+<div class="cols"><div class="col-main"><div class="preset-list"><sc-for list="{{presetRows}}" as="p" hint-placeholder-count="2"><div class="panel preset"><div class="preset-info"><div class="preset-name">{{p.name}}</div><div class="preset-sum dim mono">{{p.summary}}</div></div><div class="preset-actions"><button class="btn btn-ghost" onClick="{{p.onLoad}}">Load</button><button class="icon-btn" onClick="{{p.onDelete}}">✕</button></div></div></sc-for></div></div>
+<div class="col-side"><div class="panel save-panel"><div class="eyebrow mb8">Save current config</div><div class="preset-sum dim mono mb12">{{currentSummary}}</div><input class="text-input" placeholder="Preset name…" value="{{presetName}}" onChange="{{onPresetName}}"/><button class="btn btn-primary w100 mt12" onClick="{{onSavePreset}}">Save Preset</button></div></div></div>
+</section></sc-if>
+
+<sc-if value="{{isSettings}}" hint-placeholder-val="{{false}}"><section class="screen">
+<div class="screen-head"><div><div class="eyebrow">preferences</div><h1 class="h1">Settings</h1></div></div>
+<div class="cols"><div class="col-main">
+<div class="panel side-card"><div class="eyebrow mb12">Key bindings <span class="dim">click a key, then press</span></div><div class="keymap"><sc-for list="{{keymapRows}}" as="k" hint-placeholder-count="4"><div class="keymap-row"><span class="stream-dot" style="{{k.dotStyle}}"></span><span class="keymap-label">{{k.label}}</span><button class="{{k.cls}}" onClick="{{k.onClick}}">{{k.keyText}}</button></div></sc-for></div></div>
+<div class="panel side-card mt16"><div class="eyebrow mb12">Letter audio</div><div class="vol-row"><button class="{{muteCls}}" onClick="{{onMute}}"><i></i></button><span class="keymap-label">{{muteLabel}}</span><button class="btn btn-ghost" onClick="{{onTestAudio}}">Test</button></div><input class="range mt16" type="range" min="0" max="100" step="5" value="{{volume}}" onChange="{{onVol}}"/><div class="dim mono mt8" style="font-size:12px">volume · {{volume}}%</div></div>
+</div>
+<div class="col-side">
+<div class="panel side-card"><div class="eyebrow mb12">Theme</div><div class="seg-group col"><sc-for list="{{themeOpts}}" as="t" hint-placeholder-count="3"><button class="{{t.cls}}" onClick="{{t.onClick}}">{{t.labelFull}}</button></sc-for></div></div>
+<div class="panel side-card mt16"><div class="eyebrow mb12">Backup</div><p class="dim mb12" style="font-size:13px;margin-top:0">All data lives in this browser only. Export a JSON backup or restore one.</p><button class="btn btn-ghost w100" onClick="{{onExport}}">Export JSON ↓</button><label class="btn btn-ghost w100 mt8" style="display:block;text-align:center">Import JSON ↑<input type="file" accept="application/json" style="display:none" onChange="{{onImport}}"/></label><sc-if value="{{importError}}" hint-placeholder-val="{{false}}"><div class="err mt8">{{importError}}</div></sc-if></div>
+</div></div>
+</section></sc-if>
+
+</main>
+</div>
+<sc-if value="{{showAbort}}" hint-placeholder-val="{{false}}"><div class="overlay"><div class="overlay-card"><h2 class="h1">Abort session?</h2><p class="dim">This session won't be saved to your history.</p><div class="modal-actions"><button class="btn btn-ghost" onClick="{{onAbortCancel}}">Keep training</button><button class="btn btn-danger" onClick="{{onAbortConfirm}}">Abort</button></div></div></div></sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  STREAMS = [
+    {key:'position',label:'Position',hint:'3×3 grid cell',color:'#56B4E9'},
+    {key:'shape',label:'Shape',hint:'geometric form',color:'#5fbf8a'},
+    {key:'color',label:'Color',hint:'fill hue',color:'#e0a030'},
+    {key:'letter',label:'Letter',hint:'spoken audio',color:'#c98bbf'},
+  ];
+  SHAPES=['square','circle','triangle','diamond','cross','hexagon'];
+  COLORS=['#0072B2','#E69F00','#009E73','#CC79A7','#F0E442','#D55E00'];
+  LETTERS=['C','H','K','L','Q','R','S','T'];
+  POS=[0,1,2,3,4,5,6,7,8];
+
+  state = {
+    screen:'setup',
+    config:{streams:{position:true,shape:false,color:false,letter:true},n:2,stimMs:500,trialMs:3000,trials:20,feedback:false,adaptive:false,up:80,low:50,rate:0.3},
+    keymap:{position:'A',shape:'S',color:'D',letter:'L'},
+    theme:'system', volume:80, muted:false,
+    presets:[], history:[], lastPreset:null,
+    currentTrial:-1, showStim:false, running:false, paused:false,
+    flash:{}, results:null, recommendedN:null,
+    rebinding:null, showAbort:false, presetName:'', importError:null,
+  };
+
+  componentDidMount(){
+    try{
+      const raw=localStorage.getItem('nback.v1');
+      if(raw){const d=JSON.parse(raw);this.setState(s=>({config:{...s.config,...(d.config||{}),streams:{...s.config.streams,...((d.config||{}).streams||{})}},keymap:{...s.keymap,...(d.keymap||{})},theme:d.theme||'system',volume:d.volume??80,muted:d.muted??false,presets:d.presets||[],history:d.history||[],lastPreset:d.lastPreset||null}));}
+      else {this.setState({history:this.seed(),presets:this.seedPresets()},()=>this.saveAll());}
+    }catch(e){}
+    try{this.mq=window.matchMedia('(prefers-color-scheme: dark)');this.systemDark=this.mq.matches;this.mqL=()=>{this.systemDark=this.mq.matches;this.forceUpdate();};this.mq.addEventListener('change',this.mqL);}catch(e){this.systemDark=true;}
+    this.keyL=(e)=>this.handleKey(e);window.addEventListener('keydown',this.keyL);
+  }
+  componentWillUnmount(){this.clearTimers();window.removeEventListener('keydown',this.keyL);if(this.mq)this.mq.removeEventListener('change',this.mqL);}
+
+  saveAll(){try{const {config,keymap,theme,volume,muted,presets,history,lastPreset}=this.state;localStorage.setItem('nback.v1',JSON.stringify({config,keymap,theme,volume,muted,presets,history,lastPreset}));}catch(e){}}
+  setCfg(k,v){this.setState(s=>({config:{...s.config,[k]:v}}),()=>this.saveAll());}
+  toggleStream(k){this.setState(s=>({config:{...s.config,streams:{...s.config.streams,[k]:!s.config.streams[k]}}}),()=>this.saveAll());}
+  incN(){this.setCfg('n',Math.min(8,this.state.config.n+1));}
+  decN(){this.setCfg('n',Math.max(1,this.state.config.n-1));}
+  setTheme(t){this.setState({theme:t},()=>this.saveAll());}
+  go(id){if(this.state.screen==='session')this.clearTimers();this.setState({screen:id,running:false,paused:false});}
+
+  clearTimers(){clearTimeout(this.tAdvance);clearTimeout(this.tStimOff);}
+  genSeq(len,n,size,rate){const s=[];for(let i=0;i<len;i++){if(i>=n&&Math.random()<rate){s.push(s[i-n]);}else{let v=Math.floor(Math.random()*size);if(i>=n){let g=0;while(v===s[i-n]&&g<30){v=Math.floor(Math.random()*size);g++;}}s.push(v);}}return s;}
+
+  startSession(){
+    const c=this.state.config;const active=Object.keys(c.streams).filter(k=>c.streams[k]);
+    if(active.length===0||c.trials<=c.n)return;
+    this.cfg=JSON.parse(JSON.stringify(c));
+    const sizes={position:9,shape:this.SHAPES.length,color:this.COLORS.length,letter:this.LETTERS.length};
+    this.seqs={};active.forEach(k=>{this.seqs[k]=this.genSeq(this.cfg.trials,this.cfg.n,sizes[k],this.cfg.rate);});
+    this.responded=[];
+    this.setState({screen:'session',running:true,paused:false,currentTrial:-1,results:null,flash:{}},()=>this.scheduleTrial(0));
+  }
+  scheduleTrial(i){
+    this.setState({currentTrial:i,showStim:true,flash:{}});
+    this.trialStart=Date.now();this.present(i);
+    this.tStimOff=setTimeout(()=>this.setState({showStim:false}),this.cfg.stimMs);
+    this.tAdvance=setTimeout(()=>this.next(i),this.cfg.trialMs);
+  }
+  present(i){if(this.cfg.streams.letter&&!this.state.muted){this.speak(this.LETTERS[this.seqs.letter[i]]);}}
+  speak(l){try{const u=new SpeechSynthesisUtterance(l);u.volume=this.state.volume/100;u.rate=0.85;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){}}
+  next(i){if(i+1<this.cfg.trials)this.scheduleTrial(i+1);else this.finish();}
+  pause(){if(!this.state.running)return;const el=Date.now()-this.trialStart;this.remTrial=Math.max(0,this.cfg.trialMs-el);this.remStim=this.state.showStim?Math.max(0,this.cfg.stimMs-el):0;this.clearTimers();this.setState({running:false,paused:true});}
+  resume(){this.setState({running:true,paused:false});this.trialStart=Date.now()-(this.cfg.trialMs-this.remTrial);if(this.remStim>0){this.setState({showStim:true});this.tStimOff=setTimeout(()=>this.setState({showStim:false}),this.remStim);}this.tAdvance=setTimeout(()=>this.next(this.state.currentTrial),this.remTrial);}
+  respond(key){
+    const i=this.state.currentTrial;if(!this.state.running||i<0)return;
+    if(!this.responded[i])this.responded[i]={};this.responded[i][key]=true;
+    let type='ack';
+    if(this.cfg.feedback&&this.cfg.streams[key]){const tgt=i>=this.cfg.n&&this.seqs[key][i]===this.seqs[key][i-this.cfg.n];type=tgt?'correct':'wrong';}
+    this.setState(s=>({flash:{...s.flash,[key]:type}}));
+    setTimeout(()=>this.setState(s=>{const f={...s.flash};delete f[key];return{flash:f};}),320);
+  }
+  finish(){
+    this.clearTimers();const c=this.cfg;const streams=Object.keys(c.streams).filter(k=>c.streams[k]);
+    const per={};let tc=0,tt=0;
+    streams.forEach(k=>{let h=0,m=0,fa=0,cr=0;for(let i=c.n;i<c.trials;i++){const tgt=this.seqs[k][i]===this.seqs[k][i-c.n];const r=!!(this.responded[i]&&this.responded[i][k]);if(tgt&&r)h++;else if(tgt&&!r)m++;else if(!tgt&&r)fa++;else cr++;}const judged=c.trials-c.n;const acc=judged?Math.round((h+cr)/judged*100):0;per[k]={h,m,fa,cr,acc};tc+=h+cr;tt+=judged;});
+    const overall=tt?Math.round(tc/tt*100):0;
+    let rec=c.n;if(c.adaptive){if(overall>=c.up)rec=Math.min(8,c.n+1);else if(overall<=c.low)rec=Math.max(1,c.n-1);}
+    const rec_={id:'s'+Date.now(),ts:Date.now(),n:c.n,trials:c.trials,overall,streams,streamLabels:streams.map(k=>this.STREAMS.find(s=>s.key===k).label).join(' · '),per};
+    this.setState(s=>({screen:'results',running:false,paused:false,results:{overall,per,streams},recommendedN:c.adaptive?rec:null,history:[...s.history,rec_]}),()=>this.saveAll());
+  }
+  confirmAbort(){this.clearTimers();this.setState({showAbort:false,screen:'setup',running:false,paused:false,currentTrial:-1});}
+
+  loadPreset(p){this.setState({config:JSON.parse(JSON.stringify(p.config)),lastPreset:p.name,screen:'setup'},()=>this.saveAll());}
+  savePreset(){const name=(this.state.presetName||'').trim()||('Preset '+(this.state.presets.length+1));this.setState(s=>({presets:[...s.presets,{name,config:JSON.parse(JSON.stringify(s.config))}],presetName:''}),()=>this.saveAll());}
+  deletePreset(name){this.setState(s=>({presets:s.presets.filter(p=>p.name!==name)}),()=>this.saveAll());}
+
+  onExport(){try{const {config,keymap,theme,volume,muted,presets,history}=this.state;const blob=new Blob([JSON.stringify({config,keymap,theme,volume,muted,presets,history},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nback-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(e){}}
+  onImport(e){const f=e.target.files&&e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const d=JSON.parse(rd.result);if(!d||typeof d!=='object')throw 0;this.setState(s=>({config:d.config?{...s.config,...d.config}:s.config,keymap:d.keymap||s.keymap,theme:d.theme||s.theme,volume:d.volume??s.volume,muted:d.muted??s.muted,presets:d.presets||[],history:d.history||[],importError:null}),()=>this.saveAll());}catch(err){this.setState({importError:'Invalid backup file.'});}};rd.readAsText(f);e.target.value='';}
+
+  handleKey(e){
+    const k=(e.key||'').toUpperCase();if(!k||k.length!==1)return;
+    if(this.state.rebinding){e.preventDefault();this.setState(s=>({keymap:{...s.keymap,[s.rebinding]:k},rebinding:null}),()=>this.saveAll());return;}
+    if(this.state.screen==='session'&&this.state.running){const km=this.state.keymap;for(const sk of Object.keys(km)){if(km[sk]===k&&this.cfg&&this.cfg.streams[sk]){this.respond(sk);e.preventDefault();}}}
+  }
+
+  seed(){const now=Date.now(),day=86400000,recs=[];let n=1;for(let i=13;i>=0;i--){const prog=13-i;if(prog>0&&prog%4===0&&n<4)n++;const combo=i>9?['position','letter']:i>4?['position','color','letter']:['position','shape','color','letter'];const acc=Math.max(42,Math.min(96,54+prog*3+Math.round(Math.random()*10-5)));recs.push({id:'seed'+i,ts:now-i*day-Math.floor(Math.random()*day*0.4),n,trials:20,overall:acc,streams:combo,streamLabels:combo.map(k=>this.STREAMS.find(s=>s.key===k).label).join(' · '),per:{}});}return recs;}
+  seedPresets(){return [
+    {name:'Dual Warm-up',config:{streams:{position:true,shape:false,color:false,letter:true},n:2,stimMs:500,trialMs:3000,trials:20,feedback:true,adaptive:false,up:80,low:50,rate:0.3}},
+    {name:'Quad Training',config:{streams:{position:true,shape:true,color:true,letter:true},n:3,stimMs:500,trialMs:2800,trials:30,feedback:false,adaptive:true,up:85,low:55,rate:0.3}},
+  ];}
+
+  fmtDate(ts){try{return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'});}catch(e){return '';}}
+  accColor(v){return v>=80?'var(--accent)':v>=60?'#e0a030':'var(--danger)';}
+  cfgSummary(c){const s=this.STREAMS.filter(x=>c.streams[x.key]).map(x=>x.label).join('·')||'none';return 'N'+c.n+' · '+s+' · '+c.trials+'t';}
+
+  buildChart(pts){
+    const R=React,W=640,H=250,pad=36,n=pts.length;
+    const xs=i=>n>1?pad+i*(W-pad*2)/(n-1):W/2;
+    const accY=v=>pad+(100-v)/100*(H-pad*2);
+    const nY=v=>pad+(8-v)/7*(H-pad*2);
+    const grid=[0,25,50,75,100].map(v=>R.createElement('g',{key:'g'+v},R.createElement('line',{x1:pad,x2:W-pad,y1:accY(v),y2:accY(v),stroke:'var(--border)',strokeWidth:1}),R.createElement('text',{x:6,y:accY(v)+4,fill:'var(--dim2)',fontSize:10,fontFamily:'IBM Plex Mono'},v)));
+    const accPts=pts.map((p,i)=>xs(i)+','+accY(p.acc)).join(' ');
+    const nPts=pts.map((p,i)=>xs(i)+','+nY(p.n)).join(' ');
+    const nDots=pts.map((p,i)=>R.createElement('circle',{key:'n'+i,cx:xs(i),cy:nY(p.n),r:3,fill:'#c98bbf'}));
+    const accDots=pts.map((p,i)=>R.createElement('circle',{key:'a'+i,cx:xs(i),cy:accY(p.acc),r:3.2,fill:'var(--accent)'}));
+    const kids=[...grid,R.createElement('polyline',{key:'nl',points:nPts,fill:'none',stroke:'#c98bbf',strokeWidth:1.5,strokeDasharray:'4 4'}),R.createElement('polyline',{key:'al',points:accPts,fill:'none',stroke:'var(--accent)',strokeWidth:2}),...nDots,...accDots];
+    return R.createElement('svg',{viewBox:'0 0 '+W+' '+H,style:{width:'100%',height:'auto',display:'block'}},kids);
+  }
+
+  renderVals(){
+    const st=this.state,c=st.config;
+    const themeClass=st.theme==='system'?(this.systemDark===false?'light':'dark'):st.theme;
+    const enabled=this.STREAMS.filter(s=>c.streams[s.key]);
+    const anyStream=enabled.length>0;
+    const canStart=anyStream&&c.trials>c.n;
+    const nav=[['setup','Train'],['history','History'],['trends','Trends'],['presets','Presets'],['settings','Settings']].map(([id,label])=>({id,label,cls:'nav-item'+((st.screen===id||(id==='setup'&&(st.screen==='session'||st.screen==='results')))?' active':''),onClick:()=>this.go(id)}));
+    const themeOpts=['system','dark','light'].map(t=>({t,label:t,labelFull:t.charAt(0).toUpperCase()+t.slice(1),cls:'seg'+(st.theme===t?' on':''),onClick:()=>this.setTheme(t)}));
+    const allStreams=this.STREAMS.map(s=>({label:s.label,hint:s.hint,keyName:st.keymap[s.key],cardCls:'stream-card'+(c.streams[s.key]?' on':''),dotStyle:{background:s.color,color:s.color},colorStyle:{color:s.color},swCls:'sw'+(c.streams[s.key]?' on':''),isPos:s.key==='position',isShape:s.key==='shape',isColor:s.key==='color',isLetter:s.key==='letter',onToggle:()=>this.toggleStream(s.key)}));
+
+    // session runtime
+    const sc=this.cfg;let gridCells=[],respButtons=[],tileClass='',tileStyle={},audioCls='audio-cue',progressStyle={width:'0%'},trialLabel='',sessionN=c.n;
+    if(st.screen==='session'&&sc){
+      const i=st.currentTrial;sessionN=sc.n;
+      const posIdx=sc.streams.position&&i>=0?this.seqs.position[i]:4;
+      const shapeName=sc.streams.shape&&i>=0?this.SHAPES[this.seqs.shape[i]]:'square';
+      const colorHex=sc.streams.color&&i>=0?this.COLORS[this.seqs.color[i]]:'var(--tile)';
+      const showTile=st.showStim&&i>=0;
+      gridCells=this.POS.map(p=>({cls:'cell'+((showTile&&p===posIdx)?' on':''),isTile:showTile&&p===posIdx}));
+      tileClass='tile sh-'+shapeName;tileStyle={background:colorHex};
+      audioCls='audio-cue'+((showTile&&sc.streams.letter)?' on':'');
+      respButtons=this.STREAMS.filter(s=>sc.streams[s.key]).map(s=>{const f=st.flash[s.key];return{label:s.label,keyName:st.keymap[s.key],cls:'resp'+(f?' f-'+f:''),style:{'--sc':s.color},onClick:()=>this.respond(s.key)};});
+      progressStyle={width:Math.round(((Math.max(0,i)+1)/sc.trials)*100)+'%'};
+      trialLabel=(Math.max(0,i)+1)+' / '+sc.trials;
+    }
+
+    // results
+    let overall=0,overallStyle={},resultMeta='',adaptiveOn=false,recN=null,recNote='',resStreams=[];
+    if(st.screen==='results'&&st.results){
+      overall=st.results.overall;overallStyle={color:this.accColor(overall)};
+      const scfg=this.cfg;resultMeta='N='+scfg.n+' · '+scfg.trials+' trials';
+      adaptiveOn=!!scfg.adaptive;recN=st.recommendedN;
+      recNote=recN>scfg.n?'increased':recN<scfg.n?'decreased':'held steady';
+      resStreams=st.results.streams.map(k=>{const p=st.results.per[k],m=this.STREAMS.find(s=>s.key===k);return{label:m.label,acc:p.acc,h:p.h,m:p.m,fa:p.fa,cr:p.cr,dotStyle:{background:m.color,color:m.color},barStyle:{width:p.acc+'%',background:m.color}};});
+    }
+
+    // history
+    const historyRows=st.history.slice().reverse().map(r=>({date:this.fmtDate(r.ts),streams:r.streamLabels,n:'N='+r.n,trials:r.trials+' t',acc:r.overall+'%',accStyle:{color:this.accColor(r.overall)}}));
+
+    // trends
+    let trendChart=null,trendStats={sessions:0,avg:'—',bestN:'—'};
+    if(st.history.length){const h=st.history;trendStats={sessions:h.length,avg:Math.round(h.reduce((a,r)=>a+r.overall,0)/h.length)+'%',bestN:'N='+Math.max(...h.map(r=>r.n))};trendChart=this.buildChart(h.map(r=>({acc:r.overall,n:r.n})));}
+
+    // presets
+    const presetRows=st.presets.map(p=>({name:p.name,summary:this.cfgSummary(p.config),onLoad:()=>this.loadPreset(p),onDelete:()=>this.deletePreset(p.name)}));
+
+    // settings
+    const keymapRows=this.STREAMS.map(s=>({label:s.label,dotStyle:{background:s.color},keyText:st.rebinding===s.key?'press…':st.keymap[s.key],cls:'keycap'+(st.rebinding===s.key?' rebinding':''),onClick:()=>this.setState({rebinding:s.key})}));
+
+    return {
+      themeClass,nav,themeOpts,config:c,
+      isSetup:st.screen==='setup',isSession:st.screen==='session',isResults:st.screen==='results',isHistory:st.screen==='history',isTrends:st.screen==='trends',isPresets:st.screen==='presets',isSettings:st.screen==='settings',
+      allStreams,startDisabled:!canStart,
+      validationMsg:!anyStream?'Enable at least one stream to start.':c.trials<=c.n?'Trials must exceed N.':'',
+      stimLabel:c.stimMs+' ms',trialMsLabel:(c.trialMs/1000).toFixed(1)+' s',trialsLabel:c.trials+'',
+      upLabel:c.up+'%',lowLabel:c.low+'%',
+      fbCls:'sw'+(c.feedback?' on':''),adCls:'sw'+(c.adaptive?' on':''),
+      summaryStreams:anyStream?enabled.map(s=>s.label).join(', '):'none',
+      estDuration:Math.round(c.trials*c.trialMs/1000/60*10)/10+' min',
+      judgedCount:Math.max(0,c.trials-c.n)+'',
+      onStart:()=>this.startSession(),
+      onStim:e=>this.setCfg('stimMs',+e.target.value),onTrialMs:e=>this.setCfg('trialMs',+e.target.value),onTrials:e=>this.setCfg('trials',+e.target.value),
+      onUp:e=>this.setCfg('up',+e.target.value),onLow:e=>this.setCfg('low',+e.target.value),
+      incN:()=>this.incN(),decN:()=>this.decN(),toggleFb:()=>this.setCfg('feedback',!c.feedback),toggleAd:()=>this.setCfg('adaptive',!c.adaptive),
+      sessionN,trialLabel,gridCells,tileClass,tileStyle,audioCls,respButtons,progressStyle,paused:st.paused,
+      onPause:()=>this.pause(),onResume:()=>this.resume(),onAbortAsk:()=>this.setState({showAbort:true}),
+      overall,overallStyle,resultMeta,adaptiveOn,recN,recNote,resStreams,
+      onRetry:()=>this.startSession(),onDone:()=>this.setState({screen:'setup'}),
+      historyCount:st.history.length+'',historyRows,
+      trendStats,trendChart,
+      presetRows,currentSummary:this.cfgSummary(c),presetName:st.presetName,onPresetName:e=>this.setState({presetName:e.target.value}),onSavePreset:()=>this.savePreset(),
+      keymapRows,muteCls:'sw'+(st.muted?'':' on'),muteLabel:st.muted?'Muted':'On',onMute:()=>this.setState(s=>({muted:!s.muted}),()=>this.saveAll()),
+      volume:st.volume,onVol:e=>this.setState({volume:+e.target.value},()=>this.saveAll()),onTestAudio:()=>this.speak(this.LETTERS[Math.floor(Math.random()*this.LETTERS.length)]),
+      onExport:()=>this.onExport(),onImport:e=>this.onImport(e),importError:st.importError,
+      showAbort:st.showAbort,onAbortCancel:()=>this.setState({showAbort:false}),onAbortConfirm:()=>this.confirmAbort(),
+    };
+  }
+}
+</script>
+</body>
+</html>
