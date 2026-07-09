@@ -5,12 +5,14 @@ import { useTheme } from './adapters/useTheme'
 import { AppShell, type NavItem } from './components/AppShell'
 import { ConfigForm } from './components/ConfigForm'
 import { HistoryView } from './components/HistoryView'
+import { PresetsScreen } from './components/PresetsScreen'
 import { SessionRunner } from './components/SessionRunner'
 
-type Screen = 'train' | 'history'
+type Screen = 'train' | 'presets' | 'history'
 
 const NAV_ITEMS: NavItem<Screen>[] = [
   { id: 'train', label: 'Train' },
+  { id: 'presets', label: 'Presets' },
   { id: 'history', label: 'History' },
 ]
 
@@ -36,11 +38,12 @@ function App() {
             onStart={setConfig}
             keymap={keymap}
             onRebindKey={rebind}
-            onApplyKeymap={setKeymap}
             themeOverride={themeOverride}
             onChangeTheme={setThemeOverride}
           />
         )
+      ) : screen === 'presets' ? (
+        <PresetsScreen keymap={keymap} onApplyKeymap={setKeymap} />
       ) : (
         <HistoryView onBack={() => setScreen('train')} resolvedTheme={resolvedTheme} />
       )}
