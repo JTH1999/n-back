@@ -20,3 +20,8 @@ export function saveKeymap(keymap: Keymap): void {
     // best-effort persistence — ignore quota/serialization failures
   }
 }
+
+export function clearKeymap(): void {
+  if (typeof window === 'undefined') return
+  window.localStorage.removeItem(KEYMAP_KEY)
+}

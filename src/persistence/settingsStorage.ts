@@ -18,3 +18,8 @@ export function saveDraftSettings(settings: unknown): void {
     // best-effort persistence — ignore quota/serialization failures
   }
 }
+
+export function clearDraftSettings(): void {
+  if (typeof window === 'undefined') return
+  window.localStorage.removeItem(DRAFT_SETTINGS_KEY)
+}

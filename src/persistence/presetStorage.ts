@@ -37,3 +37,8 @@ export function saveLastPresetId(id: string): void {
     // best-effort persistence — ignore quota/serialization failures
   }
 }
+
+export function clearLastPresetId(): void {
+  if (typeof window === 'undefined') return
+  window.localStorage.removeItem(LAST_PRESET_ID_KEY)
+}

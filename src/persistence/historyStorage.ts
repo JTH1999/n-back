@@ -29,3 +29,12 @@ export function appendHistoryRecord(record: SessionHistoryRecord): void {
     // best-effort persistence — ignore quota/serialization failures
   }
 }
+
+export function replaceHistory(history: SessionHistoryRecord[]): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(history))
+  } catch {
+    // best-effort persistence — ignore quota/serialization failures
+  }
+}
