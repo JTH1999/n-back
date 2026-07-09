@@ -6,6 +6,7 @@ import type { Keymap } from '../config/keymap'
 import type { ThemeOverride } from '../config/theme'
 import { STREAM_KINDS, type StreamKind } from '../engine/streams'
 import { loadDraftSettings, saveDraftSettings } from '../persistence/settingsStorage'
+import { BORDERED_CONTROL_CLASS } from '../styles/controls'
 import { ExportImportPanel } from './ExportImportPanel'
 import { KeymapEditor } from './KeymapEditor'
 import { PresetManager } from './PresetManager'
@@ -144,7 +145,7 @@ export function ConfigForm({
           max={MAX_N}
           value={config.n}
           onChange={(event) => setConfig({ ...config, n: Number(event.target.value) })}
-          className="w-20 rounded border border-slate-300 px-2 py-1 dark:border-slate-600 dark:bg-slate-800"
+          className={clsx(BORDERED_CONTROL_CLASS, 'w-20 px-2 py-1')}
         />
       </FieldRow>
       <FieldRow label="Trial count">
@@ -154,7 +155,7 @@ export function ConfigForm({
           max={MAX_TRIAL_COUNT}
           value={config.trialCount}
           onChange={(event) => setConfig({ ...config, trialCount: Number(event.target.value) })}
-          className="w-20 rounded border border-slate-300 px-2 py-1 dark:border-slate-600 dark:bg-slate-800"
+          className={clsx(BORDERED_CONTROL_CLASS, 'w-20 px-2 py-1')}
         />
       </FieldRow>
       <FieldRow label="Stimulus display duration (ms)">
@@ -166,7 +167,7 @@ export function ConfigForm({
           onChange={(event) =>
             setConfig({ ...config, displayDurationMs: Number(event.target.value) })
           }
-          className="w-20 rounded border border-slate-300 px-2 py-1 dark:border-slate-600 dark:bg-slate-800"
+          className={clsx(BORDERED_CONTROL_CLASS, 'w-20 px-2 py-1')}
         />
       </FieldRow>
       <FieldRow label="Trial length (ms)">
@@ -178,7 +179,7 @@ export function ConfigForm({
           onChange={(event) =>
             setConfig({ ...config, trialLengthMs: Number(event.target.value) })
           }
-          className="w-20 rounded border border-slate-300 px-2 py-1 dark:border-slate-600 dark:bg-slate-800"
+          className={clsx(BORDERED_CONTROL_CLASS, 'w-20 px-2 py-1')}
         />
       </FieldRow>
       <fieldset className="flex flex-col gap-2">
@@ -241,7 +242,7 @@ export function ConfigForm({
                     adaptive: { ...config.adaptive, lowerThreshold: Number(event.target.value) },
                   })
                 }
-                className="w-20 rounded border border-slate-300 px-2 py-1 dark:border-slate-600 dark:bg-slate-800"
+                className={clsx(BORDERED_CONTROL_CLASS, 'w-20 px-2 py-1')}
               />
             </FieldRow>
             <FieldRow label="Upper accuracy threshold (increase N above this)">
@@ -257,7 +258,7 @@ export function ConfigForm({
                     adaptive: { ...config.adaptive, upperThreshold: Number(event.target.value) },
                   })
                 }
-                className="w-20 rounded border border-slate-300 px-2 py-1 dark:border-slate-600 dark:bg-slate-800"
+                className={clsx(BORDERED_CONTROL_CLASS, 'w-20 px-2 py-1')}
               />
             </FieldRow>
           </>

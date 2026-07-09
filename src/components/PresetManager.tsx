@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import clsx from 'clsx'
 import type { Preset } from '../adapters/usePresets'
+import { BORDERED_CONTROL_CLASS } from '../styles/controls'
 
 export interface PresetManagerProps {
   presets: Preset[]
@@ -29,13 +31,13 @@ export function PresetManager({ presets, activePresetId, onSave, onLoad }: Prese
           onChange={(event) => setName(event.target.value)}
           placeholder="Preset name"
           aria-label="Preset name"
-          className="flex-1 rounded border border-slate-300 px-2 py-1 dark:border-slate-600 dark:bg-slate-800"
+          className={clsx(BORDERED_CONTROL_CLASS, 'flex-1 px-2 py-1')}
         />
         <button
           type="button"
           disabled={!name.trim()}
           onClick={handleSave}
-          className="rounded border border-slate-300 px-2 py-1 text-sm disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800"
+          className={clsx(BORDERED_CONTROL_CLASS, 'px-2 py-1 text-sm disabled:opacity-50')}
         >
           Save preset
         </button>
@@ -46,7 +48,7 @@ export function PresetManager({ presets, activePresetId, onSave, onLoad }: Prese
             value={selectedId}
             onChange={(event) => setSelectedId(event.target.value)}
             aria-label="Select a preset"
-            className="flex-1 rounded border border-slate-300 px-2 py-1 dark:border-slate-600 dark:bg-slate-800"
+            className={clsx(BORDERED_CONTROL_CLASS, 'flex-1 px-2 py-1')}
           >
             <option value="" disabled>
               Select a preset…
@@ -62,7 +64,7 @@ export function PresetManager({ presets, activePresetId, onSave, onLoad }: Prese
             type="button"
             disabled={!selectedId}
             onClick={() => onLoad(selectedId)}
-            className="rounded border border-slate-300 px-2 py-1 text-sm disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800"
+            className={clsx(BORDERED_CONTROL_CLASS, 'px-2 py-1 text-sm disabled:opacity-50')}
           >
             Load
           </button>
