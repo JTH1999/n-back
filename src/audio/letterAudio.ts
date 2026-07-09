@@ -1,6 +1,6 @@
 import type { Letter } from '../engine/streams'
 
-const letterClipPath = (letter: Letter) => `/audio/letters/${letter}.wav`
+const letterClipPath = (letter: Letter) => `${import.meta.env.BASE_URL}audio/letters/${letter}.wav`
 
 function speakLetter(letter: Letter, volume: number): void {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
