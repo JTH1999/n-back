@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import clsx from 'clsx'
 import {
   useSessionRunner,
   type SessionRunnerConfig,
@@ -8,6 +9,7 @@ import type { Keymap } from '../config/keymap'
 import type { StreamKind } from '../engine/streams'
 import { appendHistoryRecord } from '../persistence/historyStorage'
 import { saveDraftSettings } from '../persistence/settingsStorage'
+import { BORDERED_CONTROL_CLASS } from '../styles/controls'
 import { MAX_N } from './ConfigForm'
 import { Grid } from './Grid'
 import { SessionSummary } from './SessionSummary'
@@ -22,7 +24,7 @@ export interface SessionRunnerProps {
 
 const ABORT_CONFIRM_MESSAGE = 'Abort this session? Your progress will not be saved.'
 
-const CONTROL_BUTTON_CLASS = 'rounded border px-3 py-1 text-sm'
+const CONTROL_BUTTON_CLASS = clsx(BORDERED_CONTROL_CLASS, 'px-3 py-1 text-sm')
 
 export function SessionRunner({
   config,

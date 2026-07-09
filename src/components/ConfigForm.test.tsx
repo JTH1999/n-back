@@ -9,6 +9,8 @@ function renderConfigForm(overrides: Partial<ConfigFormProps> = {}) {
     keymap: DEFAULT_KEYMAP,
     onRebindKey: vi.fn(),
     onApplyKeymap: vi.fn(),
+    themeOverride: null,
+    onChangeTheme: vi.fn(),
     ...overrides,
   }
   return { ...render(<ConfigForm {...props} />), props }
@@ -138,6 +140,15 @@ describe('ConfigForm', () => {
 
     expect(screen.getByText(/lower accuracy threshold must not exceed/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /start session/i })).toBeDisabled()
+  })
+
+  it('renders the theme toggle and reports selection changes', () => {
+    const onChangeTheme = vi.fn()
+    renderConfigForm({ themeOverride: null, onChangeTheme })
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Dark' }))
+
+    expect(onChangeTheme).toHaveBeenCalledWith('dark')
   })
 
   it('renders the keymap editor and reports rebinds', () => {

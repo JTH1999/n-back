@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
+import clsx from 'clsx'
 import type { Keymap } from '../config/keymap'
 import { STREAM_KINDS, type StreamKind } from '../engine/streams'
+import { BORDERED_CONTROL_CLASS } from '../styles/controls'
 
 export interface KeymapEditorProps {
   keymap: Keymap
@@ -42,7 +44,7 @@ export function KeymapEditor({ keymap, onRebind }: KeymapEditorProps) {
               <button
                 type="button"
                 onClick={() => setListeningFor(kind)}
-                className="rounded border px-2 py-1 text-sm"
+                className={clsx(BORDERED_CONTROL_CLASS, 'px-2 py-1 text-sm')}
               >
                 Rebind {kind}
               </button>

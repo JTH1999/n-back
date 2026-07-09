@@ -1,10 +1,12 @@
 import { useRef, useState } from 'react'
+import clsx from 'clsx'
 import {
   ImportValidationError,
   applyExportedState,
   buildExportPayload,
   parseExportedState,
 } from '../persistence/exportImport'
+import { BORDERED_CONTROL_CLASS } from '../styles/controls'
 
 export interface ExportImportPanelProps {
   onImported?: () => void
@@ -56,14 +58,14 @@ export function ExportImportPanel({
         <button
           type="button"
           onClick={handleExport}
-          className="rounded border px-2 py-1 text-sm"
+          className={clsx(BORDERED_CONTROL_CLASS, 'px-2 py-1 text-sm')}
         >
           Export data
         </button>
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="rounded border px-2 py-1 text-sm"
+          className={clsx(BORDERED_CONTROL_CLASS, 'px-2 py-1 text-sm')}
         >
           Import data
         </button>
