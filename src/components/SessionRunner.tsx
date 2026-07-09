@@ -17,11 +17,30 @@ export interface SessionRunnerProps {
   config: SessionRunnerConfig
   keymap: Keymap
   onRestart: () => void
+  confirmAbort?: (message: string) => boolean
 }
 
-export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps) {
-  const { state, stimulusVisible, feedback, readyForSummary, acceptingInput, assertStreamMatch } =
-    useSessionRunner(config)
+const ABORT_CONFIRM_MESSAGE = 'Abort this session? Your progress will not be saved.'
+
+const CONTROL_BUTTON_CLASS = 'rounded border px-3 py-1 text-sm'
+
+export function SessionRunner({
+  config,
+  keymap,
+  onRestart,
+  confirmAbort = (message) => window.confirm(message),
+}: SessionRunnerProps) {
+  const {
+    state,
+    stimulusVisible,
+    feedback,
+    readyForSummary,
+    acceptingInput,
+    paused,
+    assertStreamMatch,
+    pause,
+    resume,
+  } = useSessionRunner(config)
   const [pressedStreams, setPressedStreams] = useState<ReadonlySet<StreamKind>>(new Set())
   const hasRecordedHistory = useRef(false)
   const hasAppliedAdaptiveN = useRef(false)
@@ -69,13 +88,28 @@ export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps)
     return <SessionSummary summary={summary} onRestart={onRestart} />
   }
 
+  const handleTogglePause = () => (paused ? resume() : pause())
+
+  const handleAbort = () => {
+    if (confirmAbort(ABORT_CONFIRM_MESSAGE)) onRestart()
+  }
+
   const stimulus = getStimulusDisplay(state, stimulusVisible)
 
   return (
     <>
       <div className="flex flex-col items-center gap-4 pb-24">
+        <div className="flex gap-2">
+          <button type="button" onClick={handleTogglePause} className={CONTROL_BUTTON_CLASS}>
+            {paused ? 'Resume' : 'Pause'}
+          </button>
+          <button type="button" onClick={handleAbort} className={CONTROL_BUTTON_CLASS}>
+            Abort
+          </button>
+        </div>
         <p>
           Trial {Math.min(state.currentTrialIndex + 1, state.trialCount)} of {state.trialCount}
+          {paused && ' (Paused)'}
         </p>
         <Grid stimulus={stimulus} />
         <ul className="flex flex-col items-center gap-1 text-sm text-slate-500">

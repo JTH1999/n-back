@@ -323,3 +323,97 @@ describe('SessionRunner live feedback', () => {
     expect(screen.getByText(/session complete/i)).toBeInTheDocument()
   })
 })
+
+describe('SessionRunner pause and resume', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('stops the trial from advancing while paused', () => {
+    vi.useFakeTimers()
+    render(
+      <SessionRunner
+        config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={vi.fn()}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /pause/i }))
+
+    act(() => {
+      vi.advanceTimersByTime(10_000)
+    })
+
+    expect(screen.getByText(/trial 1 of 5/i)).toBeInTheDocument()
+  })
+
+  it('resumes advancing the trial after resume is clicked', () => {
+    vi.useFakeTimers()
+    render(
+      <SessionRunner
+        config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={vi.fn()}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /pause/i }))
+    act(() => {
+      vi.advanceTimersByTime(10_000)
+    })
+    fireEvent.click(screen.getByRole('button', { name: /resume/i }))
+
+    act(() => {
+      vi.advanceTimersByTime(200)
+    })
+
+    expect(screen.getByText(/trial 2 of 5/i)).toBeInTheDocument()
+  })
+})
+
+describe('SessionRunner abort with confirmation', () => {
+  beforeEach(() => {
+    window.localStorage.clear()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('does not end the session when the confirmation is declined', () => {
+    vi.useFakeTimers()
+    const onRestart = vi.fn()
+    render(
+      <SessionRunner
+        config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={onRestart}
+        confirmAbort={() => false}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /abort/i }))
+
+    expect(onRestart).not.toHaveBeenCalled()
+    expect(screen.getByText(/trial 1 of 5/i)).toBeInTheDocument()
+  })
+
+  it('ends the session without recording history when the confirmation is accepted', () => {
+    vi.useFakeTimers()
+    const onRestart = vi.fn()
+    render(
+      <SessionRunner
+        config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={onRestart}
+        confirmAbort={() => true}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /abort/i }))
+
+    expect(onRestart).toHaveBeenCalledTimes(1)
+    expect(loadHistory()).toHaveLength(0)
+  })
+})
