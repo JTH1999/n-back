@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { DEFAULT_KEYMAP } from '../config/keymap'
-import type { Preset } from '../adapters/usePresets'
+import type { Preset } from '../hooks/usePresets'
 import { PresetList } from './PresetList'
 
 const config = {

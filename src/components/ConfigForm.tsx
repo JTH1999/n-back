@@ -1,9 +1,8 @@
-import clsx from 'clsx'
-import { useDraftConfig } from '../adapters/useDraftConfig'
-import type { SessionRunnerConfig } from '../adapters/useSessionRunner'
+import { useDraftConfig } from '../hooks/useDraftConfig'
+import type { SessionRunnerConfig } from '../hooks/useSessionRunner'
 import { STREAM_KINDS, type StreamKind } from '../engine/streams'
-import { BORDERED_CONTROL_CLASS } from '../styles/controls'
 import { FieldRow } from './FieldRow'
+import { NumberFieldRow } from './NumberFieldRow'
 
 export const MAX_N = 20
 const MAX_TRIAL_COUNT = 500
@@ -69,50 +68,34 @@ export function ConfigForm({ onStart }: ConfigFormProps) {
           </FieldRow>
         ))}
       </fieldset>
-      <FieldRow label="N-back level">
-        <input
-          type="number"
-          min={1}
-          max={MAX_N}
-          value={config.n}
-          onChange={(event) => setConfig({ ...config, n: Number(event.target.value) })}
-          className={clsx(BORDERED_CONTROL_CLASS, 'w-20 px-2 py-1')}
-        />
-      </FieldRow>
-      <FieldRow label="Trial count">
-        <input
-          type="number"
-          min={1}
-          max={MAX_TRIAL_COUNT}
-          value={config.trialCount}
-          onChange={(event) => setConfig({ ...config, trialCount: Number(event.target.value) })}
-          className={clsx(BORDERED_CONTROL_CLASS, 'w-20 px-2 py-1')}
-        />
-      </FieldRow>
-      <FieldRow label="Stimulus display duration (ms)">
-        <input
-          type="number"
-          min={1}
-          max={MAX_DISPLAY_DURATION_MS}
-          value={config.displayDurationMs}
-          onChange={(event) =>
-            setConfig({ ...config, displayDurationMs: Number(event.target.value) })
-          }
-          className={clsx(BORDERED_CONTROL_CLASS, 'w-20 px-2 py-1')}
-        />
-      </FieldRow>
-      <FieldRow label="Trial length (ms)">
-        <input
-          type="number"
-          min={1}
-          max={MAX_TRIAL_LENGTH_MS}
-          value={config.trialLengthMs}
-          onChange={(event) =>
-            setConfig({ ...config, trialLengthMs: Number(event.target.value) })
-          }
-          className={clsx(BORDERED_CONTROL_CLASS, 'w-20 px-2 py-1')}
-        />
-      </FieldRow>
+      <NumberFieldRow
+        label="N-back level"
+        min={1}
+        max={MAX_N}
+        value={config.n}
+        onChange={(value) => setConfig({ ...config, n: value })}
+      />
+      <NumberFieldRow
+        label="Trial count"
+        min={1}
+        max={MAX_TRIAL_COUNT}
+        value={config.trialCount}
+        onChange={(value) => setConfig({ ...config, trialCount: value })}
+      />
+      <NumberFieldRow
+        label="Stimulus display duration (ms)"
+        min={1}
+        max={MAX_DISPLAY_DURATION_MS}
+        value={config.displayDurationMs}
+        onChange={(value) => setConfig({ ...config, displayDurationMs: value })}
+      />
+      <NumberFieldRow
+        label="Trial length (ms)"
+        min={1}
+        max={MAX_TRIAL_LENGTH_MS}
+        value={config.trialLengthMs}
+        onChange={(value) => setConfig({ ...config, trialLengthMs: value })}
+      />
       <fieldset className="flex flex-col gap-2">
         <legend>Feedback</legend>
         <FieldRow label="Live feedback (show per-trial results)">
@@ -139,38 +122,26 @@ export function ConfigForm({ onStart }: ConfigFormProps) {
         </FieldRow>
         {config.adaptive.enabled && (
           <>
-            <FieldRow label="Lower accuracy threshold (decrease N below this)">
-              <input
-                type="number"
-                min={0}
-                max={1}
-                step={0.05}
-                value={config.adaptive.lowerThreshold}
-                onChange={(event) =>
-                  setConfig({
-                    ...config,
-                    adaptive: { ...config.adaptive, lowerThreshold: Number(event.target.value) },
-                  })
-                }
-                className={clsx(BORDERED_CONTROL_CLASS, 'w-20 px-2 py-1')}
-              />
-            </FieldRow>
-            <FieldRow label="Upper accuracy threshold (increase N above this)">
-              <input
-                type="number"
-                min={0}
-                max={1}
-                step={0.05}
-                value={config.adaptive.upperThreshold}
-                onChange={(event) =>
-                  setConfig({
-                    ...config,
-                    adaptive: { ...config.adaptive, upperThreshold: Number(event.target.value) },
-                  })
-                }
-                className={clsx(BORDERED_CONTROL_CLASS, 'w-20 px-2 py-1')}
-              />
-            </FieldRow>
+            <NumberFieldRow
+              label="Lower accuracy threshold (decrease N below this)"
+              min={0}
+              max={1}
+              step={0.05}
+              value={config.adaptive.lowerThreshold}
+              onChange={(value) =>
+                setConfig({ ...config, adaptive: { ...config.adaptive, lowerThreshold: value } })
+              }
+            />
+            <NumberFieldRow
+              label="Upper accuracy threshold (increase N above this)"
+              min={0}
+              max={1}
+              step={0.05}
+              value={config.adaptive.upperThreshold}
+              onChange={(value) =>
+                setConfig({ ...config, adaptive: { ...config.adaptive, upperThreshold: value } })
+              }
+            />
           </>
         )}
       </fieldset>

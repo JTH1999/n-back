@@ -1,12 +1,12 @@
 import { useRef, useState } from 'react'
-import clsx from 'clsx'
 import {
   ImportValidationError,
   applyExportedState,
   buildExportPayload,
   parseExportedState,
 } from '../persistence/exportImport'
-import { EYEBROW_CLASS, GHOST_BUTTON_CLASS } from '../styles/controls'
+import { Button } from './Button'
+import { SubHeading } from './SubHeading'
 
 export interface ExportImportPanelProps {
   onImported?: () => void
@@ -53,26 +53,28 @@ export function ExportImportPanel({
 
   return (
     <fieldset className="flex flex-col gap-3">
-      <legend className={clsx(EYEBROW_CLASS, 'mb-1')}>Backup</legend>
+      <SubHeading as="legend" className="mb-1">
+        Backup
+      </SubHeading>
       <p className="mt-0 text-[13px] text-dim">
         All data lives in this browser only. Export a JSON file or restore one.
       </p>
-      <button
-        type="button"
+      <Button
+        variant="ghost"
         onClick={handleExport}
-        className={clsx(GHOST_BUTTON_CLASS, 'flex w-full items-center justify-center gap-2')}
+        className="flex w-full items-center justify-center gap-2"
       >
         <span aria-hidden="true">↓</span>
         Export data
-      </button>
-      <button
-        type="button"
+      </Button>
+      <Button
+        variant="ghost"
         onClick={() => fileInputRef.current?.click()}
-        className={clsx(GHOST_BUTTON_CLASS, 'flex w-full items-center justify-center gap-2')}
+        className="flex w-full items-center justify-center gap-2"
       >
         <span aria-hidden="true">↑</span>
         Import data
-      </button>
+      </Button>
       <input
         ref={fileInputRef}
         type="file"

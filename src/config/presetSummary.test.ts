@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { SessionRunnerConfig } from '../adapters/useSessionRunner'
+import type { SessionRunnerConfig } from '../hooks/useSessionRunner'
 import { summarizePresetConfig } from './presetSummary'
 
 const baseConfig: SessionRunnerConfig = {

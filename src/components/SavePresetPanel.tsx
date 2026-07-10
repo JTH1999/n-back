@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import clsx from 'clsx'
 import { BORDERED_CONTROL_CLASS } from '../styles/controls'
+import { Button } from './Button'
+import { Panel } from './Panel'
+import { SubHeading } from './SubHeading'
 
 export interface SavePresetPanelProps {
   currentSummary: string
@@ -18,10 +21,8 @@ export function SavePresetPanel({ currentSummary, onSave }: SavePresetPanelProps
   }
 
   return (
-    <div className="rounded-xl border border-border bg-panel p-[18px]">
-      <span className="font-mono text-[11px] tracking-[0.2em] text-dim uppercase">
-        Save current config
-      </span>
+    <Panel>
+      <SubHeading>Save current config</SubHeading>
       <p className="mt-2 mb-3 font-mono text-xs text-dim">{currentSummary}</p>
       <input
         type="text"
@@ -31,14 +32,9 @@ export function SavePresetPanel({ currentSummary, onSave }: SavePresetPanelProps
         aria-label="Preset name"
         className={clsx(BORDERED_CONTROL_CLASS, 'w-full bg-panel2 px-3 py-2.5 font-mono text-sm')}
       />
-      <button
-        type="button"
-        disabled={!name.trim()}
-        onClick={handleSave}
-        className="mt-3 w-full rounded-lg bg-accent px-4 py-2.5 font-semibold text-accent-fg disabled:cursor-not-allowed disabled:bg-panel disabled:text-dim2"
-      >
+      <Button disabled={!name.trim()} onClick={handleSave} className="mt-3 w-full">
         Save Preset
-      </button>
-    </div>
+      </Button>
+    </Panel>
   )
 }

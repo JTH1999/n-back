@@ -1,4 +1,4 @@
-import type { SessionRunnerConfig } from '../adapters/useSessionRunner'
+import type { SessionRunnerConfig } from '../hooks/useSessionRunner'
 import type { SessionSummary } from '../engine/sessionEngine'
 
 const HISTORY_KEY = 'n-back:session-history'

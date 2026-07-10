@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import type { Preset } from '../adapters/usePresets'
-import type { SessionRunnerConfig } from '../adapters/useSessionRunner'
+import type { Preset } from '../hooks/usePresets'
+import type { SessionRunnerConfig } from '../hooks/useSessionRunner'
 import type { Keymap } from '../config/keymap'
 import type { SessionHistoryRecord } from './historyStorage'
 import { loadHistory } from './historyStorage'

@@ -1,5 +1,5 @@
-import type { Preset } from '../adapters/usePresets'
-import type { SessionRunnerConfig } from '../adapters/useSessionRunner'
+import type { Preset } from '../hooks/usePresets'
+import type { SessionRunnerConfig } from '../hooks/useSessionRunner'
 import type { Keymap } from '../config/keymap'
 import { STREAM_KINDS } from '../engine/streams'
 import { loadHistory, replaceHistory, type SessionHistoryRecord } from './historyStorage'

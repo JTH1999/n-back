@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import clsx from 'clsx'
 import type { Keymap } from '../config/keymap'
 import { STREAM_KINDS, type StreamKind } from '../engine/streams'
-import { EYEBROW_CLASS } from '../styles/controls'
+import { SubHeading } from './SubHeading'
 
 export interface KeymapEditorProps {
   keymap: Keymap
@@ -44,7 +44,9 @@ export function KeymapEditor({ keymap, onRebind }: KeymapEditorProps) {
 
   return (
     <fieldset className="flex flex-col gap-2.5">
-      <legend className={clsx(EYEBROW_CLASS, 'mb-1')}>Key bindings</legend>
+      <SubHeading as="legend" className="mb-1">
+        Key bindings
+      </SubHeading>
       {STREAM_KINDS.map((kind) => (
         <div key={kind} className="flex items-center gap-3">
           <span
