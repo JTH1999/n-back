@@ -1,21 +1,12 @@
 import { useEffect, useState } from 'react'
 import clsx from 'clsx'
 import type { Keymap } from '../config/keymap'
-import { STREAM_KINDS, type StreamKind } from '../engine/streams'
+import { STREAM_DOT_CLASS, STREAM_KINDS, type StreamKind } from '../engine/streams'
 import { SubHeading } from './SubHeading'
 
 export interface KeymapEditorProps {
   keymap: Keymap
   onRebind: (kind: StreamKind, key: string) => void
-}
-
-// Per-stream identity colors, matching the design's STREAMS palette (used for stream cards,
-// results dots, and keymap rows alike) — distinct from the `color` stream's own swatch values.
-const STREAM_DOT_CLASS: Record<StreamKind, string> = {
-  position: 'bg-[#56B4E9]',
-  shape: 'bg-[#5fbf8a]',
-  color: 'bg-[#e0a030]',
-  letter: 'bg-[#c98bbf]',
 }
 
 const KEYCAP_BASE_CLASS =

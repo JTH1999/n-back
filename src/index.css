@@ -62,6 +62,22 @@
   --accent-dim: #d0efe8;
   --tile: #c3ccd2;
   --danger: #d63c3c;
+
+  /* Per-stream identity colors — same in light and dark, used for stream cards,
+     keymap rows, and results dots alike. */
+  --stream-position: #56b4e9;
+  --stream-shape: #5fbf8a;
+  --stream-color: #e0a030;
+  --stream-letter: #c98bbf;
+
+  /* Okabe-Ito colorblind-safe palette for the Color stream's own values —
+     distinguishable by hue and luminance, not hue alone. */
+  --palette-blue: #0072b2;
+  --palette-orange: #e69f00;
+  --palette-yellow: #f0e442;
+  --palette-vermillion: #d55e00;
+  --palette-purple: #cc79a7;
+  --palette-green: #009e73;
 }
 
 .dark {
@@ -92,6 +108,18 @@
   --color-accent-dim: var(--accent-dim);
   --color-tile: var(--tile);
   --color-danger: var(--danger);
+
+  --color-stream-position: var(--stream-position);
+  --color-stream-shape: var(--stream-shape);
+  --color-stream-color: var(--stream-color);
+  --color-stream-letter: var(--stream-letter);
+
+  --color-palette-blue: var(--palette-blue);
+  --color-palette-orange: var(--palette-orange);
+  --color-palette-yellow: var(--palette-yellow);
+  --color-palette-vermillion: var(--palette-vermillion);
+  --color-palette-purple: var(--palette-purple);
+  --color-palette-green: var(--palette-green);
 
   --font-sans: 'IBM Plex Sans', sans-serif;
   --font-mono: 'IBM Plex Mono', monospace;
