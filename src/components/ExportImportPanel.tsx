@@ -6,7 +6,7 @@ import {
   buildExportPayload,
   parseExportedState,
 } from '../persistence/exportImport'
-import { BORDERED_CONTROL_CLASS } from '../styles/controls'
+import { EYEBROW_CLASS, GHOST_BUTTON_CLASS } from '../styles/controls'
 
 export interface ExportImportPanelProps {
   onImported?: () => void
@@ -52,33 +52,30 @@ export function ExportImportPanel({
   }
 
   return (
-    <fieldset className="flex flex-col gap-2">
-      <legend>Backup</legend>
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={handleExport}
-          className={clsx(BORDERED_CONTROL_CLASS, 'px-2 py-1 text-sm')}
-        >
-          Export data
-        </button>
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className={clsx(BORDERED_CONTROL_CLASS, 'px-2 py-1 text-sm')}
-        >
-          Import data
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="application/json"
-          aria-label="Import file"
-          className="hidden"
-          onChange={handleFileSelected}
-        />
-      </div>
-      {error && <p className="text-sm text-red-500">{error}</p>}
+    <fieldset className="flex flex-col gap-3">
+      <legend className={clsx(EYEBROW_CLASS, 'mb-1')}>Backup</legend>
+      <p className="mt-0 text-[13px] text-dim">
+        All data lives in this browser only. Export a JSON file or restore one.
+      </p>
+      <button type="button" onClick={handleExport} className={clsx(GHOST_BUTTON_CLASS, 'w-full')}>
+        Export data
+      </button>
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        className={clsx(GHOST_BUTTON_CLASS, 'w-full')}
+      >
+        Import data
+      </button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="application/json"
+        aria-label="Import file"
+        className="hidden"
+        onChange={handleFileSelected}
+      />
+      {error && <p className="text-sm text-danger">{error}</p>}
     </fieldset>
   )
 }

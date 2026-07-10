@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react'
+import clsx from 'clsx'
 import { useDraftConfig } from '../adapters/useDraftConfig'
 import type { Keymap } from '../config/keymap'
 import type { ThemeOverride } from '../config/theme'
 import type { StreamKind } from '../engine/streams'
+import { EYEBROW_CLASS, RANGE_INPUT_CLASS } from '../styles/controls'
 import { ExportImportPanel } from './ExportImportPanel'
-import { FieldRow } from './FieldRow'
 import { KeymapEditor } from './KeymapEditor'
 import { ThemeToggle } from './ThemeToggle'
 
@@ -41,26 +42,45 @@ export function SettingsScreen({
             <KeymapEditor keymap={keymap} onRebind={onRebindKey} />
           </SettingsPanel>
           <SettingsPanel>
-            <fieldset className="flex flex-col gap-2">
-              <legend>Letter audio</legend>
-              <FieldRow label="Volume">
+            <fieldset className="flex flex-col gap-3">
+              <legend className={clsx(EYEBROW_CLASS, 'mb-1')}>Letter audio</legend>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={config.muted}
+                  aria-label="Mute"
+                  onClick={() => setConfig({ ...config, muted: !config.muted })}
+                  className={clsx(
+                    'relative h-6 w-[42px] flex-none rounded-full transition-colors',
+                    config.muted ? 'bg-accent' : 'bg-border',
+                  )}
+                >
+                  <span
+                    className={clsx(
+                      'absolute top-[3px] left-[3px] h-[18px] w-[18px] rounded-full bg-white transition-transform',
+                      config.muted && 'translate-x-[18px]',
+                    )}
+                  />
+                </button>
+                <span className="text-sm font-medium">{config.muted ? 'Muted' : 'Unmuted'}</span>
+              </div>
+              <div className="flex flex-col gap-1.5">
                 <input
                   type="range"
+                  aria-label="Volume"
                   min={0}
                   max={1}
                   step={0.05}
                   value={config.volume}
                   disabled={config.muted}
                   onChange={(event) => setConfig({ ...config, volume: Number(event.target.value) })}
+                  className={RANGE_INPUT_CLASS}
                 />
-              </FieldRow>
-              <FieldRow label="Mute">
-                <input
-                  type="checkbox"
-                  checked={config.muted}
-                  onChange={(event) => setConfig({ ...config, muted: event.target.checked })}
-                />
-              </FieldRow>
+                <span className="font-mono text-xs text-dim">
+                  volume · {Math.round(config.volume * 100)}%
+                </span>
+              </div>
             </fieldset>
           </SettingsPanel>
         </div>
