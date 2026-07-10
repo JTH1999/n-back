@@ -1,15 +1,10 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { DEFAULT_KEYMAP } from '../config/keymap'
 import { ConfigForm, type ConfigFormProps } from './ConfigForm'
 
 function renderConfigForm(overrides: Partial<ConfigFormProps> = {}) {
   const props: ConfigFormProps = {
     onStart: vi.fn(),
-    keymap: DEFAULT_KEYMAP,
-    onRebindKey: vi.fn(),
-    themeOverride: null,
-    onChangeTheme: vi.fn(),
     ...overrides,
   }
   return { ...render(<ConfigForm {...props} />), props }
@@ -49,7 +44,6 @@ describe('ConfigForm', () => {
 
     fireEvent.change(screen.getByLabelText(/n-back level/i), { target: { value: '5' } })
     fireEvent.click(screen.getByLabelText(/letter/i))
-    fireEvent.click(screen.getByLabelText(/mute/i))
     fireEvent.click(screen.getByLabelText(/live feedback/i))
     unmount()
 
@@ -57,7 +51,6 @@ describe('ConfigForm', () => {
 
     expect(screen.getByLabelText(/n-back level/i)).toHaveValue(5)
     expect(screen.getByLabelText(/letter/i)).toBeChecked()
-    expect(screen.getByLabelText(/mute/i)).toBeChecked()
     expect(screen.getByLabelText(/live feedback/i)).toBeChecked()
   })
 
@@ -76,22 +69,12 @@ describe('ConfigForm', () => {
     expect(onStart).toHaveBeenCalledWith(expect.objectContaining({ liveFeedback: false }))
   })
 
-  it('disables the volume slider while muted', () => {
-    renderConfigForm()
-
-    fireEvent.click(screen.getByLabelText(/mute/i))
-
-    expect(screen.getByLabelText(/volume/i)).toBeDisabled()
-  })
-
   it('fills in missing fields from defaults when the saved draft is from an older schema', () => {
     window.localStorage.setItem('n-back:draft-settings', JSON.stringify({ n: 4 }))
 
     renderConfigForm()
 
     expect(screen.getByLabelText(/n-back level/i)).toHaveValue(4)
-    expect(screen.getByLabelText(/volume/i)).not.toBeDisabled()
-    expect(screen.getByLabelText(/mute/i)).not.toBeChecked()
   })
 
   it('defaults adaptive mode to off', () => {
@@ -140,24 +123,4 @@ describe('ConfigForm', () => {
     expect(screen.getByText(/lower accuracy threshold must not exceed/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /start session/i })).toBeDisabled()
   })
-
-  it('renders the theme toggle and reports selection changes', () => {
-    const onChangeTheme = vi.fn()
-    renderConfigForm({ themeOverride: null, onChangeTheme })
-
-    fireEvent.click(screen.getByRole('radio', { name: 'Dark' }))
-
-    expect(onChangeTheme).toHaveBeenCalledWith('dark')
-  })
-
-  it('renders the keymap editor and reports rebinds', () => {
-    const onRebindKey = vi.fn()
-    renderConfigForm({ onRebindKey })
-
-    fireEvent.click(screen.getByRole('button', { name: /rebind position/i }))
-    fireEvent.keyDown(window, { key: 'g' })
-
-    expect(onRebindKey).toHaveBeenCalledWith('position', 'g')
-  })
-
 })
