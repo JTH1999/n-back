@@ -6,7 +6,7 @@ export const DEFAULT_CONFIG: SessionRunnerConfig = {
   n: 2,
   trialCount: 20,
   streams: ['position'],
-  displayDurationMs: 500,
+  displayDurationMs: 600,
   trialLengthMs: 2500,
   volume: 1,
   muted: false,

@@ -3,10 +3,10 @@ import { useDraftConfig } from '../hooks/useDraftConfig'
 import type { SessionRunnerConfig } from '../hooks/useSessionRunner'
 import { DEFAULT_MATCH_RATE } from '../engine/sessionEngine'
 import { STREAM_KINDS, type StreamKind } from '../engine/streams'
-import { RANGE_INPUT_CLASS } from '../styles/controls'
 import { Button } from './Button'
 import { Panel } from './Panel'
 import { ScreenHeader } from './ScreenHeader'
+import { SliderParam } from './SliderParam'
 import { StreamCard } from './StreamCard'
 import { SubHeading } from './SubHeading'
 import { TwoColumnLayout } from './TwoColumnLayout'
@@ -35,50 +35,6 @@ function formatDuration(ms: number): string {
   return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`
 }
 
-interface SliderParamProps {
-  label: string
-  hint?: string
-  ariaLabel: string
-  valueLabel: string
-  min: number
-  max: number
-  step: number
-  value: number
-  onChange: (value: number) => void
-}
-
-function SliderParam({
-  label,
-  hint,
-  ariaLabel,
-  valueLabel,
-  min,
-  max,
-  step,
-  value,
-  onChange,
-}: SliderParamProps) {
-  return (
-    <div className="flex flex-col gap-2 border-b border-border py-4 last:border-none">
-      <div className="flex items-center gap-2 text-sm font-medium">
-        <span>{label}</span>
-        {hint && <span className="font-mono text-xs font-normal text-dim">{hint}</span>}
-        <span className="ml-auto font-mono text-xs text-accent">{valueLabel}</span>
-      </div>
-      <input
-        type="range"
-        aria-label={ariaLabel}
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(event) => onChange(Number(event.target.value))}
-        className={RANGE_INPUT_CLASS}
-      />
-    </div>
-  )
-}
-
 interface ToggleRowProps {
   label: string
   hint: string
@@ -89,8 +45,9 @@ interface ToggleRowProps {
 function ToggleRow({ label, hint, checked, onChange }: ToggleRowProps) {
   return (
     <div className="flex items-center justify-between gap-3 border-b border-border py-4 last:border-none">
-      <div className="text-sm font-medium">
-        {label} <span className="font-mono text-xs font-normal text-dim">{hint}</span>
+      <div className="flex items-center gap-2 text-sm font-medium">
+        <span>{label}</span>
+        <span className="font-mono text-xs font-normal text-dim">{hint}</span>
       </div>
       <button
         type="button"
@@ -137,6 +94,9 @@ export function ConfigForm({ onStart }: ConfigFormProps) {
         checkRange('Trial count', config.trialCount, 1, MAX_TRIAL_COUNT) ??
         checkRange('Stimulus display duration', config.displayDurationMs, 1, MAX_DISPLAY_DURATION_MS, 'ms') ??
         checkRange('Trial length', config.trialLengthMs, 1, MAX_TRIAL_LENGTH_MS, 'ms') ??
+        (config.displayDurationMs > config.trialLengthMs
+          ? 'Stimulus display duration must not exceed the trial length.'
+          : null) ??
         (config.adaptive.enabled
           ? (checkRange('Lower accuracy threshold', config.adaptive.lowerThreshold, 0, 1) ??
             checkRange('Upper accuracy threshold', config.adaptive.upperThreshold, 0, 1) ??
@@ -172,13 +132,15 @@ export function ConfigForm({ onStart }: ConfigFormProps) {
     >
       <div className="flex flex-wrap items-end justify-between gap-4">
         <ScreenHeader eyebrow="Configure" title="Session Setup" />
-        <Button type="submit" disabled={!isValid}>
+        <Button type="submit" disabled={!isValid} className="font-mono">
           Start Session →
         </Button>
       </div>
 
-      <fieldset className="flex flex-col gap-3">
-        <SubHeading as="legend">Streams · toggle 1–4</SubHeading>
+      <fieldset className="flex flex-col gap-4">
+        <SubHeading as="legend" className="mb-1">
+          Streams · toggle 1–4
+        </SubHeading>
         <div className="grid grid-cols-2 gap-3 shell:grid-cols-4">
           {STREAM_KINDS.map((kind) => (
             <StreamCard
@@ -195,8 +157,9 @@ export function ConfigForm({ onStart }: ConfigFormProps) {
         main={
           <Panel>
             <div className="flex items-center justify-between gap-3 border-b border-border py-4">
-              <div className="text-sm font-medium">
-                Global N <span className="font-mono text-xs font-normal text-dim">back-distance</span>
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <span>Global N</span>
+                <span className="font-mono text-xs font-normal text-dim">back-distance</span>
               </div>
               <div className="flex items-center gap-0.5 rounded-lg border border-border bg-panel2 p-[3px]">
                 <button
@@ -231,8 +194,8 @@ export function ConfigForm({ onStart }: ConfigFormProps) {
               ariaLabel="Stimulus display duration"
               valueLabel={formatMs(config.displayDurationMs)}
               min={200}
-              max={2000}
-              step={50}
+              max={3000}
+              step={200}
               value={config.displayDurationMs}
               onChange={(value) => setConfig({ ...config, displayDurationMs: value })}
             />

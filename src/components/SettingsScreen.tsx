@@ -3,11 +3,11 @@ import { useDraftConfig } from '../hooks/useDraftConfig'
 import type { Keymap } from '../config/keymap'
 import type { ThemeOverride } from '../config/theme'
 import type { StreamKind } from '../engine/streams'
-import { RANGE_INPUT_CLASS } from '../styles/controls'
 import { ExportImportPanel } from './ExportImportPanel'
 import { KeymapEditor } from './KeymapEditor'
 import { Panel } from './Panel'
 import { ScreenHeader } from './ScreenHeader'
+import { SliderParam } from './SliderParam'
 import { SubHeading } from './SubHeading'
 import { ThemeToggle } from './ThemeToggle'
 import { TwoColumnLayout } from './TwoColumnLayout'
@@ -62,24 +62,17 @@ export function SettingsScreen({
                   </button>
                   <span className="text-sm font-medium">{config.muted ? 'Muted' : 'Unmuted'}</span>
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <input
-                    type="range"
-                    aria-label="Volume"
-                    min={0}
-                    max={1}
-                    step={0.05}
-                    value={config.volume}
-                    disabled={config.muted}
-                    onChange={(event) =>
-                      setConfig({ ...config, volume: Number(event.target.value) })
-                    }
-                    className={RANGE_INPUT_CLASS}
-                  />
-                  <span className="font-mono text-xs text-dim">
-                    volume · {Math.round(config.volume * 100)}%
-                  </span>
-                </div>
+                <SliderParam
+                  label="Volume"
+                  ariaLabel="Volume"
+                  valueLabel={`${Math.round(config.volume * 100)}%`}
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={config.volume}
+                  disabled={config.muted}
+                  onChange={(value) => setConfig({ ...config, volume: value })}
+                />
               </fieldset>
             </Panel>
           </>
