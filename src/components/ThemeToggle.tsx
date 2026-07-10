@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import type { ThemeOverride } from '../config/theme'
+import { EYEBROW_CLASS } from '../styles/controls'
 
 export interface ThemeToggleProps {
   override: ThemeOverride | null
@@ -19,9 +20,13 @@ const THEME_OPTIONS: ThemeOption[] = [
 
 export function ThemeToggle({ override, onChange }: ThemeToggleProps) {
   return (
-    <fieldset className="flex flex-col gap-2">
-      <legend>Theme</legend>
-      <div className="flex gap-2" role="radiogroup" aria-label="Theme">
+    <fieldset className="flex flex-col gap-2.5">
+      <legend className={clsx(EYEBROW_CLASS, 'mb-1')}>Theme</legend>
+      <div
+        className="flex flex-col gap-1 rounded-lg border border-border bg-panel p-[3px]"
+        role="radiogroup"
+        aria-label="Theme"
+      >
         {THEME_OPTIONS.map((option) => (
           <button
             key={option.label}
@@ -30,10 +35,10 @@ export function ThemeToggle({ override, onChange }: ThemeToggleProps) {
             aria-checked={override === option.value}
             onClick={() => onChange(option.value)}
             className={clsx(
-              'flex-1 rounded border px-2 py-1 text-sm dark:border-slate-600',
+              'rounded-md px-2.5 py-2 text-left font-mono text-[13px] transition-colors',
               override === option.value
-                ? 'bg-blue-500 text-white dark:bg-blue-500'
-                : 'dark:bg-slate-800',
+                ? 'bg-accent text-accent-fg'
+                : 'text-dim hover:text-fg',
             )}
           >
             {option.label}

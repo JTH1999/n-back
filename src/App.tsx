@@ -7,13 +7,15 @@ import { ConfigForm } from './components/ConfigForm'
 import { HistoryView } from './components/HistoryView'
 import { PresetsScreen } from './components/PresetsScreen'
 import { SessionRunner } from './components/SessionRunner'
+import { SettingsScreen } from './components/SettingsScreen'
 
-type Screen = 'train' | 'presets' | 'history'
+type Screen = 'train' | 'presets' | 'history' | 'settings'
 
 const NAV_ITEMS: NavItem<Screen>[] = [
   { id: 'train', label: 'Train' },
   { id: 'presets', label: 'Presets' },
   { id: 'history', label: 'History' },
+  { id: 'settings', label: 'Settings' },
 ]
 
 function App() {
@@ -34,16 +36,17 @@ function App() {
         config ? (
           <SessionRunner config={config} keymap={keymap} onRestart={() => setConfig(null)} />
         ) : (
-          <ConfigForm
-            onStart={setConfig}
-            keymap={keymap}
-            onRebindKey={rebind}
-            themeOverride={themeOverride}
-            onChangeTheme={setThemeOverride}
-          />
+          <ConfigForm onStart={setConfig} />
         )
       ) : screen === 'presets' ? (
         <PresetsScreen keymap={keymap} onApplyKeymap={setKeymap} />
+      ) : screen === 'settings' ? (
+        <SettingsScreen
+          keymap={keymap}
+          onRebindKey={rebind}
+          themeOverride={themeOverride}
+          onChangeTheme={setThemeOverride}
+        />
       ) : (
         <HistoryView onBack={() => setScreen('train')} resolvedTheme={resolvedTheme} />
       )}

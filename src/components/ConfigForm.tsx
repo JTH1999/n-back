@@ -1,29 +1,9 @@
-import type { ReactNode } from 'react'
 import clsx from 'clsx'
 import { useDraftConfig } from '../adapters/useDraftConfig'
 import type { SessionRunnerConfig } from '../adapters/useSessionRunner'
-import type { Keymap } from '../config/keymap'
-import type { ThemeOverride } from '../config/theme'
 import { STREAM_KINDS, type StreamKind } from '../engine/streams'
 import { BORDERED_CONTROL_CLASS } from '../styles/controls'
-import { ExportImportPanel } from './ExportImportPanel'
-import { KeymapEditor } from './KeymapEditor'
-import { ThemeToggle } from './ThemeToggle'
-
-interface FieldRowProps {
-  label: string
-  className?: string
-  children: ReactNode
-}
-
-function FieldRow({ label, className, children }: FieldRowProps) {
-  return (
-    <label className={clsx('flex items-center justify-between gap-4', className)}>
-      {label}
-      {children}
-    </label>
-  )
-}
+import { FieldRow } from './FieldRow'
 
 export const MAX_N = 20
 const MAX_TRIAL_COUNT = 500
@@ -38,19 +18,9 @@ function checkRange(label: string, value: number, min: number, max: number, unit
 
 export interface ConfigFormProps {
   onStart: (config: SessionRunnerConfig) => void
-  keymap: Keymap
-  onRebindKey: (kind: StreamKind, key: string) => void
-  themeOverride: ThemeOverride | null
-  onChangeTheme: (theme: ThemeOverride | null) => void
 }
 
-export function ConfigForm({
-  onStart,
-  keymap,
-  onRebindKey,
-  themeOverride,
-  onChangeTheme,
-}: ConfigFormProps) {
+export function ConfigForm({ onStart }: ConfigFormProps) {
   const [config, setConfig] = useDraftConfig()
 
   const validationMessage =
@@ -144,27 +114,6 @@ export function ConfigForm({
         />
       </FieldRow>
       <fieldset className="flex flex-col gap-2">
-        <legend>Letter audio</legend>
-        <FieldRow label="Volume">
-          <input
-            type="range"
-            min={0}
-            max={1}
-            step={0.05}
-            value={config.volume}
-            disabled={config.muted}
-            onChange={(event) => setConfig({ ...config, volume: Number(event.target.value) })}
-          />
-        </FieldRow>
-        <FieldRow label="Mute">
-          <input
-            type="checkbox"
-            checked={config.muted}
-            onChange={(event) => setConfig({ ...config, muted: event.target.checked })}
-          />
-        </FieldRow>
-      </fieldset>
-      <fieldset className="flex flex-col gap-2">
         <legend>Feedback</legend>
         <FieldRow label="Live feedback (show per-trial results)">
           <input
@@ -225,9 +174,6 @@ export function ConfigForm({
           </>
         )}
       </fieldset>
-      <ThemeToggle override={themeOverride} onChange={onChangeTheme} />
-      <KeymapEditor keymap={keymap} onRebind={onRebindKey} />
-      <ExportImportPanel />
       {validationMessage && <p className="text-sm text-red-500">{validationMessage}</p>}
       <button
         type="submit"
