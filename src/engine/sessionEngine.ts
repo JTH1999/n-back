@@ -6,7 +6,7 @@ import {
   type StreamValueMap,
 } from './streams'
 
-const DEFAULT_MATCH_RATE = 0.3
+export const DEFAULT_MATCH_RATE = 0.3
 
 export interface SessionConfig {
   n: number
