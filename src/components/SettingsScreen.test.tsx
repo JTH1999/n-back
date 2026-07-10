@@ -47,12 +47,14 @@ describe('SettingsScreen', () => {
   it('renders the volume and mute controls, persisting changes to the draft config', () => {
     const { unmount } = renderSettingsScreen()
 
+    expect(screen.getByLabelText(/mute/i)).toBeChecked()
+
     fireEvent.click(screen.getByLabelText(/mute/i))
     unmount()
 
     renderSettingsScreen()
 
-    expect(screen.getByLabelText(/mute/i)).toBeChecked()
+    expect(screen.getByLabelText(/mute/i)).not.toBeChecked()
     expect(screen.getByLabelText(/volume/i)).toBeDisabled()
   })
 

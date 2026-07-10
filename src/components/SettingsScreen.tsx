@@ -48,18 +48,18 @@ export function SettingsScreen({
                 <button
                   type="button"
                   role="switch"
-                  aria-checked={config.muted}
+                  aria-checked={!config.muted}
                   aria-label="Mute"
                   onClick={() => setConfig({ ...config, muted: !config.muted })}
                   className={clsx(
                     'relative h-6 w-[42px] flex-none rounded-full transition-colors',
-                    config.muted ? 'bg-accent' : 'bg-border',
+                    config.muted ? 'bg-border' : 'bg-accent',
                   )}
                 >
                   <span
                     className={clsx(
                       'absolute top-[3px] left-[3px] h-[18px] w-[18px] rounded-full bg-white transition-transform',
-                      config.muted && 'translate-x-[18px]',
+                      !config.muted && 'translate-x-[18px]',
                     )}
                   />
                 </button>

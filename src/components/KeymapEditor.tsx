@@ -44,10 +44,7 @@ export function KeymapEditor({ keymap, onRebind }: KeymapEditorProps) {
 
   return (
     <fieldset className="flex flex-col gap-2.5">
-      <legend className="mb-1 flex flex-col gap-0.5">
-        <span className={EYEBROW_CLASS}>Key bindings</span>
-        <span className="text-xs font-normal text-dim">click a key, then press</span>
-      </legend>
+      <legend className={clsx(EYEBROW_CLASS, 'mb-1')}>Key bindings</legend>
       {STREAM_KINDS.map((kind) => (
         <div key={kind} className="flex items-center gap-3">
           <span

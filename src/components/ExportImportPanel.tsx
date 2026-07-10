@@ -57,14 +57,20 @@ export function ExportImportPanel({
       <p className="mt-0 text-[13px] text-dim">
         All data lives in this browser only. Export a JSON file or restore one.
       </p>
-      <button type="button" onClick={handleExport} className={clsx(GHOST_BUTTON_CLASS, 'w-full')}>
+      <button
+        type="button"
+        onClick={handleExport}
+        className={clsx(GHOST_BUTTON_CLASS, 'flex w-full items-center justify-center gap-2')}
+      >
+        <span aria-hidden="true">↓</span>
         Export data
       </button>
       <button
         type="button"
         onClick={() => fileInputRef.current?.click()}
-        className={clsx(GHOST_BUTTON_CLASS, 'w-full')}
+        className={clsx(GHOST_BUTTON_CLASS, 'flex w-full items-center justify-center gap-2')}
       >
+        <span aria-hidden="true">↑</span>
         Import data
       </button>
       <input
