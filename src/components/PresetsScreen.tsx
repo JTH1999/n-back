@@ -1,9 +1,11 @@
-import { useDraftConfig } from '../adapters/useDraftConfig'
-import { usePresets } from '../adapters/usePresets'
+import { useDraftConfig } from '../hooks/useDraftConfig'
+import { usePresets } from '../hooks/usePresets'
 import type { Keymap } from '../config/keymap'
 import { summarizePresetConfig } from '../config/presetSummary'
 import { PresetList } from './PresetList'
 import { SavePresetPanel } from './SavePresetPanel'
+import { ScreenHeader } from './ScreenHeader'
+import { TwoColumnLayout } from './TwoColumnLayout'
 
 export interface PresetsScreenProps {
   keymap: Keymap
@@ -27,28 +29,20 @@ export function PresetsScreen({ keymap, onApplyKeymap }: PresetsScreenProps) {
 
   return (
     <section className="flex flex-col gap-7">
-      <header className="flex flex-col gap-0.5">
-        <span className="font-mono text-[11px] tracking-[0.2em] text-dim uppercase">
-          Saved setups
-        </span>
-        <h1 className="text-[22px] font-semibold">Presets</h1>
-      </header>
-      <div className="flex flex-col items-stretch gap-5 shell:flex-row shell:items-start">
-        <div className="min-w-0 flex-1">
+      <ScreenHeader eyebrow="Saved setups" title="Presets" />
+      <TwoColumnLayout
+        main={
           <PresetList
             presets={presets}
             activePresetId={activePresetId}
             onLoad={handleLoadPreset}
             onDelete={deletePreset}
           />
-        </div>
-        <div className="shell:w-[290px] shell:flex-none">
-          <SavePresetPanel
-            currentSummary={summarizePresetConfig(config)}
-            onSave={handleSavePreset}
-          />
-        </div>
-      </div>
+        }
+        side={
+          <SavePresetPanel currentSummary={summarizePresetConfig(config)} onSave={handleSavePreset} />
+        }
+      />
     </section>
   )
 }

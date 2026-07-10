@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import type { SessionRunnerConfig } from '../adapters/useSessionRunner'
+import type { SessionRunnerConfig } from '../hooks/useSessionRunner'
 import type { SessionSummary } from '../engine/sessionEngine'
 import { appendHistoryRecord, loadHistory, replaceHistory } from './historyStorage'
 

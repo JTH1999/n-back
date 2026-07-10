@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import {
   useSessionRunner,
   type SessionRunnerConfig,
-} from '../adapters/useSessionRunner'
+} from '../hooks/useSessionRunner'
 import { computeRecommendedN, getStimulusDisplay, getSummary } from '../engine/sessionEngine'
 import type { Keymap } from '../config/keymap'
 import type { StreamKind } from '../engine/streams'

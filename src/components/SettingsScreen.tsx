@@ -1,23 +1,22 @@
-import type { ReactNode } from 'react'
 import clsx from 'clsx'
-import { useDraftConfig } from '../adapters/useDraftConfig'
+import { useDraftConfig } from '../hooks/useDraftConfig'
 import type { Keymap } from '../config/keymap'
 import type { ThemeOverride } from '../config/theme'
 import type { StreamKind } from '../engine/streams'
-import { EYEBROW_CLASS, RANGE_INPUT_CLASS } from '../styles/controls'
+import { RANGE_INPUT_CLASS } from '../styles/controls'
 import { ExportImportPanel } from './ExportImportPanel'
 import { KeymapEditor } from './KeymapEditor'
+import { Panel } from './Panel'
+import { ScreenHeader } from './ScreenHeader'
+import { SubHeading } from './SubHeading'
 import { ThemeToggle } from './ThemeToggle'
+import { TwoColumnLayout } from './TwoColumnLayout'
 
 export interface SettingsScreenProps {
   keymap: Keymap
   onRebindKey: (kind: StreamKind, key: string) => void
   themeOverride: ThemeOverride | null
   onChangeTheme: (theme: ThemeOverride | null) => void
-}
-
-function SettingsPanel({ children }: { children: ReactNode }) {
-  return <div className="rounded-xl border border-border bg-panel p-[18px]">{children}</div>
 }
 
 export function SettingsScreen({
@@ -30,69 +29,72 @@ export function SettingsScreen({
 
   return (
     <section className="flex flex-col gap-7">
-      <header className="flex flex-col gap-0.5">
-        <span className="font-mono text-[11px] tracking-[0.2em] text-dim uppercase">
-          Preferences
-        </span>
-        <h1 className="text-[22px] font-semibold">Settings</h1>
-      </header>
-      <div className="flex flex-col items-stretch gap-4 shell:flex-row shell:items-start">
-        <div className="flex min-w-0 flex-1 flex-col gap-4">
-          <SettingsPanel>
-            <KeymapEditor keymap={keymap} onRebind={onRebindKey} />
-          </SettingsPanel>
-          <SettingsPanel>
-            <fieldset className="flex flex-col gap-3">
-              <legend className={clsx(EYEBROW_CLASS, 'mb-1')}>Letter audio</legend>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={!config.muted}
-                  aria-label="Mute"
-                  onClick={() => setConfig({ ...config, muted: !config.muted })}
-                  className={clsx(
-                    'relative h-6 w-[42px] flex-none rounded-full transition-colors',
-                    config.muted ? 'bg-border' : 'bg-accent',
-                  )}
-                >
-                  <span
+      <ScreenHeader eyebrow="Preferences" title="Settings" />
+      <TwoColumnLayout
+        main={
+          <>
+            <Panel>
+              <KeymapEditor keymap={keymap} onRebind={onRebindKey} />
+            </Panel>
+            <Panel>
+              <fieldset className="flex flex-col gap-3">
+                <SubHeading as="legend" className="mb-1">
+                  Letter audio
+                </SubHeading>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={!config.muted}
+                    aria-label="Mute"
+                    onClick={() => setConfig({ ...config, muted: !config.muted })}
                     className={clsx(
-                      'absolute top-[3px] left-[3px] h-[18px] w-[18px] rounded-full bg-white transition-transform',
-                      !config.muted && 'translate-x-[18px]',
+                      'relative h-6 w-[42px] flex-none rounded-full transition-colors',
+                      config.muted ? 'bg-border' : 'bg-accent',
                     )}
+                  >
+                    <span
+                      className={clsx(
+                        'absolute top-[3px] left-[3px] h-[18px] w-[18px] rounded-full bg-white transition-transform',
+                        !config.muted && 'translate-x-[18px]',
+                      )}
+                    />
+                  </button>
+                  <span className="text-sm font-medium">{config.muted ? 'Muted' : 'Unmuted'}</span>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <input
+                    type="range"
+                    aria-label="Volume"
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    value={config.volume}
+                    disabled={config.muted}
+                    onChange={(event) =>
+                      setConfig({ ...config, volume: Number(event.target.value) })
+                    }
+                    className={RANGE_INPUT_CLASS}
                   />
-                </button>
-                <span className="text-sm font-medium">{config.muted ? 'Muted' : 'Unmuted'}</span>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <input
-                  type="range"
-                  aria-label="Volume"
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  value={config.volume}
-                  disabled={config.muted}
-                  onChange={(event) => setConfig({ ...config, volume: Number(event.target.value) })}
-                  className={RANGE_INPUT_CLASS}
-                />
-                <span className="font-mono text-xs text-dim">
-                  volume · {Math.round(config.volume * 100)}%
-                </span>
-              </div>
-            </fieldset>
-          </SettingsPanel>
-        </div>
-        <div className="flex flex-col gap-4 shell:w-[290px] shell:flex-none">
-          <SettingsPanel>
-            <ThemeToggle override={themeOverride} onChange={onChangeTheme} />
-          </SettingsPanel>
-          <SettingsPanel>
-            <ExportImportPanel />
-          </SettingsPanel>
-        </div>
-      </div>
+                  <span className="font-mono text-xs text-dim">
+                    volume · {Math.round(config.volume * 100)}%
+                  </span>
+                </div>
+              </fieldset>
+            </Panel>
+          </>
+        }
+        side={
+          <>
+            <Panel>
+              <ThemeToggle override={themeOverride} onChange={onChangeTheme} />
+            </Panel>
+            <Panel>
+              <ExportImportPanel />
+            </Panel>
+          </>
+        }
+      />
     </section>
   )
 }

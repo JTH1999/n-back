@@ -21,5 +21,6 @@ Single-context layout: `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/ag
 - Extract a hook when logic is stateful and reused; extract a component when JSX is reused or a section needs its own name to stay readable.
 - Tailwind classes only — no inline `style` props, no ad hoc CSS files, unless expressing a value Tailwind can't (e.g. computed dynamic positioning).
 - Compose repeated class strings with a helper (e.g. `clsx`/`cva`) rather than string concatenation; don't invent a custom classnames utility.
+- When the same className string (or near-identical variants of one) shows up across multiple components, prefer extracting a shared component over re-composing the classes each time — a helper hides duplication, a component removes it.
 - Keep className lists readable: layout → spacing → sizing → color/typography → state variants, left to right.
 - Name event handlers `onX` (props) / `handleX` (local functions) consistently.

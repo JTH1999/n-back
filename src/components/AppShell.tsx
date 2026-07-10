@@ -1,6 +1,8 @@
 import clsx from 'clsx'
 import type { ReactNode } from 'react'
 import type { ThemeOverride } from '../config/theme'
+import { SubHeading } from './SubHeading'
+import { ThemeToggle } from './ThemeToggle'
 
 export interface NavItem<TId extends string> {
   id: TId
@@ -15,17 +17,6 @@ export interface AppShellProps<TId extends string> {
   onChangeTheme: (theme: ThemeOverride | null) => void
   children: ReactNode
 }
-
-interface ThemeOption {
-  label: string
-  value: ThemeOverride | null
-}
-
-const THEME_OPTIONS: ThemeOption[] = [
-  { label: 'System', value: null },
-  { label: 'Dark', value: 'dark' },
-  { label: 'Light', value: 'light' },
-]
 
 export function AppShell<TId extends string>({
   navItems,
@@ -61,32 +52,8 @@ export function AppShell<TId extends string>({
           ))}
         </nav>
         <div className="flex items-center gap-2 shell:mt-auto shell:flex-col shell:items-stretch">
-          <span className="hidden font-mono text-[11px] tracking-[0.2em] text-dim uppercase shell:block">
-            theme
-          </span>
-          <div
-            className="flex gap-1 p-[3px] rounded-lg border border-border bg-panel"
-            role="radiogroup"
-            aria-label="Theme"
-          >
-            {THEME_OPTIONS.map((option) => (
-              <button
-                key={option.label}
-                type="button"
-                role="radio"
-                aria-checked={themeOverride === option.value}
-                onClick={() => onChangeTheme(option.value)}
-                className={clsx(
-                  'flex-1 px-2 py-1.5 rounded-md font-mono text-[11px] capitalize transition-colors',
-                  themeOverride === option.value
-                    ? 'bg-accent text-accent-fg'
-                    : 'text-dim hover:text-fg',
-                )}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+          <SubHeading className="hidden shell:block">theme</SubHeading>
+          <ThemeToggle override={themeOverride} onChange={onChangeTheme} variant="compact" />
         </div>
       </aside>
       <main className="flex-1 overflow-x-hidden min-w-0 p-6 shell:p-[34px_40px_60px]">

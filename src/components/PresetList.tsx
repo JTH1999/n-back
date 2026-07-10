@@ -1,6 +1,7 @@
 import clsx from 'clsx'
-import type { Preset } from '../adapters/usePresets'
+import type { Preset } from '../hooks/usePresets'
 import { summarizePresetConfig } from '../config/presetSummary'
+import { Button } from './Button'
 
 export interface PresetListProps {
   presets: Preset[]
@@ -38,21 +39,16 @@ export function PresetList({ presets, activePresetId, onLoad, onDelete }: Preset
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => onLoad(preset.id)}
-              className="rounded-lg border border-border px-3 py-2 font-mono text-[13px] hover:border-dim"
-            >
+            <Button variant="ghost" onClick={() => onLoad(preset.id)}>
               Load
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="icon"
               aria-label={`Delete ${preset.name}`}
               onClick={() => onDelete(preset.id)}
-              className="rounded-md p-2 text-dim hover:bg-panel2 hover:text-danger"
             >
               ✕
-            </button>
+            </Button>
           </div>
         </div>
       ))}
