@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FEEDBACK_FLASH_MS, type SessionRunnerConfig } from '../hooks/useSessionRunner'
 import { loadHistory } from '../persistence/historyStorage'
@@ -31,8 +31,9 @@ describe('SessionRunner keyboard handling', () => {
 
     fireEvent.keyDown(window, { key: 'g' })
 
-    expect(screen.getByRole('button', { name: /position/i }).className).toContain(
-      'outline-slate-900',
+    expect(screen.getByRole('button', { name: /position/i })).toHaveAttribute(
+      'data-feedback',
+      'ack',
     )
   })
 
@@ -47,14 +48,14 @@ describe('SessionRunner keyboard handling', () => {
 
     fireEvent.keyDown(window, { key: 'a' })
 
-    expect(screen.getByRole('button', { name: /position/i }).className).toContain(
-      'outline-transparent',
+    expect(screen.getByRole('button', { name: /position/i })).not.toHaveAttribute(
+      'data-feedback',
     )
   })
 })
 
-function positionButtonOutline() {
-  return screen.getByRole('button', { name: /position/i }).className
+function positionButtonFeedback() {
+  return screen.getByRole('button', { name: /position/i }).getAttribute('data-feedback')
 }
 
 describe('SessionRunner history persistence', () => {
@@ -202,13 +203,13 @@ describe('SessionRunner live feedback', () => {
       />,
     )
 
-    expect(positionButtonOutline()).toContain('outline-transparent')
+    expect(positionButtonFeedback()).toBeNull()
 
     act(() => {
       vi.advanceTimersByTime(200)
     })
 
-    expect(positionButtonOutline()).toMatch(/outline-(green|red)-500/)
+    expect(positionButtonFeedback()).toMatch(/correct|wrong/)
   })
 
   it('never flashes a feedback outline when disabled', () => {
@@ -231,7 +232,7 @@ describe('SessionRunner live feedback', () => {
       vi.advanceTimersByTime(200)
     })
 
-    expect(positionButtonOutline()).toContain('outline-transparent')
+    expect(positionButtonFeedback()).toBeNull()
   })
 
   it('pauses between trials to show feedback, without overlapping the next stimulus', () => {
@@ -254,20 +255,20 @@ describe('SessionRunner live feedback', () => {
     act(() => {
       vi.advanceTimersByTime(200)
     })
-    expect(positionButtonOutline()).toMatch(/outline-(green|red)-500/)
+    expect(positionButtonFeedback()).toMatch(/correct|wrong/)
     expect(screen.getByText(/trial 2 of 2/i)).toBeInTheDocument()
 
     // Still within the feedback pause: no next-trial stimulus overlap yet.
     act(() => {
       vi.advanceTimersByTime(FEEDBACK_FLASH_MS / 2)
     })
-    expect(positionButtonOutline()).toMatch(/outline-(green|red)-500/)
+    expect(positionButtonFeedback()).toMatch(/correct|wrong/)
 
     // Feedback pause elapses; trial 2 begins now.
     act(() => {
       vi.advanceTimersByTime(FEEDBACK_FLASH_MS / 2)
     })
-    expect(positionButtonOutline()).toContain('outline-transparent')
+    expect(positionButtonFeedback()).toBeNull()
   })
 
   it('shows feedback for the final trial before revealing the summary', () => {
@@ -290,7 +291,7 @@ describe('SessionRunner live feedback', () => {
       vi.advanceTimersByTime(200)
     })
 
-    expect(positionButtonOutline()).toMatch(/outline-(green|red)-500/)
+    expect(positionButtonFeedback()).toMatch(/correct|wrong/)
     expect(screen.queryByText(/session complete/i)).not.toBeInTheDocument()
 
     act(() => {
@@ -348,6 +349,38 @@ describe('SessionRunner pause and resume', () => {
     expect(screen.getByText(/trial 1 of 5/i)).toBeInTheDocument()
   })
 
+  it('shows a pause overlay instead of inline paused text', () => {
+    render(
+      <SessionRunner
+        config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={vi.fn()}
+      />,
+    )
+
+    expect(screen.queryByRole('dialog', { name: /session paused/i })).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /pause/i }))
+
+    expect(screen.getByRole('dialog', { name: /session paused/i })).toBeInTheDocument()
+  })
+
+  it('hides the pause overlay in favor of the abort confirmation when both are triggered', () => {
+    render(
+      <SessionRunner
+        config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={vi.fn()}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /pause/i }))
+    fireEvent.click(screen.getByRole('button', { name: /abort/i }))
+
+    expect(screen.queryByRole('dialog', { name: /session paused/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('alertdialog', { name: /abort session confirmation/i })).toBeInTheDocument()
+  })
+
   it('resumes advancing the trial after resume is clicked', () => {
     vi.useFakeTimers()
     render(
@@ -362,7 +395,7 @@ describe('SessionRunner pause and resume', () => {
     act(() => {
       vi.advanceTimersByTime(10_000)
     })
-    fireEvent.click(screen.getByRole('button', { name: /resume/i }))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: /resume/i }))
 
     act(() => {
       vi.advanceTimersByTime(200)
@@ -381,6 +414,21 @@ describe('SessionRunner abort with confirmation', () => {
     vi.useRealTimers()
   })
 
+  it('shows an in-app confirm modal instead of window.confirm', () => {
+    vi.useFakeTimers()
+    render(
+      <SessionRunner
+        config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={vi.fn()}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /abort/i }))
+
+    expect(screen.getByRole('alertdialog', { name: /abort session confirmation/i })).toBeInTheDocument()
+  })
+
   it('does not end the session when the confirmation is declined', () => {
     vi.useFakeTimers()
     const onRestart = vi.fn()
@@ -389,13 +437,15 @@ describe('SessionRunner abort with confirmation', () => {
         config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={onRestart}
-        confirmAbort={() => false}
       />,
     )
 
     fireEvent.click(screen.getByRole('button', { name: /abort/i }))
+    const dialog = screen.getByRole('alertdialog')
+    fireEvent.click(within(dialog).getByRole('button', { name: /keep training/i }))
 
     expect(onRestart).not.toHaveBeenCalled()
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
     expect(screen.getByText(/trial 1 of 5/i)).toBeInTheDocument()
   })
 
@@ -407,11 +457,12 @@ describe('SessionRunner abort with confirmation', () => {
         config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={onRestart}
-        confirmAbort={() => true}
       />,
     )
 
     fireEvent.click(screen.getByRole('button', { name: /abort/i }))
+    const dialog = screen.getByRole('alertdialog')
+    fireEvent.click(within(dialog).getByRole('button', { name: /abort/i }))
 
     expect(onRestart).toHaveBeenCalledTimes(1)
     expect(loadHistory()).toHaveLength(0)

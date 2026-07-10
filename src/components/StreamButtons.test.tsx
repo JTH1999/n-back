@@ -2,12 +2,15 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { StreamButtons } from './StreamButtons'
 
+const keymap = { position: 'g', shape: 's', color: 'd', letter: 'f' }
+
 describe('StreamButtons', () => {
   it('renders a labeled button for each active stream', () => {
     render(
       <StreamButtons
         activeStreams={['position', 'color']}
         pressedStreams={new Set()}
+        keymap={keymap}
         onAssert={vi.fn()}
       />,
     )
@@ -17,12 +20,27 @@ describe('StreamButtons', () => {
     expect(screen.queryByRole('button', { name: /shape/i })).not.toBeInTheDocument()
   })
 
+  it('shows the bound key for each button', () => {
+    render(
+      <StreamButtons
+        activeStreams={['position', 'letter']}
+        pressedStreams={new Set()}
+        keymap={keymap}
+        onAssert={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByText('G')).toBeInTheDocument()
+    expect(screen.getByText('F')).toBeInTheDocument()
+  })
+
   it('dispatches an assert-match action for the tapped stream', () => {
     const onAssert = vi.fn()
     render(
       <StreamButtons
         activeStreams={['position', 'letter']}
         pressedStreams={new Set()}
+        keymap={keymap}
         onAssert={onAssert}
       />,
     )
@@ -33,70 +51,77 @@ describe('StreamButtons', () => {
     expect(onAssert).toHaveBeenCalledTimes(1)
   })
 
-  it('shows a pressed outline only for streams marked as pressed', () => {
+  it('shows an ack flash only for streams marked as pressed', () => {
     render(
       <StreamButtons
         activeStreams={['position', 'letter']}
         pressedStreams={new Set(['letter'])}
+        keymap={keymap}
         onAssert={vi.fn()}
       />,
     )
 
-    expect(screen.getByRole('button', { name: /letter/i }).className).toContain(
-      'outline-slate-900',
+    expect(screen.getByRole('button', { name: /letter/i })).toHaveAttribute(
+      'data-feedback',
+      'ack',
     )
-    expect(screen.getByRole('button', { name: /position/i }).className).toContain(
-      'outline-transparent',
+    expect(screen.getByRole('button', { name: /position/i })).not.toHaveAttribute(
+      'data-feedback',
     )
   })
 
-  it('shows a plain outline when no feedback is provided', () => {
+  it('shows no feedback flash when none is provided', () => {
     render(
       <StreamButtons
         activeStreams={['position']}
         pressedStreams={new Set()}
+        keymap={keymap}
         onAssert={vi.fn()}
       />,
     )
 
-    expect(screen.getByRole('button', { name: /position/i }).className).toContain(
-      'outline-transparent',
+    expect(screen.getByRole('button', { name: /position/i })).not.toHaveAttribute(
+      'data-feedback',
     )
   })
 
   it.each([
-    ['hit', 'outline-green-500'],
-    ['correct-rejection', 'outline-green-500'],
-    ['miss', 'outline-red-500'],
-    ['false-alarm', 'outline-red-500'],
-  ] as const)('flashes the %s outline for the resolved outcome', (outcome, outlineClass) => {
+    ['hit', 'correct'],
+    ['correct-rejection', 'correct'],
+    ['miss', 'wrong'],
+    ['false-alarm', 'wrong'],
+  ] as const)('flashes %s as %s', (outcome, flash) => {
     render(
       <StreamButtons
         activeStreams={['position', 'shape']}
         pressedStreams={new Set()}
+        keymap={keymap}
         feedback={{ position: outcome }}
         onAssert={vi.fn()}
       />,
     )
 
-    expect(screen.getByRole('button', { name: /position/i }).className).toContain(outlineClass)
-    expect(screen.getByRole('button', { name: /shape/i }).className).toContain(
-      'outline-transparent',
+    expect(screen.getByRole('button', { name: /position/i })).toHaveAttribute(
+      'data-feedback',
+      flash,
     )
+    expect(screen.getByRole('button', { name: /shape/i })).not.toHaveAttribute('data-feedback')
   })
 
-  it('prioritizes feedback over the pressed outline once an outcome resolves', () => {
+  it('prioritizes feedback over the ack flash once an outcome resolves', () => {
     render(
       <StreamButtons
         activeStreams={['position']}
         pressedStreams={new Set(['position'])}
+        keymap={keymap}
         feedback={{ position: 'hit' }}
         onAssert={vi.fn()}
       />,
     )
 
-    expect(screen.getByRole('button', { name: /position/i }).className).toContain(
-      'outline-green-500',
+    expect(screen.getByRole('button', { name: /position/i })).toHaveAttribute(
+      'data-feedback',
+      'correct',
     )
   })
 })

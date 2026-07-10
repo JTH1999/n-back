@@ -47,6 +47,13 @@ export const STREAM_TEXT_CLASS: Record<StreamKind, string> = {
   letter: 'text-stream-letter',
 }
 
+export const STREAM_BORDER_TOP_CLASS: Record<StreamKind, string> = {
+  position: 'border-t-stream-position',
+  shape: 'border-t-stream-shape',
+  color: 'border-t-stream-color',
+  letter: 'border-t-stream-letter',
+}
+
 export const STREAM_VALUE_POOLS: { [K in StreamKind]: readonly StreamValueMap[K][] } = {
   position: Array.from({ length: GRID_SIZE }, (_, cell) => cell),
   shape: SHAPE_VALUES,
