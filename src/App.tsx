@@ -9,12 +9,12 @@ import { PresetsScreen } from './components/PresetsScreen'
 import { SessionRunner } from './components/SessionRunner'
 import { SettingsScreen } from './components/SettingsScreen'
 
-type Screen = 'train' | 'presets' | 'history' | 'settings'
+type Screen = 'train' | 'history' | 'presets' | 'settings'
 
 const NAV_ITEMS: NavItem<Screen>[] = [
   { id: 'train', label: 'Train' },
-  { id: 'presets', label: 'Presets' },
   { id: 'history', label: 'History' },
+  { id: 'presets', label: 'Presets' },
   { id: 'settings', label: 'Settings' },
 ]
 

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { appendHistoryRecord } from '../persistence/historyStorage'
 import { HistoryView } from './HistoryView'
@@ -58,7 +58,7 @@ describe('HistoryView', () => {
     expect(screen.getByText('N=3')).toBeInTheDocument()
     expect(screen.getByText('position')).toBeInTheDocument()
     expect(screen.getByText('20')).toBeInTheDocument()
-    expect(screen.getByText('75%')).toBeInTheDocument()
+    expect(within(screen.getByRole('table')).getByText('75%')).toBeInTheDocument()
   })
 
   it('shows the session trial count, not the per-stream judged-slot total', () => {
@@ -74,5 +74,18 @@ describe('HistoryView', () => {
 
     expect(screen.getByText('20')).toBeInTheDocument()
     expect(screen.queryByText('40')).not.toBeInTheDocument()
+  })
+
+  it('computes KPIs from recorded history and renders the trend chart legend', () => {
+    appendHistoryRecord({ timestamp: '2026-07-01T12:00:00.000Z', config: { ...config, n: 2 }, summary: { ...summary, accuracy: 0.6 } })
+    appendHistoryRecord({ timestamp: '2026-07-05T12:00:00.000Z', config: { ...config, n: 4 }, summary: { ...summary, accuracy: 0.8 } })
+
+    render(<HistoryView />)
+
+    expect(within(screen.getByRole('group', { name: 'Sessions' })).getByText('2')).toBeInTheDocument()
+    expect(within(screen.getByRole('group', { name: 'Avg accuracy' })).getByText('70%')).toBeInTheDocument()
+    expect(within(screen.getByRole('group', { name: 'Peak level' })).getByText('4')).toBeInTheDocument()
+    expect(screen.getByText('Accuracy (%)')).toBeInTheDocument()
+    expect(screen.getByText('N-back level')).toBeInTheDocument()
   })
 })
