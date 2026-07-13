@@ -8,14 +8,12 @@ import { HistoryView } from './components/HistoryView'
 import { PresetsScreen } from './components/PresetsScreen'
 import { SessionRunner } from './components/SessionRunner'
 import { SettingsScreen } from './components/SettingsScreen'
-import { TrendsView } from './components/TrendsView'
 
-type Screen = 'train' | 'history' | 'trends' | 'presets' | 'settings'
+type Screen = 'train' | 'history' | 'presets' | 'settings'
 
 const NAV_ITEMS: NavItem<Screen>[] = [
   { id: 'train', label: 'Train' },
   { id: 'history', label: 'History' },
-  { id: 'trends', label: 'Trends' },
   { id: 'presets', label: 'Presets' },
   { id: 'settings', label: 'Settings' },
 ]
@@ -54,7 +52,6 @@ function App() {
         />
       )}
       {screen === 'history' && <HistoryView />}
-      {screen === 'trends' && <TrendsView />}
     </AppShell>
   )
 }
