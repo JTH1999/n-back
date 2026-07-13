@@ -20,6 +20,7 @@ export interface SessionRunnerProps {
   config: SessionRunnerConfig
   keymap: Keymap
   onRestart: () => void
+  isFocused?: boolean
 }
 
 function AudioCue({ active }: { active: boolean }) {
@@ -47,7 +48,7 @@ function ProgressBar({ trialIndex, trialCount }: { trialIndex: number; trialCoun
   )
 }
 
-export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps) {
+export function SessionRunner({ config, keymap, onRestart, isFocused = true }: SessionRunnerProps) {
   const {
     state,
     stimulusVisible,
@@ -61,6 +62,7 @@ export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps)
   } = useSessionRunner(config)
   const [pressedStreams, setPressedStreams] = useState<ReadonlySet<StreamKind>>(new Set())
   const [showAbortConfirm, setShowAbortConfirm] = useState(false)
+  const wasPausedBeforeAbort = useRef(false)
   const hasRecordedHistory = useRef(false)
   const hasAppliedAdaptiveN = useRef(false)
   const summary = useMemo(() => (readyForSummary ? getSummary(state) : null), [readyForSummary, state])
@@ -92,7 +94,11 @@ export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps)
   )
 
   useEffect(() => {
-    if (state.status !== 'active') return
+    if (!isFocused) pause()
+  }, [isFocused, pause])
+
+  useEffect(() => {
+    if (state.status !== 'active' || !isFocused) return
 
     const handleKeyDown = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase()
@@ -101,13 +107,27 @@ export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps)
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [state.status, state.activeStreams, keymap, handleAssert])
+  }, [state.status, state.activeStreams, keymap, handleAssert, isFocused])
+
+  // Renders nothing while another tab is active. The component itself stays
+  // mounted (not the tree in App), so its timers keep running and pause
+  // above, and its state (including a completed summary) survives the trip.
+  if (!isFocused) return null
 
   if (summary) {
     return <SessionSummary summary={summary} onRestart={onRestart} />
   }
 
   const handleTogglePause = () => (paused ? resume() : pause())
+  const handleAbortClick = () => {
+    wasPausedBeforeAbort.current = paused
+    pause()
+    setShowAbortConfirm(true)
+  }
+  const handleAbortDecline = () => {
+    setShowAbortConfirm(false)
+    if (!wasPausedBeforeAbort.current) resume()
+  }
   const handleAbortConfirm = () => {
     setShowAbortConfirm(false)
     onRestart()
@@ -129,7 +149,7 @@ export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps)
           <Button variant="ghost" onClick={handleTogglePause}>
             {paused ? 'Resume' : 'Pause'}
           </Button>
-          <Button variant="ghost" onClick={() => setShowAbortConfirm(true)} className="text-danger">
+          <Button variant="ghost" onClick={handleAbortClick} className="text-danger">
             Abort
           </Button>
         </div>
@@ -164,7 +184,7 @@ export function SessionRunner({ config, keymap, onRestart }: SessionRunnerProps)
           <h2 className="text-[22px] font-semibold">Abort session?</h2>
           <p className="text-sm text-dim">This session won't be saved to your history.</p>
           <div className="mt-3 flex gap-2.5">
-            <Button variant="ghost" onClick={() => setShowAbortConfirm(false)}>
+            <Button variant="ghost" onClick={handleAbortDecline}>
               Keep training
             </Button>
             <Button variant="danger" onClick={handleAbortConfirm}>

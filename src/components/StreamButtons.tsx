@@ -50,7 +50,8 @@ export function StreamButtons({
             data-feedback={flash}
             onClick={() => onAssert(kind)}
             className={clsx(
-              'flex min-w-[130px] flex-1 flex-col items-center gap-1.5 rounded-xl border border-t-[3px] border-border bg-panel p-3.5 transition-colors active:scale-[0.97]',
+              'flex min-w-[130px] flex-1 flex-col items-center gap-1.5 rounded-xl border border-t-[3px] border-border p-3.5 transition-colors active:scale-[0.97]',
+              !flash && 'bg-panel',
               STREAM_BORDER_TOP_CLASS[kind],
               flash && FLASH_CLASS[flash],
             )}

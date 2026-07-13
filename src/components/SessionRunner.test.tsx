@@ -349,6 +349,67 @@ describe('SessionRunner pause and resume', () => {
     expect(screen.getByText(/trial 1 of 5/i)).toBeInTheDocument()
   })
 
+  it('renders nothing and pauses when isFocused becomes false, e.g. navigating to another tab', () => {
+    vi.useFakeTimers()
+    const { rerender, container } = render(
+      <SessionRunner
+        config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={vi.fn()}
+        isFocused
+      />,
+    )
+
+    rerender(
+      <SessionRunner
+        config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={vi.fn()}
+        isFocused={false}
+      />,
+    )
+
+    expect(container).toBeEmptyDOMElement()
+
+    act(() => {
+      vi.advanceTimersByTime(10_000)
+    })
+
+    rerender(
+      <SessionRunner
+        config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={vi.fn()}
+        isFocused
+      />,
+    )
+
+    expect(screen.getByText(/trial 1 of 5/i)).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: /session paused/i })).toBeInTheDocument()
+  })
+
+  it('stays paused after isFocused returns to true, so returning to the tab shows the resume prompt', () => {
+    const { rerender } = render(
+      <SessionRunner
+        config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={vi.fn()}
+        isFocused={false}
+      />,
+    )
+
+    rerender(
+      <SessionRunner
+        config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={vi.fn()}
+        isFocused
+      />,
+    )
+
+    expect(screen.getByRole('dialog', { name: /session paused/i })).toBeInTheDocument()
+  })
+
   it('shows a pause overlay instead of inline paused text', () => {
     render(
       <SessionRunner
