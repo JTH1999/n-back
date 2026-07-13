@@ -50,7 +50,7 @@ function StreamPreview({ kind, active }: { kind: StreamKind; active: boolean }) 
       {kind === 'letter' && (
         <div className={clsx('flex items-center gap-2', STREAM_TEXT_CLASS.letter)}>
           <b className="font-mono text-xl font-semibold">K</b>
-          <span className="flex h-[34px] items-end gap-[3px]">
+          <span className="flex h-[34px] items-center gap-[3px]">
             <i className="h-[40%] w-1 rounded-sm bg-current" />
             <i className="h-[78%] w-1 rounded-sm bg-current" />
             <i className="h-full w-1 rounded-sm bg-current" />
