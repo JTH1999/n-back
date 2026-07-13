@@ -17,7 +17,7 @@ export function TrendChart({ data }: TrendChartProps) {
     <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
       <LineChart data={data as TrendPoint[]} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-        <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="var(--dim)" />
+        <XAxis dataKey="date" tick={{ fontSize: 12 }} tickFormatter={() => ''} stroke="var(--dim)" />
         <YAxis
           yAxisId="accuracy"
           domain={[0, 100]}
@@ -41,7 +41,7 @@ export function TrendChart({ data }: TrendChartProps) {
           name="Accuracy (%)"
           stroke="var(--accent)"
           strokeWidth={2}
-          dot={false}
+          dot={{ r: 3, strokeWidth: 0, fill: 'var(--accent)' }}
         />
         <Line
           yAxisId="n"
@@ -51,7 +51,7 @@ export function TrendChart({ data }: TrendChartProps) {
           stroke="var(--stream-letter)"
           strokeWidth={1.5}
           strokeDasharray="4 4"
-          dot={false}
+          dot={{ r: 3, strokeWidth: 0, fill: 'var(--stream-letter)' }}
         />
       </LineChart>
     </ResponsiveContainer>
