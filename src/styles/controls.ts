@@ -11,3 +11,10 @@ export const RANGE_INPUT_CLASS =
   '[&::-moz-range-thumb]:border-[3px] [&::-moz-range-thumb]:border-panel [&::-moz-range-thumb]:bg-accent'
 
 export const EYEBROW_CLASS = 'font-mono text-[11px] tracking-[0.2em] text-dim uppercase'
+
+// Three-tier accuracy coloring shared by the results screen and history log.
+export function accuracyTextClass(accuracy: number): string {
+  if (accuracy >= 0.8) return 'text-accent'
+  if (accuracy >= 0.6) return 'text-warning'
+  return 'text-danger'
+}
