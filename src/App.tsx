@@ -22,7 +22,7 @@ function App() {
   const [screen, setScreen] = useState<Screen>('train')
   const [config, setConfig] = useState<SessionRunnerConfig | null>(null)
   const { keymap, rebind, setKeymap } = useKeymap()
-  const { override: themeOverride, resolvedTheme, setOverride: setThemeOverride } = useTheme()
+  const { override: themeOverride, setOverride: setThemeOverride } = useTheme()
 
   return (
     <AppShell
@@ -51,9 +51,7 @@ function App() {
           onChangeTheme={setThemeOverride}
         />
       )}
-      {screen === 'history' && (
-        <HistoryView onBack={() => setScreen('train')} resolvedTheme={resolvedTheme} />
-      )}
+      {screen === 'history' && <HistoryView />}
     </AppShell>
   )
 }
