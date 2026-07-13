@@ -1,61 +1,74 @@
+import clsx from 'clsx'
 import { useState } from 'react'
-import type { ResolvedTheme } from '../config/theme'
-import { loadHistory } from '../persistence/historyStorage'
-import { TrendChart, type TrendPoint } from './TrendChart'
+import { loadHistory, type SessionHistoryRecord } from '../persistence/historyStorage'
+import { accuracyTextClass, EYEBROW_CLASS } from '../styles/controls'
+import { Panel } from './Panel'
+import { ScreenHeader } from './ScreenHeader'
 
-export interface HistoryViewProps {
-  onBack: () => void
-  resolvedTheme: ResolvedTheme
+const ROW_CLASS = 'grid grid-cols-[90px_1fr_60px_72px_64px] items-center gap-3 py-3 text-sm'
+
+function formatDate(timestamp: string): string {
+  return new Date(timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export function HistoryView({ onBack, resolvedTheme }: HistoryViewProps) {
-  const [history] = useState(() => loadHistory())
-
-  const trendData: TrendPoint[] = history.map((record) => ({
-    date: new Date(record.timestamp).toLocaleDateString(),
-    accuracy: Math.round(record.summary.accuracy * 100),
-    n: record.config.n,
-  }))
+function HistoryRow({ record }: { record: SessionHistoryRecord }) {
+  const accuracyPercent = Math.round(record.summary.accuracy * 100)
 
   return (
-    <div className="flex w-full flex-col gap-6">
-      {history.length === 0 ? (
-        <p className="text-sm text-slate-500">No completed sessions yet.</p>
-      ) : (
-        <>
-          <div className="flex flex-col gap-2">
-            <h2 className="text-xl font-semibold">Trends</h2>
-            <TrendChart data={trendData} resolvedTheme={resolvedTheme} />
-          </div>
-          <div className="flex flex-col gap-2">
-            <h2 className="text-xl font-semibold">Past sessions</h2>
-            <ul className="flex flex-col gap-2">
-              {history
-                .slice()
-                .reverse()
-                .map((record) => (
-                  <li
-                    key={record.timestamp}
-                    className="flex flex-col rounded border border-slate-300 px-3 py-2 text-sm dark:border-slate-600"
-                  >
-                    <span>{new Date(record.timestamp).toLocaleString()}</span>
-                    <span className="capitalize text-slate-500 dark:text-slate-400">
-                      N={record.config.n} · {record.config.streams.join(', ')}
-                    </span>
-                    <span>{Math.round(record.summary.accuracy * 100)}% accuracy</span>
-                  </li>
-                ))}
-            </ul>
-          </div>
-        </>
-      )}
-      <button
-        type="button"
-        onClick={onBack}
-        className="rounded bg-blue-500 px-4 py-2 text-white"
-      >
-        Back
-      </button>
+    <div className={clsx(ROW_CLASS, 'border-b border-border text-sm last:border-none')} role="row">
+      <span className="font-mono text-dim" role="cell">
+        {formatDate(record.timestamp)}
+      </span>
+      <span className="capitalize" role="cell">
+        {record.config.streams.join(', ')}
+      </span>
+      <span className="font-mono" role="cell">
+        N={record.config.n}
+      </span>
+      <span className="font-mono text-dim" role="cell">
+        {record.config.trialCount}
+      </span>
+      <span className={clsx('text-right font-mono', accuracyTextClass(record.summary.accuracy))} role="cell">
+        {accuracyPercent}%
+      </span>
     </div>
+  )
+}
+
+export function HistoryView() {
+  const [history] = useState(() => loadHistory())
+  const rows = history.slice().reverse()
+
+  return (
+    <section className="flex w-full max-w-[960px] flex-col gap-7">
+      <div className="flex items-end justify-between gap-4">
+        <ScreenHeader eyebrow="Log" title="History" />
+        <span className="font-mono text-sm text-dim">{history.length} sessions</span>
+      </div>
+
+      {rows.length === 0 ? (
+        <p className="text-sm text-dim">No completed sessions yet.</p>
+      ) : (
+        <Panel>
+          <div role="table">
+            <div
+              className={clsx(ROW_CLASS, EYEBROW_CLASS, 'border-b border-border py-2.5')}
+              role="row"
+            >
+              <span role="columnheader">Date</span>
+              <span role="columnheader">Streams</span>
+              <span role="columnheader">N</span>
+              <span role="columnheader">Trials</span>
+              <span className="text-right" role="columnheader">
+                Acc
+              </span>
+            </div>
+            {rows.map((record) => (
+              <HistoryRow key={record.timestamp} record={record} />
+            ))}
+          </div>
+        </Panel>
+      )}
+    </section>
   )
 }
