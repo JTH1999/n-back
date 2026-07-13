@@ -26,7 +26,7 @@ function HistoryRow({ record }: { record: SessionHistoryRecord }) {
         N={record.config.n}
       </span>
       <span className="font-mono text-dim" role="cell">
-        {record.summary.totalTrials}
+        {record.config.trialCount}
       </span>
       <span className={clsx('text-right font-mono', accuracyTextClass(record.summary.accuracy))} role="cell">
         {accuracyPercent}%

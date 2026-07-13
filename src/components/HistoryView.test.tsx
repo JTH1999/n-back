@@ -60,4 +60,19 @@ describe('HistoryView', () => {
     expect(screen.getByText('20')).toBeInTheDocument()
     expect(screen.getByText('75%')).toBeInTheDocument()
   })
+
+  it('shows the session trial count, not the per-stream judged-slot total', () => {
+    const twoStreamConfig = { ...config, trialCount: 20, streams: ['position' as const, 'shape' as const] }
+    const twoStreamSummary = {
+      ...summary,
+      totalTrials: 40,
+      streams: { ...summary.streams, shape: { ...summary.streams.position, kind: 'shape' as const } },
+    }
+    appendHistoryRecord({ timestamp: '2026-07-08T12:00:00.000Z', config: twoStreamConfig, summary: twoStreamSummary })
+
+    render(<HistoryView />)
+
+    expect(screen.getByText('20')).toBeInTheDocument()
+    expect(screen.queryByText('40')).not.toBeInTheDocument()
+  })
 })
