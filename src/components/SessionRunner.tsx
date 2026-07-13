@@ -13,7 +13,7 @@ import { Button } from './Button'
 import { MAX_N } from './ConfigForm'
 import { Grid } from './Grid'
 import { Overlay } from './Overlay'
-import { SessionSummary } from './SessionSummary'
+import { SessionSummary, type AdaptiveRecommendation } from './SessionSummary'
 import { StreamButtons } from './StreamButtons'
 
 export interface SessionRunnerProps {
@@ -59,6 +59,7 @@ export function SessionRunner({ config, keymap, onRestart, isFocused = true }: S
     assertStreamMatch,
     pause,
     resume,
+    restart,
   } = useSessionRunner(config)
   const [pressedStreams, setPressedStreams] = useState<ReadonlySet<StreamKind>>(new Set())
   const [showAbortConfirm, setShowAbortConfirm] = useState(false)
@@ -77,12 +78,23 @@ export function SessionRunner({ config, keymap, onRestart, isFocused = true }: S
     appendHistoryRecord({ timestamp: new Date().toISOString(), config, summary })
   }, [summary, config])
 
-  useEffect(() => {
-    if (!summary || hasAppliedAdaptiveN.current || !config.adaptive.enabled) return
-    hasAppliedAdaptiveN.current = true
-    const recommendedN = computeRecommendedN(config.n, summary.accuracy, config.adaptive)
-    saveDraftSettings({ ...config, n: Math.min(recommendedN, MAX_N) })
+  const recommendedN = useMemo(() => {
+    if (!summary || !config.adaptive.enabled) return null
+    return Math.min(computeRecommendedN(config.n, summary.accuracy, config.adaptive), MAX_N)
   }, [summary, config])
+
+  const recommendation: AdaptiveRecommendation | null = useMemo(() => {
+    if (recommendedN === null) return null
+    const note =
+      recommendedN > config.n ? 'increased' : recommendedN < config.n ? 'decreased' : 'held steady'
+    return { n: recommendedN, note }
+  }, [recommendedN, config.n])
+
+  useEffect(() => {
+    if (recommendedN === null || hasAppliedAdaptiveN.current) return
+    hasAppliedAdaptiveN.current = true
+    saveDraftSettings({ ...config, n: recommendedN })
+  }, [recommendedN, config])
 
   const handleAssert = useCallback(
     (kind: StreamKind) => {
@@ -114,8 +126,24 @@ export function SessionRunner({ config, keymap, onRestart, isFocused = true }: S
   // above, and its state (including a completed summary) survives the trip.
   if (!isFocused) return null
 
+  const handleRetry = () => {
+    hasRecordedHistory.current = false
+    hasAppliedAdaptiveN.current = false
+    setPressedStreams(new Set())
+    restart()
+  }
+
   if (summary) {
-    return <SessionSummary summary={summary} onRestart={onRestart} />
+    return (
+      <SessionSummary
+        summary={summary}
+        n={config.n}
+        trialCount={config.trialCount}
+        recommendation={recommendation}
+        onRetry={handleRetry}
+        onDone={onRestart}
+      />
+    )
   }
 
   const handleTogglePause = () => (paused ? resume() : pause())

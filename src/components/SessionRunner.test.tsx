@@ -292,13 +292,13 @@ describe('SessionRunner live feedback', () => {
     })
 
     expect(positionButtonFeedback()).toMatch(/correct|wrong/)
-    expect(screen.queryByText(/session complete/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/session results/i)).not.toBeInTheDocument()
 
     act(() => {
       vi.advanceTimersByTime(FEEDBACK_FLASH_MS)
     })
 
-    expect(screen.getByText(/session complete/i)).toBeInTheDocument()
+    expect(screen.getByText(/session results/i)).toBeInTheDocument()
   })
 
   it('reveals the summary immediately after the final trial when disabled', () => {
@@ -321,7 +321,65 @@ describe('SessionRunner live feedback', () => {
       vi.advanceTimersByTime(200)
     })
 
-    expect(screen.getByText(/session complete/i)).toBeInTheDocument()
+    expect(screen.getByText(/session results/i)).toBeInTheDocument()
+  })
+})
+
+describe('SessionRunner results actions', () => {
+  beforeEach(() => {
+    window.localStorage.clear()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('restarts a fresh session with the same config when Retry is clicked', () => {
+    vi.useFakeTimers()
+    render(
+      <SessionRunner
+        config={{ ...config, trialCount: 1, displayDurationMs: 100, trialLengthMs: 200 }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={vi.fn()}
+      />,
+    )
+
+    act(() => {
+      vi.advanceTimersByTime(200)
+    })
+    expect(screen.getByText(/session results/i)).toBeInTheDocument()
+    expect(loadHistory()).toHaveLength(1)
+
+    fireEvent.click(screen.getByRole('button', { name: /retry/i }))
+
+    expect(screen.queryByText(/session results/i)).not.toBeInTheDocument()
+    expect(screen.getByText(/trial 1 of 1/i)).toBeInTheDocument()
+
+    act(() => {
+      vi.advanceTimersByTime(200)
+    })
+    expect(screen.getByText(/session results/i)).toBeInTheDocument()
+    expect(loadHistory()).toHaveLength(2)
+  })
+
+  it('calls onRestart when Done is clicked', () => {
+    vi.useFakeTimers()
+    const onRestart = vi.fn()
+    render(
+      <SessionRunner
+        config={{ ...config, trialCount: 1, displayDurationMs: 100, trialLengthMs: 200 }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={onRestart}
+      />,
+    )
+
+    act(() => {
+      vi.advanceTimersByTime(200)
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /done/i }))
+
+    expect(onRestart).toHaveBeenCalledTimes(1)
   })
 })
 

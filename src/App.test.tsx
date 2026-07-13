@@ -57,11 +57,11 @@ describe('App navigation during a session', () => {
       vi.advanceTimersByTime(fastConfig.trialLengthMs)
     })
 
-    expect(screen.getByText(/session complete/i)).toBeInTheDocument()
+    expect(screen.getByText(/session results/i)).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Settings' }))
     fireEvent.click(screen.getByRole('button', { name: 'Train' }))
 
-    expect(screen.getByText(/session complete/i)).toBeInTheDocument()
+    expect(screen.getByText(/session results/i)).toBeInTheDocument()
   })
 })
