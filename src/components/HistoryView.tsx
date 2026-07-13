@@ -2,14 +2,11 @@ import clsx from 'clsx'
 import { useState } from 'react'
 import { loadHistory, type SessionHistoryRecord } from '../persistence/historyStorage'
 import { accuracyTextClass, EYEBROW_CLASS } from '../styles/controls'
+import { formatDate } from '../utils/formatDate'
 import { Panel } from './Panel'
 import { ScreenHeader } from './ScreenHeader'
 
 const ROW_CLASS = 'grid grid-cols-[90px_1fr_60px_72px_64px] items-center gap-3 py-3 text-sm'
-
-function formatDate(timestamp: string): string {
-  return new Date(timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
 
 function HistoryRow({ record }: { record: SessionHistoryRecord }) {
   const accuracyPercent = Math.round(record.summary.accuracy * 100)
