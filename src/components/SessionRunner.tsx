@@ -9,9 +9,10 @@ import type { Keymap } from '../config/keymap'
 import type { StreamKind } from '../engine/streams'
 import { appendHistoryRecord } from '../persistence/historyStorage'
 import { saveDraftSettings } from '../persistence/settingsStorage'
-import { BORDERED_CONTROL_CLASS } from '../styles/controls'
+import { Button } from './Button'
 import { MAX_N } from './ConfigForm'
 import { Grid } from './Grid'
+import { Overlay } from './Overlay'
 import { SessionSummary } from './SessionSummary'
 import { StreamButtons } from './StreamButtons'
 
@@ -19,19 +20,35 @@ export interface SessionRunnerProps {
   config: SessionRunnerConfig
   keymap: Keymap
   onRestart: () => void
-  confirmAbort?: (message: string) => boolean
+  isFocused?: boolean
 }
 
-const ABORT_CONFIRM_MESSAGE = 'Abort this session? Your progress will not be saved.'
+function AudioCue({ active }: { active: boolean }) {
+  return (
+    <div
+      className={clsx(
+        'flex items-center gap-2 font-mono text-xs tracking-[0.1em] transition-colors',
+        active ? 'text-stream-letter opacity-100' : 'text-dim2 opacity-40',
+      )}
+    >
+      <span className="text-base">♪</span> audio letter
+    </div>
+  )
+}
 
-const CONTROL_BUTTON_CLASS = clsx(BORDERED_CONTROL_CLASS, 'px-3 py-1 text-sm')
+function ProgressBar({ trialIndex, trialCount }: { trialIndex: number; trialCount: number }) {
+  const percent = Math.min(100, Math.round(((trialIndex + 1) / trialCount) * 100))
+  return (
+    <div className="mt-5 h-1 w-full overflow-hidden rounded-full bg-border">
+      <div
+        className="h-full rounded-full bg-accent transition-[width] duration-300"
+        style={{ width: `${percent}%` }}
+      />
+    </div>
+  )
+}
 
-export function SessionRunner({
-  config,
-  keymap,
-  onRestart,
-  confirmAbort = (message) => window.confirm(message),
-}: SessionRunnerProps) {
+export function SessionRunner({ config, keymap, onRestart, isFocused = true }: SessionRunnerProps) {
   const {
     state,
     stimulusVisible,
@@ -44,6 +61,8 @@ export function SessionRunner({
     resume,
   } = useSessionRunner(config)
   const [pressedStreams, setPressedStreams] = useState<ReadonlySet<StreamKind>>(new Set())
+  const [showAbortConfirm, setShowAbortConfirm] = useState(false)
+  const wasPausedBeforeAbort = useRef(false)
   const hasRecordedHistory = useRef(false)
   const hasAppliedAdaptiveN = useRef(false)
   const summary = useMemo(() => (readyForSummary ? getSummary(state) : null), [readyForSummary, state])
@@ -75,7 +94,11 @@ export function SessionRunner({
   )
 
   useEffect(() => {
-    if (state.status !== 'active') return
+    if (!isFocused) pause()
+  }, [isFocused, pause])
+
+  useEffect(() => {
+    if (state.status !== 'active' || !isFocused) return
 
     const handleKeyDown = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase()
@@ -84,51 +107,92 @@ export function SessionRunner({
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [state.status, state.activeStreams, keymap, handleAssert])
+  }, [state.status, state.activeStreams, keymap, handleAssert, isFocused])
+
+  // Renders nothing while another tab is active. The component itself stays
+  // mounted (not the tree in App), so its timers keep running and pause
+  // above, and its state (including a completed summary) survives the trip.
+  if (!isFocused) return null
 
   if (summary) {
     return <SessionSummary summary={summary} onRestart={onRestart} />
   }
 
   const handleTogglePause = () => (paused ? resume() : pause())
-
-  const handleAbort = () => {
-    if (confirmAbort(ABORT_CONFIRM_MESSAGE)) onRestart()
+  const handleAbortClick = () => {
+    wasPausedBeforeAbort.current = paused
+    pause()
+    setShowAbortConfirm(true)
+  }
+  const handleAbortDecline = () => {
+    setShowAbortConfirm(false)
+    if (!wasPausedBeforeAbort.current) resume()
+  }
+  const handleAbortConfirm = () => {
+    setShowAbortConfirm(false)
+    onRestart()
   }
 
   const stimulus = getStimulusDisplay(state, stimulusVisible)
+  const audioActive = stimulusVisible && state.activeStreams.includes('letter')
 
   return (
-    <>
-      <div className="flex flex-col items-center gap-4 pb-24">
-        <div className="flex gap-2">
-          <button type="button" onClick={handleTogglePause} className={CONTROL_BUTTON_CLASS}>
-            {paused ? 'Resume' : 'Pause'}
-          </button>
-          <button type="button" onClick={handleAbort} className={CONTROL_BUTTON_CLASS}>
-            Abort
-          </button>
-        </div>
-        <p>
+    <div className="mx-auto flex min-h-[70vh] w-full max-w-[640px] flex-col items-center gap-3">
+      <div className="mb-auto flex w-full items-center justify-between gap-3">
+        <span className="whitespace-nowrap rounded-[7px] border border-accent bg-accent-dim px-3 py-1.5 font-mono text-[13px] font-semibold text-accent">
+          N = {config.n}
+        </span>
+        <span className="text-sm tracking-[0.08em] text-dim">
           Trial {Math.min(state.currentTrialIndex + 1, state.trialCount)} of {state.trialCount}
-          {paused && ' (Paused)'}
-        </p>
-        <Grid stimulus={stimulus} />
-        <ul className="flex flex-col items-center gap-1 text-sm text-slate-500">
-          {state.activeStreams.map((kind) => (
-            <li key={kind} className="capitalize">
-              Press <kbd>{keymap[kind].toUpperCase()}</kbd> or tap the button below when{' '}
-              {kind} matches {config.n} trial(s) back
-            </li>
-          ))}
-        </ul>
+        </span>
+        <div className="flex gap-2">
+          <Button variant="ghost" onClick={handleTogglePause}>
+            {paused ? 'Resume' : 'Pause'}
+          </Button>
+          <Button variant="ghost" onClick={handleAbortClick} className="text-danger">
+            Abort
+          </Button>
+        </div>
       </div>
+
+      <div className="my-auto flex flex-col items-center gap-[22px]">
+        <Grid stimulus={stimulus} />
+        <AudioCue active={audioActive} />
+      </div>
+
       <StreamButtons
         activeStreams={state.activeStreams}
         pressedStreams={pressedStreams}
+        keymap={keymap}
         feedback={feedback}
         onAssert={handleAssert}
       />
-    </>
+      <ProgressBar trialIndex={state.currentTrialIndex} trialCount={state.trialCount} />
+
+      {paused && !showAbortConfirm && (
+        <Overlay role="dialog" ariaLabel="Session paused">
+          <h2 className="text-[22px] font-semibold">Paused</h2>
+          <p className="text-sm text-dim">Trial timing is frozen. Resume when you're ready.</p>
+          <Button onClick={resume} className="mt-3">
+            Resume →
+          </Button>
+        </Overlay>
+      )}
+
+      {showAbortConfirm && (
+        <Overlay role="alertdialog" ariaLabel="Abort session confirmation">
+          <h2 className="text-[22px] font-semibold">Abort session?</h2>
+          <p className="text-sm text-dim">This session won't be saved to your history.</p>
+          <div className="mt-3 flex gap-2.5">
+            <Button variant="ghost" onClick={handleAbortDecline}>
+              Keep training
+            </Button>
+            <Button variant="danger" onClick={handleAbortConfirm}>
+              Abort
+            </Button>
+          </div>
+        </Overlay>
+      )}
+    </div>
   )
 }

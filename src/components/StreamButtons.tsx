@@ -1,51 +1,68 @@
 import clsx from 'clsx'
+import type { Keymap } from '../config/keymap'
 import type { TrialOutcome } from '../engine/sessionEngine'
-import type { StreamKind } from '../engine/streams'
+import { STREAM_BORDER_TOP_CLASS, type StreamKind } from '../engine/streams'
 
 export interface StreamButtonsProps {
   activeStreams: readonly StreamKind[]
   pressedStreams: ReadonlySet<StreamKind>
+  keymap: Keymap
   feedback?: Partial<Record<StreamKind, TrialOutcome>>
   onAssert: (kind: StreamKind) => void
 }
+
+type FlashState = 'ack' | 'correct' | 'wrong'
 
 function isCorrectOutcome(outcome: TrialOutcome): boolean {
   return outcome === 'hit' || outcome === 'correct-rejection'
 }
 
+function flashState(
+  outcome: TrialOutcome | undefined,
+  pressed: boolean,
+): FlashState | undefined {
+  if (outcome) return isCorrectOutcome(outcome) ? 'correct' : 'wrong'
+  if (pressed) return 'ack'
+  return undefined
+}
+
+const FLASH_CLASS: Record<FlashState, string> = {
+  ack: 'border-accent shadow-[0_0_0_1px_var(--accent)]',
+  correct: 'border-success bg-success/15',
+  wrong: 'border-danger bg-danger/15',
+}
+
 export function StreamButtons({
   activeStreams,
   pressedStreams,
+  keymap,
   feedback,
   onAssert,
 }: StreamButtonsProps) {
   return (
-    <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/95 dark:border-slate-700 dark:bg-slate-900/95">
-      <div className="mx-auto flex max-w-md justify-center gap-2 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        {activeStreams.map((kind) => {
-          const outcome = feedback?.[kind]
-          return (
-            <button
-              key={kind}
-              type="button"
-              onClick={() => onAssert(kind)}
-              className={clsx(
-                'flex-1 min-w-0 max-w-32 px-2 py-3 min-h-12 rounded-lg bg-blue-500 text-sm font-medium capitalize text-white active:bg-blue-600',
-                'outline outline-4 outline-offset-2 transition-colors',
-                outcome
-                  ? isCorrectOutcome(outcome)
-                    ? 'outline-green-500'
-                    : 'outline-red-500'
-                  : pressedStreams.has(kind)
-                    ? 'outline-slate-900 dark:outline-white'
-                    : 'outline-transparent',
-              )}
-            >
-              {kind}
-            </button>
-          )
-        })}
-      </div>
+    <div className="mt-auto flex w-full flex-wrap gap-3">
+      {activeStreams.map((kind) => {
+        const flash = flashState(feedback?.[kind], pressedStreams.has(kind))
+        return (
+          <button
+            key={kind}
+            type="button"
+            data-feedback={flash}
+            onClick={() => onAssert(kind)}
+            className={clsx(
+              'flex min-w-[130px] flex-1 flex-col items-center gap-1.5 rounded-xl border border-t-[3px] border-border p-3.5 transition-colors active:scale-[0.97]',
+              !flash && 'bg-panel',
+              STREAM_BORDER_TOP_CLASS[kind],
+              flash && FLASH_CLASS[flash],
+            )}
+          >
+            <span className="rounded-[5px] border border-b-2 border-border bg-panel2 px-1.5 py-0.5 font-mono text-[11px] text-dim">
+              {keymap[kind].toUpperCase()}
+            </span>
+            <span className="text-[13px] font-medium capitalize">{kind} match</span>
+          </button>
+        )
+      })}
     </div>
   )
 }

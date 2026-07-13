@@ -32,22 +32,26 @@ function App() {
       themeOverride={themeOverride}
       onChangeTheme={setThemeOverride}
     >
-      {screen === 'train' ? (
-        config ? (
-          <SessionRunner config={config} keymap={keymap} onRestart={() => setConfig(null)} />
-        ) : (
-          <ConfigForm onStart={setConfig} />
-        )
-      ) : screen === 'presets' ? (
-        <PresetsScreen keymap={keymap} onApplyKeymap={setKeymap} />
-      ) : screen === 'settings' ? (
+      {config ? (
+        <SessionRunner
+          config={config}
+          keymap={keymap}
+          onRestart={() => setConfig(null)}
+          isFocused={screen === 'train'}
+        />
+      ) : (
+        screen === 'train' && <ConfigForm onStart={setConfig} />
+      )}
+      {screen === 'presets' && <PresetsScreen keymap={keymap} onApplyKeymap={setKeymap} />}
+      {screen === 'settings' && (
         <SettingsScreen
           keymap={keymap}
           onRebindKey={rebind}
           themeOverride={themeOverride}
           onChangeTheme={setThemeOverride}
         />
-      ) : (
+      )}
+      {screen === 'history' && (
         <HistoryView onBack={() => setScreen('train')} resolvedTheme={resolvedTheme} />
       )}
     </AppShell>

@@ -7,10 +7,13 @@ const PRIMARY_BUTTON_CLASS =
 
 const ICON_BUTTON_CLASS = 'rounded-md p-2 text-dim hover:bg-panel2 hover:text-danger'
 
+const DANGER_BUTTON_CLASS = 'rounded-lg bg-danger px-4 py-2.5 font-semibold text-white'
+
 const VARIANT_CLASS = {
   primary: PRIMARY_BUTTON_CLASS,
   ghost: GHOST_BUTTON_CLASS,
   icon: ICON_BUTTON_CLASS,
+  danger: DANGER_BUTTON_CLASS,
 }
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
