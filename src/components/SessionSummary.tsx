@@ -16,6 +16,7 @@ export interface AdaptiveRecommendation {
 export interface SessionSummaryProps {
   summary: Summary
   n: number
+  trialCount: number
   recommendation: AdaptiveRecommendation | null
   onRetry: () => void
   onDone: () => void
@@ -59,7 +60,14 @@ function ResultCard({ streamSummary }: { streamSummary: StreamSummary }) {
   )
 }
 
-export function SessionSummary({ summary, n, recommendation, onRetry, onDone }: SessionSummaryProps) {
+export function SessionSummary({
+  summary,
+  n,
+  trialCount,
+  recommendation,
+  onRetry,
+  onDone,
+}: SessionSummaryProps) {
   const accuracyPercent = Math.round(summary.accuracy * 100)
 
   return (
@@ -90,7 +98,7 @@ export function SessionSummary({ summary, n, recommendation, onRetry, onDone }: 
                 <span className="text-2xl text-dim">%</span>
               </p>
               <p className="mt-1.5 font-mono text-xs text-dim">
-                N={n} · {summary.totalTrials} trials
+                N={n} · {trialCount} trials
               </p>
             </div>
             {recommendation && (

@@ -138,6 +138,7 @@ export function SessionRunner({ config, keymap, onRestart, isFocused = true }: S
       <SessionSummary
         summary={summary}
         n={config.n}
+        trialCount={config.trialCount}
         recommendation={recommendation}
         onRetry={handleRetry}
         onDone={onRestart}
