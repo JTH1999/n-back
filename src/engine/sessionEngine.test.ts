@@ -368,7 +368,7 @@ describe('getSummary', () => {
       misses: 1,
       falseAlarms: 1,
       correctRejections: 5,
-      accuracy: 6 / 8,
+      accuracy: 1 / 3,
     })
     expect(summary.streams.shape).toEqual({
       kind: 'shape',
@@ -377,10 +377,33 @@ describe('getSummary', () => {
       misses: 0,
       falseAlarms: 0,
       correctRejections: 7,
-      accuracy: 8 / 8,
+      accuracy: 1,
     })
     expect(summary.totalTrials).toBe(16)
-    expect(summary.accuracy).toBe((6 + 8) / 16)
+    expect(summary.accuracy).toBe(2 / 4)
+  })
+
+  it('reports 0 accuracy for a stream with no hits, misses, or false alarms', () => {
+    const state: SessionState = {
+      n: 2,
+      trialCount: 3,
+      activeStreams: ['position'],
+      currentTrialIndex: 3,
+      status: 'completed',
+      streams: {
+        position: {
+          kind: 'position',
+          sequence: [0, 1, 5],
+          responded: [false, false, false],
+          outcomes: ['correct-rejection', 'correct-rejection', 'correct-rejection'],
+        },
+      },
+    }
+
+    const summary = getSummary(state)
+
+    expect(summary.streams.position!.accuracy).toBe(0)
+    expect(summary.accuracy).toBe(0)
   })
 
   it.each([

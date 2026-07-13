@@ -116,7 +116,8 @@ describe('SessionRunner adaptive mode', () => {
         config={{
           ...config,
           n: 1,
-          trialCount: 1,
+          trialCount: 2,
+          matchRate: 1,
           displayDurationMs: 100,
           trialLengthMs: 200,
           adaptive: { enabled: true, lowerThreshold: 0.5, upperThreshold: 0.8 },
@@ -126,6 +127,10 @@ describe('SessionRunner adaptive mode', () => {
       />,
     )
 
+    act(() => {
+      vi.advanceTimersByTime(200)
+    })
+    fireEvent.keyDown(window, { key: 'g' })
     act(() => {
       vi.advanceTimersByTime(200)
     })
@@ -140,7 +145,8 @@ describe('SessionRunner adaptive mode', () => {
         config={{
           ...config,
           n: 20,
-          trialCount: 1,
+          trialCount: 21,
+          matchRate: 1,
           displayDurationMs: 100,
           trialLengthMs: 200,
           adaptive: { enabled: true, lowerThreshold: 0.5, upperThreshold: 0.8 },
@@ -150,6 +156,14 @@ describe('SessionRunner adaptive mode', () => {
       />,
     )
 
+    // Trials 0-19 sit below N and are never eligible for a match; only trial
+    // index 20 (i >= n) can resolve as a hit, so respond only on that one.
+    for (let i = 0; i < 20; i++) {
+      act(() => {
+        vi.advanceTimersByTime(200)
+      })
+    }
+    fireEvent.keyDown(window, { key: 'g' })
     act(() => {
       vi.advanceTimersByTime(200)
     })
