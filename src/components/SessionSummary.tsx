@@ -1,8 +1,10 @@
 import clsx from 'clsx'
+import type { StreakStats } from '../derived/streakStats'
 import type { SessionSummary as Summary, StreamSummary } from '../engine/sessionEngine'
 import { STREAM_DOT_CLASS } from '../engine/streams'
 import { accuracyTextClass } from '../styles/controls'
 import { Button } from './Button'
+import { FlameIcon } from './FlameIcon'
 import { Panel } from './Panel'
 import { ScreenHeader } from './ScreenHeader'
 import { SubHeading } from './SubHeading'
@@ -18,8 +20,27 @@ export interface SessionSummaryProps {
   n: number
   trialCount: number
   recommendation: AdaptiveRecommendation | null
+  streak: StreakStats | null
   onRetry: () => void
   onDone: () => void
+}
+
+interface StreakBadgeProps {
+  streak: StreakStats
+}
+
+function StreakBadge({ streak }: StreakBadgeProps) {
+  return (
+    <div
+      className="flex items-center gap-2 rounded-lg bg-panel2 px-3 py-1.5"
+      role="group"
+      aria-label="Day streak"
+    >
+      <FlameIcon filled={streak.streakActiveToday} className="h-5 w-5" />
+      <span className="font-mono text-lg font-semibold">{streak.currentStreak}</span>
+      <span className="text-[9px] tracking-[0.08em] text-dim uppercase">Day streak</span>
+    </div>
+  )
 }
 
 function StatTile({ value, label }: { value: number; label: string }) {
@@ -65,6 +86,7 @@ export function SessionSummary({
   n,
   trialCount,
   recommendation,
+  streak,
   onRetry,
   onDone,
 }: SessionSummaryProps) {
@@ -74,11 +96,14 @@ export function SessionSummary({
     <section className="flex w-full max-w-[960px] flex-col gap-7">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <ScreenHeader eyebrow="Complete · saved to history" title="Session Results" />
-        <div className="flex gap-2.5">
-          <Button variant="ghost" onClick={onRetry}>
-            Retry
-          </Button>
-          <Button onClick={onDone}>Done →</Button>
+        <div className="flex items-center gap-4">
+          {streak && <StreakBadge streak={streak} />}
+          <div className="flex gap-2.5">
+            <Button variant="ghost" onClick={onRetry}>
+              Retry
+            </Button>
+            <Button onClick={onDone}>Done →</Button>
+          </div>
         </div>
       </div>
 
