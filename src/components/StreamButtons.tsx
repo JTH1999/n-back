@@ -13,15 +13,14 @@ export interface StreamButtonsProps {
 
 type FlashState = 'ack' | 'correct' | 'wrong'
 
-function isCorrectOutcome(outcome: TrialOutcome): boolean {
-  return outcome === 'hit' || outcome === 'correct-rejection'
-}
-
+// Correct rejections happen on most trials, so flashing them would swamp the
+// signal from actual hits, misses, and false alarms.
 function flashState(
   outcome: TrialOutcome | undefined,
   pressed: boolean,
 ): FlashState | undefined {
-  if (outcome) return isCorrectOutcome(outcome) ? 'correct' : 'wrong'
+  if (outcome === 'hit') return 'correct'
+  if (outcome === 'miss' || outcome === 'false-alarm') return 'wrong'
   if (pressed) return 'ack'
   return undefined
 }

@@ -219,6 +219,7 @@ describe('SessionRunner live feedback', () => {
 
     expect(positionButtonFeedback()).toBeNull()
 
+    fireEvent.keyDown(window, { key: 'g' })
     act(() => {
       vi.advanceTimersByTime(200)
     })
@@ -266,6 +267,7 @@ describe('SessionRunner live feedback', () => {
     )
 
     // Trial 1 ends at 200ms; feedback pause should follow, not the next stimulus.
+    fireEvent.keyDown(window, { key: 'g' })
     act(() => {
       vi.advanceTimersByTime(200)
     })
@@ -301,6 +303,7 @@ describe('SessionRunner live feedback', () => {
       />,
     )
 
+    fireEvent.keyDown(window, { key: 'g' })
     act(() => {
       vi.advanceTimersByTime(200)
     })
