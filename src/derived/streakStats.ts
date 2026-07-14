@@ -1,3 +1,5 @@
+import { localDayKey, startOfLocalDay } from './localDay'
+import { sessionDurationMs } from './sessionDuration'
 import type { SessionHistoryRecord } from '../persistence/historyStorage'
 
 export interface StreakStats {
@@ -5,14 +7,6 @@ export interface StreakStats {
   streakActiveToday: boolean
   todaysTotalTimeMs: number
   todaysSessionCount: number
-}
-
-function localDayKey(date: Date): string {
-  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
-}
-
-function startOfLocalDay(date: Date): Date {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
 }
 
 export function computeStreakStats(history: SessionHistoryRecord[], now: Date = new Date()): StreakStats {
@@ -38,6 +32,9 @@ export function computeStreakStats(history: SessionHistoryRecord[], now: Date = 
     currentStreak,
     streakActiveToday,
     todaysSessionCount: todaysRecords.length,
-    todaysTotalTimeMs: todaysRecords.reduce((sum, record) => sum + record.config.trialCount * record.config.trialLengthMs, 0),
+    todaysTotalTimeMs: todaysRecords.reduce(
+      (sum, record) => sum + sessionDurationMs(record.config.trialCount, record.config.trialLengthMs),
+      0,
+    ),
   }
 }
