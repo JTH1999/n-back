@@ -1,16 +1,16 @@
 import clsx from 'clsx'
 import { useMemo, useState } from 'react'
-import { computeContributionGraph, type ContributionDay } from '../derived/contributionGraph'
+import { computeActivityGraph, type ActivityDay } from '../derived/activityGraph'
 import type { SessionHistoryRecord } from '../persistence/historyStorage'
 import { EYEBROW_CLASS } from '../styles/controls'
 import { formatDuration } from '../utils/formatDuration'
 import { SegmentedControl } from './SegmentedControl'
 
-type ContributionMetric = 'sessions' | 'time'
+type ActivityMetric = 'sessions' | 'time'
 
-const METRIC_LABELS: Record<ContributionMetric, string> = { sessions: 'Session count', time: 'Total time' }
+const METRIC_LABELS: Record<ActivityMetric, string> = { sessions: 'Session count', time: 'Total time' }
 
-function metricValue(day: ContributionDay, metric: ContributionMetric): number {
+function metricValue(day: ActivityDay, metric: ActivityMetric): number {
   return metric === 'sessions' ? day.sessionCount : day.totalTimeMs
 }
 
@@ -32,32 +32,32 @@ const LEVEL_CLASS: Record<0 | 1 | 2 | 3 | 4, string> = {
   4: 'bg-accent',
 }
 
-function describeDay(day: ContributionDay, metric: ContributionMetric): string {
+function describeDay(day: ActivityDay, metric: ActivityMetric): string {
   const dateLabel = day.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   if (day.sessionCount === 0) return `${dateLabel}: no sessions`
   if (metric === 'sessions') return `${dateLabel}: ${day.sessionCount} session${day.sessionCount === 1 ? '' : 's'}`
   return `${dateLabel}: ${formatDuration(day.totalTimeMs)} practiced`
 }
 
-export interface ContributionGraphProps {
+export interface ActivityGraphProps {
   history: SessionHistoryRecord[]
   now?: Date
 }
 
-export function ContributionGraph({ history, now }: ContributionGraphProps) {
-  const [metric, setMetric] = useState<ContributionMetric>('sessions')
-  const weeks = useMemo(() => computeContributionGraph(history, now), [history, now])
+export function ActivityGraph({ history, now }: ActivityGraphProps) {
+  const [metric, setMetric] = useState<ActivityMetric>('sessions')
+  const weeks = useMemo(() => computeActivityGraph(history, now), [history, now])
   const max = Math.max(0, ...weeks.flat().map((day) => metricValue(day, metric)))
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-3">
-        <span className={EYEBROW_CLASS}>Contributions</span>
+        <span className={EYEBROW_CLASS}>Activity</span>
         <SegmentedControl
-          options={(Object.keys(METRIC_LABELS) as ContributionMetric[]).map((value) => ({ value, label: METRIC_LABELS[value] }))}
+          options={(Object.keys(METRIC_LABELS) as ActivityMetric[]).map((value) => ({ value, label: METRIC_LABELS[value] }))}
           value={metric}
           onChange={setMetric}
-          ariaLabel="Contribution metric"
+          ariaLabel="Activity metric"
           size="sm"
           surface="panel2"
         />

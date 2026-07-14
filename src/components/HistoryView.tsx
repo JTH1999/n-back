@@ -5,7 +5,7 @@ import { loadHistory, type SessionHistoryRecord } from '../persistence/historySt
 import { accuracyTextClass, EYEBROW_CLASS } from '../styles/controls'
 import { formatDate } from '../utils/formatDate'
 import { formatDuration } from '../utils/formatDuration'
-import { ContributionGraph } from './ContributionGraph'
+import { ActivityGraph } from './ActivityGraph'
 import { FlameIcon } from './FlameIcon'
 import { Panel } from './Panel'
 import { ScreenHeader } from './ScreenHeader'
@@ -123,7 +123,7 @@ export function HistoryView() {
               </div>
 
               <Panel>
-                <ContributionGraph history={history} />
+                <ActivityGraph history={history} />
               </Panel>
             </div>
           )}

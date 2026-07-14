@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { SessionHistoryRecord } from '../persistence/historyStorage'
-import { computeContributionGraph, GRID_ROWS, GRID_WEEKS } from './contributionGraph'
+import { computeActivityGraph, GRID_ROWS, GRID_WEEKS } from './activityGraph'
 
 const config = {
   n: 3,
@@ -34,16 +34,16 @@ function record(timestamp: string, overrides: Partial<SessionHistoryRecord['conf
   return { timestamp, config: { ...config, ...overrides }, summary }
 }
 
-describe('computeContributionGraph', () => {
+describe('computeActivityGraph', () => {
   it('always returns a fixed 53-week x 7-day grid, regardless of history size', () => {
-    const grid = computeContributionGraph([], new Date('2026-07-14T12:00:00'))
+    const grid = computeActivityGraph([], new Date('2026-07-14T12:00:00'))
 
     expect(grid).toHaveLength(GRID_WEEKS)
     grid.forEach((week) => expect(week).toHaveLength(GRID_ROWS))
   })
 
   it('marks days with no sessions as zero-count, zero-time', () => {
-    const grid = computeContributionGraph([], new Date('2026-07-14T12:00:00'))
+    const grid = computeActivityGraph([], new Date('2026-07-14T12:00:00'))
 
     const allDays = grid.flat()
     expect(allDays.every((day) => day.sessionCount === 0 && day.totalTimeMs === 0)).toBe(true)
@@ -52,7 +52,7 @@ describe('computeContributionGraph', () => {
   it("buckets a single session into that session's local day", () => {
     const history = [record('2026-07-14T09:00:00')]
 
-    const grid = computeContributionGraph(history, new Date('2026-07-14T12:00:00'))
+    const grid = computeActivityGraph(history, new Date('2026-07-14T12:00:00'))
 
     const day = grid.flat().find((d) => d.dateKey === '2026-6-14')
     expect(day?.sessionCount).toBe(1)
@@ -65,7 +65,7 @@ describe('computeContributionGraph', () => {
       record('2026-07-14T23:00:00', { trialCount: 10, trialLengthMs: 3000 }),
     ]
 
-    const grid = computeContributionGraph(history, new Date('2026-07-14T23:30:00'))
+    const grid = computeActivityGraph(history, new Date('2026-07-14T23:30:00'))
 
     const day = grid.flat().find((d) => d.dateKey === '2026-6-14')
     expect(day?.sessionCount).toBe(2)
@@ -75,7 +75,7 @@ describe('computeContributionGraph', () => {
   it('keeps sessions on different local days in separate buckets', () => {
     const history = [record('2026-07-13T23:59:00'), record('2026-07-14T00:01:00')]
 
-    const grid = computeContributionGraph(history, new Date('2026-07-14T12:00:00'))
+    const grid = computeActivityGraph(history, new Date('2026-07-14T12:00:00'))
 
     const day13 = grid.flat().find((d) => d.dateKey === '2026-6-13')
     const day14 = grid.flat().find((d) => d.dateKey === '2026-6-14')
@@ -84,7 +84,7 @@ describe('computeContributionGraph', () => {
   })
 
   it('places the day matching "now" as the last day of the last week', () => {
-    const grid = computeContributionGraph([], new Date('2026-07-14T12:00:00'))
+    const grid = computeActivityGraph([], new Date('2026-07-14T12:00:00'))
 
     const lastWeek = grid[grid.length - 1]
     const todayIndex = new Date('2026-07-14T12:00:00').getDay()
@@ -94,7 +94,7 @@ describe('computeContributionGraph', () => {
   it('ignores sessions that fall outside the trailing 12-month window', () => {
     const history = [record('2020-01-01T09:00:00')]
 
-    const grid = computeContributionGraph(history, new Date('2026-07-14T12:00:00'))
+    const grid = computeActivityGraph(history, new Date('2026-07-14T12:00:00'))
 
     const total = grid.flat().reduce((sum, day) => sum + day.sessionCount, 0)
     expect(total).toBe(0)
