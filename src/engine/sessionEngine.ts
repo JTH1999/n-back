@@ -221,6 +221,13 @@ export interface SessionSummary {
   streams: Partial<Record<StreamKind, StreamSummary>>
 }
 
+// Accuracy only rewards catching real matches; correct rejections don't count,
+// and false alarms dilute the score by counting as a missed opportunity to hit.
+function computeAccuracy(hits: number, misses: number, falseAlarms: number): number {
+  const opportunities = hits + misses + falseAlarms
+  return opportunities === 0 ? 0 : hits / opportunities
+}
+
 function summarizeStream(streamState: StreamState): StreamSummary {
   const tally = { hits: 0, misses: 0, falseAlarms: 0, correctRejections: 0 }
   const tallyKey: Record<TrialOutcome, keyof typeof tally> = {
@@ -237,7 +244,7 @@ function summarizeStream(streamState: StreamState): StreamSummary {
     kind: streamState.kind,
     totalTrials,
     ...tally,
-    accuracy: (tally.hits + tally.correctRejections) / totalTrials,
+    accuracy: computeAccuracy(tally.hits, tally.misses, tally.falseAlarms),
   }
 }
 
@@ -246,20 +253,24 @@ export function getSummary(state: SessionState): SessionSummary {
     throw new Error('cannot summarize a session that has not completed')
   }
 
-  let hitsAndRejections = 0
+  let hits = 0
+  let misses = 0
+  let falseAlarms = 0
   let totalTrials = 0
   const streams = buildStreamsRecord(state.activeStreams, (kind) => {
     const streamState = state.streams[kind]
     if (!streamState) return undefined
     const summary = summarizeStream(streamState)
-    hitsAndRejections += summary.hits + summary.correctRejections
+    hits += summary.hits
+    misses += summary.misses
+    falseAlarms += summary.falseAlarms
     totalTrials += summary.totalTrials
     return summary
   })
 
   return {
     totalTrials,
-    accuracy: hitsAndRejections / totalTrials,
+    accuracy: computeAccuracy(hits, misses, falseAlarms),
     streams,
   }
 }

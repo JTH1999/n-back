@@ -87,7 +87,6 @@ describe('StreamButtons', () => {
 
   it.each([
     ['hit', 'correct'],
-    ['correct-rejection', 'correct'],
     ['miss', 'wrong'],
     ['false-alarm', 'wrong'],
   ] as const)('flashes %s as %s', (outcome, flash) => {
@@ -106,6 +105,22 @@ describe('StreamButtons', () => {
       flash,
     )
     expect(screen.getByRole('button', { name: /shape/i })).not.toHaveAttribute('data-feedback')
+  })
+
+  it('shows no feedback flash for a correct rejection', () => {
+    render(
+      <StreamButtons
+        activeStreams={['position']}
+        pressedStreams={new Set()}
+        keymap={keymap}
+        feedback={{ position: 'correct-rejection' }}
+        onAssert={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: /position/i })).not.toHaveAttribute(
+      'data-feedback',
+    )
   })
 
   it('prioritizes feedback over the ack flash once an outcome resolves', () => {
