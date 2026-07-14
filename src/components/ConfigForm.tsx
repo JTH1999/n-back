@@ -3,6 +3,7 @@ import { useDraftConfig } from '../hooks/useDraftConfig'
 import type { SessionRunnerConfig } from '../hooks/useSessionRunner'
 import { DEFAULT_MATCH_RATE } from '../engine/sessionEngine'
 import { STREAM_KINDS, type StreamKind } from '../engine/streams'
+import { formatDuration } from '../utils/formatDuration'
 import { Button } from './Button'
 import { Panel } from './Panel'
 import { ScreenHeader } from './ScreenHeader'
@@ -26,13 +27,6 @@ function formatMs(ms: number): string {
   if (ms < 1000) return `${ms}ms`
   const seconds = ms / 1000
   return `${Number.isInteger(seconds) ? seconds : seconds.toFixed(1)}s`
-}
-
-function formatDuration(ms: number): string {
-  const totalSeconds = Math.round(ms / 1000)
-  const minutes = Math.floor(totalSeconds / 60)
-  const seconds = totalSeconds % 60
-  return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`
 }
 
 interface ToggleRowProps {
