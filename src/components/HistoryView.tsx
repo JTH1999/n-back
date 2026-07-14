@@ -1,20 +1,35 @@
 import clsx from 'clsx'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
+import { computeStreakStats } from '../derived/streakStats'
 import { loadHistory, type SessionHistoryRecord } from '../persistence/historyStorage'
 import { accuracyTextClass, EYEBROW_CLASS } from '../styles/controls'
 import { formatDate } from '../utils/formatDate'
+import { formatDuration } from '../utils/formatDuration'
+import { FlameIcon } from './FlameIcon'
 import { Panel } from './Panel'
 import { ScreenHeader } from './ScreenHeader'
 import { TrendChart, type TrendPoint } from './TrendChart'
 
 const ROW_CLASS = 'grid grid-cols-[90px_1fr_60px_72px_64px] items-center gap-3 py-3 text-sm'
+const HISTORY_TABS = ['overview', 'log'] as const
+type HistoryTab = (typeof HISTORY_TABS)[number]
+const TAB_LABELS: Record<HistoryTab, string> = { overview: 'Overview', log: 'Log' }
 
-function KpiTile({ value, label }: { value: string; label: string }) {
+interface KpiTileProps {
+  value: string
+  label: string
+  icon?: ReactNode
+}
+
+function KpiTile({ value, label, icon }: KpiTileProps) {
   return (
     <Panel>
-      <div role="group" aria-label={label}>
-        <p className="font-mono text-[32px] font-semibold">{value}</p>
-        <p className="mt-1 font-mono text-[11px] tracking-[0.2em] text-dim uppercase">{label}</p>
+      <div className="flex items-center gap-3" role="group" aria-label={label}>
+        {icon}
+        <div>
+          <p className="font-mono text-[32px] font-semibold">{value}</p>
+          <p className="mt-1 font-mono text-[11px] tracking-[0.2em] text-dim uppercase">{label}</p>
+        </div>
       </div>
     </Panel>
   )
@@ -46,6 +61,7 @@ function HistoryRow({ record }: { record: SessionHistoryRecord }) {
 
 export function HistoryView() {
   const [history] = useState(() => loadHistory())
+  const [tab, setTab] = useState<HistoryTab>('overview')
   const rows = history.slice().reverse()
 
   const sessions = history.length
@@ -59,6 +75,8 @@ export function HistoryView() {
     n: record.config.n,
   }))
 
+  const streak = computeStreakStats(history)
+
   return (
     <section className="flex w-full max-w-[960px] flex-col gap-7">
       <div className="flex items-end justify-between gap-4">
@@ -70,35 +88,73 @@ export function HistoryView() {
         <p className="text-sm text-dim">No completed sessions yet.</p>
       ) : (
         <>
-          <div className="grid grid-cols-3 gap-3.5">
-            <KpiTile value={String(sessions)} label="Sessions" />
-            <KpiTile value={`${averageAccuracy}%`} label="Avg accuracy" />
-            <KpiTile value={String(peakN)} label="Peak level" />
+          <div className="flex gap-1 rounded-lg border border-border bg-panel p-[3px]" role="tablist" aria-label="History">
+            {HISTORY_TABS.map((value) => (
+              <button
+                key={value}
+                type="button"
+                role="tab"
+                id={`history-tab-${value}`}
+                aria-selected={tab === value}
+                aria-controls={`history-tabpanel-${value}`}
+                onClick={() => setTab(value)}
+                className={clsx(
+                  'flex-1 rounded-md px-3 py-2 font-mono text-[13px] transition-colors',
+                  tab === value ? 'bg-accent text-accent-fg' : 'text-dim hover:text-fg',
+                )}
+              >
+                {TAB_LABELS[value]}
+              </button>
+            ))}
           </div>
 
-          <Panel>
-            <TrendChart data={trendData} />
-          </Panel>
-
-          <Panel>
-            <div role="table">
-              <div
-                className={clsx(ROW_CLASS, EYEBROW_CLASS, 'border-b border-border py-2.5')}
-                role="row"
-              >
-                <span role="columnheader">Date</span>
-                <span role="columnheader">Streams</span>
-                <span role="columnheader">N</span>
-                <span role="columnheader">Trials</span>
-                <span className="text-right" role="columnheader">
-                  Acc
-                </span>
+          {tab === 'overview' && (
+            <div id="history-tabpanel-overview" role="tabpanel" aria-labelledby="history-tab-overview" className="flex flex-col gap-3.5">
+              <div className="grid grid-cols-3 gap-3.5">
+                <KpiTile value={String(sessions)} label="Sessions" />
+                <KpiTile value={`${averageAccuracy}%`} label="Avg accuracy" />
+                <KpiTile value={String(peakN)} label="Peak level" />
               </div>
-              {rows.map((record) => (
-                <HistoryRow key={record.timestamp} record={record} />
-              ))}
+
+              <Panel>
+                <TrendChart data={trendData} />
+              </Panel>
+
+              <div className="grid grid-cols-3 gap-3.5">
+                <KpiTile
+                  value={String(streak.currentStreak)}
+                  label="Day streak"
+                  icon={<FlameIcon filled={streak.streakActiveToday} />}
+                />
+                <KpiTile value={formatDuration(streak.todaysTotalTimeMs)} label="Today's time" />
+                <KpiTile value={String(streak.todaysSessionCount)} label="Today's sessions" />
+              </div>
             </div>
-          </Panel>
+          )}
+
+          {tab === 'log' && (
+            <div id="history-tabpanel-log" role="tabpanel" aria-labelledby="history-tab-log">
+              <Panel>
+                <div role="table">
+                  <div
+                    className={clsx(ROW_CLASS, EYEBROW_CLASS, 'border-b border-border py-2.5')}
+                    role="row"
+                  >
+                    <span role="columnheader">Date</span>
+                    <span role="columnheader">Streams</span>
+                    <span role="columnheader">N</span>
+                    <span role="columnheader">Trials</span>
+                    <span className="text-right" role="columnheader">
+                      Acc
+                    </span>
+                  </div>
+                  {rows.map((record) => (
+                    <HistoryRow key={record.timestamp} record={record} />
+                  ))}
+                </div>
+              </Panel>
+            </div>
+          )}
         </>
       )}
     </section>

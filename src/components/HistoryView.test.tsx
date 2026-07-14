@@ -1,5 +1,5 @@
-import { render, screen, within } from '@testing-library/react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { fireEvent, render, screen, within } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { appendHistoryRecord } from '../persistence/historyStorage'
 import { HistoryView } from './HistoryView'
 
@@ -47,6 +47,7 @@ describe('HistoryView', () => {
     appendHistoryRecord({ timestamp: '2026-07-08T12:00:00.000Z', config, summary })
 
     render(<HistoryView />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Log' }))
 
     expect(screen.getByText(/1 sessions/i)).toBeInTheDocument()
     expect(screen.getByRole('table')).toBeInTheDocument()
@@ -71,6 +72,7 @@ describe('HistoryView', () => {
     appendHistoryRecord({ timestamp: '2026-07-08T12:00:00.000Z', config: twoStreamConfig, summary: twoStreamSummary })
 
     render(<HistoryView />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Log' }))
 
     expect(screen.getByText('20')).toBeInTheDocument()
     expect(screen.queryByText('40')).not.toBeInTheDocument()
@@ -87,5 +89,53 @@ describe('HistoryView', () => {
     expect(within(screen.getByRole('group', { name: 'Peak level' })).getByText('4')).toBeInTheDocument()
     expect(screen.getByText('Accuracy (%)')).toBeInTheDocument()
     expect(screen.getByText('N-back level')).toBeInTheDocument()
+  })
+
+  describe('streak and today stats', () => {
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('shows an outlined streak through yesterday and zero today stats when no session has completed today', () => {
+      appendHistoryRecord({ timestamp: '2026-07-12T09:00:00.000Z', config, summary })
+      appendHistoryRecord({ timestamp: '2026-07-13T09:00:00.000Z', config, summary })
+      vi.setSystemTime(new Date('2026-07-14T08:00:00'))
+
+      render(<HistoryView />)
+
+      const streakTile = screen.getByRole('group', { name: 'Day streak' })
+      expect(within(streakTile).getByText('2')).toBeInTheDocument()
+      expect(within(streakTile).getByRole('img', { hidden: true }).getAttribute('fill')).toBe('none')
+      expect(within(screen.getByRole('group', { name: "Today's time" })).getByText('0s')).toBeInTheDocument()
+      expect(within(screen.getByRole('group', { name: "Today's sessions" })).getByText('0')).toBeInTheDocument()
+    })
+
+    it('shows a filled streak and today stats once a session has completed today', () => {
+      appendHistoryRecord({ timestamp: '2026-07-13T09:00:00.000Z', config, summary })
+      appendHistoryRecord({ timestamp: '2026-07-14T09:00:00.000Z', config, summary })
+      vi.setSystemTime(new Date('2026-07-14T20:00:00'))
+
+      render(<HistoryView />)
+
+      const streakTile = screen.getByRole('group', { name: 'Day streak' })
+      expect(within(streakTile).getByText('2')).toBeInTheDocument()
+      expect(within(streakTile).getByRole('img', { hidden: true }).getAttribute('fill')).toBe('currentColor')
+      expect(within(screen.getByRole('group', { name: "Today's time" })).getByText('50s')).toBeInTheDocument()
+      expect(within(screen.getByRole('group', { name: "Today's sessions" })).getByText('1')).toBeInTheDocument()
+    })
+  })
+
+  it('defaults to the overview tab and switches to the log tab on click', () => {
+    appendHistoryRecord({ timestamp: '2026-07-08T12:00:00.000Z', config, summary })
+
+    render(<HistoryView />)
+
+    expect(screen.getByRole('tab', { name: 'Overview' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Log' }))
+
+    expect(screen.getByRole('tab', { name: 'Log' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('table')).toBeInTheDocument()
   })
 })
