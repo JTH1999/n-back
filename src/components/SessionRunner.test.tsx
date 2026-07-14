@@ -100,6 +100,79 @@ describe('SessionRunner history persistence', () => {
   })
 })
 
+describe('SessionRunner streak display', () => {
+  beforeEach(() => {
+    window.localStorage.clear()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('shows the current streak, incremented from yesterday, once the first session of the day completes', () => {
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    window.localStorage.setItem(
+      'n-back:session-history',
+      JSON.stringify([
+        {
+          timestamp: yesterday.toISOString(),
+          config: { ...config, trialCount: 1, displayDurationMs: 100, trialLengthMs: 200 },
+          summary: {
+            totalTrials: 1,
+            accuracy: 1,
+            streams: {
+              position: {
+                kind: 'position',
+                totalTrials: 1,
+                hits: 1,
+                misses: 0,
+                falseAlarms: 0,
+                correctRejections: 0,
+                accuracy: 1,
+              },
+            },
+          },
+        },
+      ]),
+    )
+
+    vi.useFakeTimers()
+    render(
+      <SessionRunner
+        config={{ ...config, trialCount: 1, displayDurationMs: 100, trialLengthMs: 200 }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={vi.fn()}
+      />,
+    )
+
+    act(() => {
+      vi.advanceTimersByTime(200)
+    })
+
+    const streakGroup = screen.getByRole('group', { name: /day streak/i })
+    expect(within(streakGroup).getByText('2')).toBeInTheDocument()
+  })
+
+  it('shows a fresh streak of one when completing the only session today', () => {
+    vi.useFakeTimers()
+    render(
+      <SessionRunner
+        config={{ ...config, trialCount: 1, displayDurationMs: 100, trialLengthMs: 200 }}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={vi.fn()}
+      />,
+    )
+
+    act(() => {
+      vi.advanceTimersByTime(200)
+    })
+
+    const streakGroup = screen.getByRole('group', { name: /day streak/i })
+    expect(within(streakGroup).getByText('1')).toBeInTheDocument()
+  })
+})
+
 describe('SessionRunner adaptive mode', () => {
   beforeEach(() => {
     window.localStorage.clear()

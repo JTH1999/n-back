@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import clsx from 'clsx'
 import {
   useSessionRunner,
@@ -7,7 +7,8 @@ import {
 import { computeRecommendedN, getStimulusDisplay, getSummary } from '../engine/sessionEngine'
 import type { Keymap } from '../config/keymap'
 import type { StreamKind } from '../engine/streams'
-import { appendHistoryRecord } from '../persistence/historyStorage'
+import { computeStreakStats, type StreakStats } from '../derived/streakStats'
+import { appendHistoryRecord, loadHistory } from '../persistence/historyStorage'
 import { saveDraftSettings } from '../persistence/settingsStorage'
 import { Button } from './Button'
 import { MAX_N } from './ConfigForm'
@@ -63,6 +64,7 @@ export function SessionRunner({ config, keymap, onRestart, isFocused = true }: S
   } = useSessionRunner(config)
   const [pressedStreams, setPressedStreams] = useState<ReadonlySet<StreamKind>>(new Set())
   const [showAbortConfirm, setShowAbortConfirm] = useState(false)
+  const [streak, setStreak] = useState<StreakStats | null>(null)
   const wasPausedBeforeAbort = useRef(false)
   const hasRecordedHistory = useRef(false)
   const hasAppliedAdaptiveN = useRef(false)
@@ -72,10 +74,11 @@ export function SessionRunner({ config, keymap, onRestart, isFocused = true }: S
     setPressedStreams(new Set())
   }, [state.currentTrialIndex])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!summary || hasRecordedHistory.current) return
     hasRecordedHistory.current = true
     appendHistoryRecord({ timestamp: new Date().toISOString(), config, summary })
+    setStreak(computeStreakStats(loadHistory()))
   }, [summary, config])
 
   const recommendedN = useMemo(() => {
@@ -129,6 +132,7 @@ export function SessionRunner({ config, keymap, onRestart, isFocused = true }: S
   const handleRetry = () => {
     hasRecordedHistory.current = false
     hasAppliedAdaptiveN.current = false
+    setStreak(null)
     setPressedStreams(new Set())
     restart()
   }
@@ -140,6 +144,7 @@ export function SessionRunner({ config, keymap, onRestart, isFocused = true }: S
         n={config.n}
         trialCount={config.trialCount}
         recommendation={recommendation}
+        streak={streak}
         onRetry={handleRetry}
         onDone={onRestart}
       />
