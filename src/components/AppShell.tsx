@@ -24,19 +24,22 @@ export interface AppShellProps<TId extends string> {
 
 function SidebarStreak({ streak }: { streak: StreakStats }) {
   return (
-    <div
-      className="hidden shell:flex shell:flex-col shell:gap-2 shell:rounded-lg shell:bg-panel shell:p-3"
-      role="group"
-      aria-label="Streak and today's stats"
-    >
-      <div className="flex items-center gap-2">
-        <FlameIcon filled={streak.streakActiveToday} className="h-5 w-5" />
-        <span className="font-mono text-lg font-semibold">{streak.currentStreak}</span>
-        <span className="text-[9px] tracking-[0.08em] text-dim uppercase">Day streak</span>
-      </div>
-      <div className="flex justify-between font-mono text-xs text-dim">
-        <span>{formatDuration(streak.todaysTotalTimeMs)}</span>
-        <span>{streak.todaysSessionCount} today</span>
+    <div className="hidden shell:flex shell:flex-col shell:gap-2">
+      <SubHeading>streak</SubHeading>
+      <div
+        className="flex flex-col gap-2 rounded-lg bg-panel p-3"
+        role="group"
+        aria-label="Streak and today's stats"
+      >
+        <div className="flex items-center gap-2">
+          <FlameIcon filled={streak.streakActiveToday} className="h-5 w-5" />
+          <span className="font-mono text-lg font-semibold">{streak.currentStreak}</span>
+          <span className="text-[9px] tracking-[0.08em] text-dim uppercase">Day streak</span>
+        </div>
+        <div className="flex justify-between font-mono text-xs text-dim">
+          <span>{formatDuration(streak.todaysTotalTimeMs)}</span>
+          <span>{streak.todaysSessionCount} today</span>
+        </div>
       </div>
     </div>
   )
@@ -91,7 +94,7 @@ export function AppShell<TId extends string>({
           ))}
         </nav>
         <TopBarStreak streak={streak} />
-        <div className="flex items-center gap-2 shell:mt-auto shell:flex-col shell:items-stretch">
+        <div className="flex items-center gap-2 shell:mt-auto shell:flex-col shell:items-stretch shell:gap-4">
           <SidebarStreak streak={streak} />
           <SubHeading className="hidden shell:block">theme</SubHeading>
           <ThemeToggle override={themeOverride} onChange={onChangeTheme} variant="compact" />
