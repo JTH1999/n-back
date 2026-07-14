@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useAccent } from './hooks/useAccent'
 import { useKeymap } from './hooks/useKeymap'
 import type { SessionRunnerConfig } from './hooks/useSessionRunner'
@@ -9,6 +9,8 @@ import { HistoryView } from './components/HistoryView'
 import { PresetsScreen } from './components/PresetsScreen'
 import { SessionRunner } from './components/SessionRunner'
 import { SettingsScreen } from './components/SettingsScreen'
+import { computeStreakStats } from './derived/streakStats'
+import { loadHistory, type SessionHistoryRecord } from './persistence/historyStorage'
 
 type Screen = 'train' | 'history' | 'presets' | 'settings'
 
@@ -22,9 +24,11 @@ const NAV_ITEMS: NavItem<Screen>[] = [
 function App() {
   const [screen, setScreen] = useState<Screen>('train')
   const [config, setConfig] = useState<SessionRunnerConfig | null>(null)
+  const [history, setHistory] = useState<SessionHistoryRecord[]>(() => loadHistory())
   const { keymap, rebind, setKeymap } = useKeymap()
   const { override: themeOverride, setOverride: setThemeOverride } = useTheme()
   const { accent, setAccent } = useAccent()
+  const streak = useMemo(() => computeStreakStats(history), [history])
 
   return (
     <AppShell
@@ -33,12 +37,14 @@ function App() {
       onNavigate={setScreen}
       themeOverride={themeOverride}
       onChangeTheme={setThemeOverride}
+      streak={streak}
     >
       {config ? (
         <SessionRunner
           config={config}
           keymap={keymap}
           onRestart={() => setConfig(null)}
+          onSessionComplete={() => setHistory(loadHistory())}
           isFocused={screen === 'train'}
         />
       ) : (

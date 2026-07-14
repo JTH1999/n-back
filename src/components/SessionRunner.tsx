@@ -21,6 +21,7 @@ export interface SessionRunnerProps {
   config: SessionRunnerConfig
   keymap: Keymap
   onRestart: () => void
+  onSessionComplete?: () => void
   isFocused?: boolean
 }
 
@@ -49,7 +50,13 @@ function ProgressBar({ trialIndex, trialCount }: { trialIndex: number; trialCoun
   )
 }
 
-export function SessionRunner({ config, keymap, onRestart, isFocused = true }: SessionRunnerProps) {
+export function SessionRunner({
+  config,
+  keymap,
+  onRestart,
+  onSessionComplete,
+  isFocused = true,
+}: SessionRunnerProps) {
   const {
     state,
     stimulusVisible,
@@ -79,7 +86,8 @@ export function SessionRunner({ config, keymap, onRestart, isFocused = true }: S
     hasRecordedHistory.current = true
     appendHistoryRecord({ timestamp: new Date().toISOString(), config, summary })
     setStreak(computeStreakStats(loadHistory()))
-  }, [summary, config])
+    onSessionComplete?.()
+  }, [summary, config, onSessionComplete])
 
   const recommendedN = useMemo(() => {
     if (!summary || !config.adaptive.enabled) return null
