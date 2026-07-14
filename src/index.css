@@ -57,13 +57,34 @@
   --fg: #141a1d;
   --dim: #5b666d;
   --dim2: #9aa4ab;
-  --accent: #0b9f81;
-  --accent-fg: #ffffff;
-  --accent-dim: #d0efe8;
   --tile: #c3ccd2;
   --danger: #d63c3c;
   --success: #3ddc84;
   --warning: #e0a030;
+
+  /* Canonical per-accent colors — the single source of truth for each accent
+     option, in both the active `--accent` mechanism below and the AccentPicker
+     swatch previews. Each is redeclared in .dark with its dark-mode variant. */
+  --accent-teal: #0b9f81;
+  --accent-teal-fg: #ffffff;
+  --accent-teal-dim: #d0efe8;
+  --accent-blue: #1d6fe0;
+  --accent-blue-fg: #ffffff;
+  --accent-blue-dim: #d7e6fb;
+  --accent-purple: #7c3aed;
+  --accent-purple-fg: #ffffff;
+  --accent-purple-dim: #e6dbfc;
+  --accent-rose: #c22a63;
+  --accent-rose-fg: #ffffff;
+  --accent-rose-dim: #fbdce8;
+  --accent-amber: #e8a23c;
+  --accent-amber-fg: #2e1900;
+  --accent-amber-dim: #fbe8c9;
+
+  /* The active accent — defaults to teal; swapped by [data-accent] below. */
+  --accent: var(--accent-teal);
+  --accent-fg: var(--accent-teal-fg);
+  --accent-dim: var(--accent-teal-dim);
 
   /* Per-stream identity colors — same in light and dark, used for stream cards,
      keymap rows, and results dots alike. */
@@ -90,11 +111,48 @@
   --fg: #e7edf0;
   --dim: #7c878e;
   --dim2: #4f5a61;
-  --accent: #5ef2c9;
-  --accent-fg: #04140f;
-  --accent-dim: #213f3b;
   --tile: #444f58;
   --danger: #ff6b6b;
+
+  --accent-teal: #5ef2c9;
+  --accent-teal-fg: #04140f;
+  --accent-teal-dim: #213f3b;
+  --accent-blue: #8ab4ff;
+  --accent-blue-fg: #071b33;
+  --accent-blue-dim: #1c2f47;
+  --accent-purple: #c9a6ff;
+  --accent-purple-fg: #1e1033;
+  --accent-purple-dim: #2c2140;
+  --accent-rose: #ff9fc0;
+  --accent-rose-fg: #330a1a;
+  --accent-rose-dim: #40202b;
+  --accent-amber: #ffcf7a;
+  --accent-amber-fg: #2e1900;
+  --accent-amber-dim: #3a2712;
+}
+
+/* Active accent — swaps which canonical token set `--accent`/`-fg`/`-dim`
+   point at. Each token above already carries the correct light/dark value
+   for the current mode, so no `.dark[data-accent=...]` variants are needed. */
+[data-accent='blue'] {
+  --accent: var(--accent-blue);
+  --accent-fg: var(--accent-blue-fg);
+  --accent-dim: var(--accent-blue-dim);
+}
+[data-accent='purple'] {
+  --accent: var(--accent-purple);
+  --accent-fg: var(--accent-purple-fg);
+  --accent-dim: var(--accent-purple-dim);
+}
+[data-accent='rose'] {
+  --accent: var(--accent-rose);
+  --accent-fg: var(--accent-rose-fg);
+  --accent-dim: var(--accent-rose-dim);
+}
+[data-accent='amber'] {
+  --accent: var(--accent-amber);
+  --accent-fg: var(--accent-amber-fg);
+  --accent-dim: var(--accent-amber-dim);
 }
 
 @theme inline {
@@ -108,6 +166,12 @@
   --color-accent: var(--accent);
   --color-accent-fg: var(--accent-fg);
   --color-accent-dim: var(--accent-dim);
+
+  --color-swatch-teal: var(--accent-teal);
+  --color-swatch-blue: var(--accent-blue);
+  --color-swatch-purple: var(--accent-purple);
+  --color-swatch-rose: var(--accent-rose);
+  --color-swatch-amber: var(--accent-amber);
   --color-tile: var(--tile);
   --color-danger: var(--danger);
   --color-success: var(--success);

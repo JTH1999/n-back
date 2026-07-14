@@ -9,6 +9,8 @@ function renderSettingsScreen(overrides: Partial<SettingsScreenProps> = {}) {
     onRebindKey: vi.fn(),
     themeOverride: null,
     onChangeTheme: vi.fn(),
+    accent: 'teal',
+    onChangeAccent: vi.fn(),
     ...overrides,
   }
   return { ...render(<SettingsScreen {...props} />), props }
