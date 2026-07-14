@@ -83,17 +83,17 @@
 }
 
 .dark {
-  --bg: #0a0c0d;
-  --panel: #111417;
-  --panel2: #0d1013;
-  --border: #20262b;
+  --bg: #15181b;
+  --panel: #1c2025;
+  --panel2: #181c21;
+  --border: #2b3239;
   --fg: #e7edf0;
   --dim: #7c878e;
   --dim2: #4f5a61;
   --accent: #5ef2c9;
   --accent-fg: #04140f;
-  --accent-dim: #16332d;
-  --tile: #39434a;
+  --accent-dim: #213f3b;
+  --tile: #444f58;
   --danger: #ff6b6b;
 }
 
