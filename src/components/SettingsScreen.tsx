@@ -1,8 +1,9 @@
 import clsx from 'clsx'
 import { useDraftConfig } from '../hooks/useDraftConfig'
 import type { Keymap } from '../config/keymap'
-import type { ThemeOverride } from '../config/theme'
+import type { AccentColor, ThemeOverride } from '../config/theme'
 import type { StreamKind } from '../engine/streams'
+import { AccentPicker } from './AccentPicker'
 import { ExportImportPanel } from './ExportImportPanel'
 import { KeymapEditor } from './KeymapEditor'
 import { Panel } from './Panel'
@@ -17,6 +18,8 @@ export interface SettingsScreenProps {
   onRebindKey: (kind: StreamKind, key: string) => void
   themeOverride: ThemeOverride | null
   onChangeTheme: (theme: ThemeOverride | null) => void
+  accent: AccentColor
+  onChangeAccent: (accent: AccentColor) => void
 }
 
 export function SettingsScreen({
@@ -24,6 +27,8 @@ export function SettingsScreen({
   onRebindKey,
   themeOverride,
   onChangeTheme,
+  accent,
+  onChangeAccent,
 }: SettingsScreenProps) {
   const [config, setConfig] = useDraftConfig()
 
@@ -80,7 +85,10 @@ export function SettingsScreen({
         side={
           <>
             <Panel>
-              <ThemeToggle override={themeOverride} onChange={onChangeTheme} />
+              <div className="flex flex-col gap-6">
+                <ThemeToggle override={themeOverride} onChange={onChangeTheme} />
+                <AccentPicker accent={accent} onChange={onChangeAccent} />
+              </div>
             </Panel>
             <Panel>
               <ExportImportPanel />

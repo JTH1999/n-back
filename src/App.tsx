@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useAccent } from './hooks/useAccent'
 import { useKeymap } from './hooks/useKeymap'
 import type { SessionRunnerConfig } from './hooks/useSessionRunner'
 import { useTheme } from './hooks/useTheme'
@@ -23,6 +24,7 @@ function App() {
   const [config, setConfig] = useState<SessionRunnerConfig | null>(null)
   const { keymap, rebind, setKeymap } = useKeymap()
   const { override: themeOverride, setOverride: setThemeOverride } = useTheme()
+  const { accent, setAccent } = useAccent()
 
   return (
     <AppShell
@@ -49,6 +51,8 @@ function App() {
           onRebindKey={rebind}
           themeOverride={themeOverride}
           onChangeTheme={setThemeOverride}
+          accent={accent}
+          onChangeAccent={setAccent}
         />
       )}
       {screen === 'history' && <HistoryView />}
