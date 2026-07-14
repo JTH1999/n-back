@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import { sessionDurationMs } from '../derived/sessionDuration'
 import { useDraftConfig } from '../hooks/useDraftConfig'
 import type { SessionRunnerConfig } from '../hooks/useSessionRunner'
 import { DEFAULT_MATCH_RATE } from '../engine/sessionEngine'
@@ -113,7 +114,7 @@ export function ConfigForm({ onStart }: ConfigFormProps) {
   const handleN = (n: number) => setConfig({ ...config, n: Math.min(MAX_N, Math.max(1, n)) })
 
   const judgedCount = Math.max(0, config.trialCount - config.n)
-  const estimatedDuration = formatDuration(config.trialCount * config.trialLengthMs)
+  const estimatedDuration = formatDuration(sessionDurationMs(config.trialCount, config.trialLengthMs))
   const activeStreamsSummary = config.streams.length > 0 ? config.streams.join(', ') : 'None'
 
   return (

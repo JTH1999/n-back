@@ -5,9 +5,11 @@ import { loadHistory, type SessionHistoryRecord } from '../persistence/historySt
 import { accuracyTextClass, EYEBROW_CLASS } from '../styles/controls'
 import { formatDate } from '../utils/formatDate'
 import { formatDuration } from '../utils/formatDuration'
+import { ActivityGraph } from './ActivityGraph'
 import { FlameIcon } from './FlameIcon'
 import { Panel } from './Panel'
 import { ScreenHeader } from './ScreenHeader'
+import { SegmentedControl } from './SegmentedControl'
 import { TrendChart, type TrendPoint } from './TrendChart'
 
 const ROW_CLASS = 'grid grid-cols-[90px_1fr_60px_72px_64px] items-center gap-3 py-3 text-sm'
@@ -88,25 +90,15 @@ export function HistoryView() {
         <p className="text-sm text-dim">No completed sessions yet.</p>
       ) : (
         <>
-          <div className="flex gap-1 rounded-lg border border-border bg-panel p-[3px]" role="tablist" aria-label="History">
-            {HISTORY_TABS.map((value) => (
-              <button
-                key={value}
-                type="button"
-                role="tab"
-                id={`history-tab-${value}`}
-                aria-selected={tab === value}
-                aria-controls={`history-tabpanel-${value}`}
-                onClick={() => setTab(value)}
-                className={clsx(
-                  'flex-1 rounded-md px-3 py-2 font-mono text-[13px] transition-colors',
-                  tab === value ? 'bg-accent text-accent-fg' : 'text-dim hover:text-fg',
-                )}
-              >
-                {TAB_LABELS[value]}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            options={HISTORY_TABS.map((value) => ({ value, label: TAB_LABELS[value] }))}
+            value={tab}
+            onChange={setTab}
+            ariaLabel="History"
+            asTabs
+            idPrefix="history"
+            fill
+          />
 
           {tab === 'overview' && (
             <div id="history-tabpanel-overview" role="tabpanel" aria-labelledby="history-tab-overview" className="flex flex-col gap-3.5">
@@ -129,6 +121,10 @@ export function HistoryView() {
                 <KpiTile value={formatDuration(streak.todaysTotalTimeMs)} label="Today's time" />
                 <KpiTile value={String(streak.todaysSessionCount)} label="Today's sessions" />
               </div>
+
+              <Panel>
+                <ActivityGraph history={history} />
+              </Panel>
             </div>
           )}
 
