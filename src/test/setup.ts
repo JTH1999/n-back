@@ -4,7 +4,11 @@ import '@testing-library/jest-dom/vitest'
 // non-zero size and renders nothing. Stub a ResizeObserver that reports back
 // a fixed size synchronously, matching how recharts reads it in real browsers.
 class ResizeObserverStub implements ResizeObserver {
-  constructor(private readonly callback: ResizeObserverCallback) {}
+  private readonly callback: ResizeObserverCallback
+
+  constructor(callback: ResizeObserverCallback) {
+    this.callback = callback
+  }
 
   observe(target: Element) {
     this.callback([{ target, contentRect: target.getBoundingClientRect() } as ResizeObserverEntry], this)
@@ -14,7 +18,7 @@ class ResizeObserverStub implements ResizeObserver {
   disconnect() {}
 }
 
-global.ResizeObserver = ResizeObserverStub
+globalThis.ResizeObserver = ResizeObserverStub
 
 // Only the ResponsiveContainer's own wrapper needs a non-zero size — leaving
 // everything else at jsdom's default (all zeros) keeps recharts' internal
