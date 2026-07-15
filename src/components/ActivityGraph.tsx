@@ -29,7 +29,7 @@ function intensityLevel(value: number, max: number): 0 | 1 | 2 | 3 | 4 {
 }
 
 const LEVEL_CLASS: Record<0 | 1 | 2 | 3 | 4, string> = {
-  0: 'bg-border',
+  0: 'bg-panel2 dark:bg-bg',
   1: 'bg-accent/25',
   2: 'bg-accent/50',
   3: 'bg-accent/75',
