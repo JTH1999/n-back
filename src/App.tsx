@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { preloadLetterAudio } from './audio/letterAudio'
 import { useAccent } from './hooks/useAccent'
 import { useKeymap } from './hooks/useKeymap'
 import type { SessionRunnerConfig } from './hooks/useSessionRunner'
@@ -29,6 +30,10 @@ function App() {
   const { override: themeOverride, setOverride: setThemeOverride } = useTheme()
   const { accent, setAccent } = useAccent()
   const streak = useMemo(() => computeStreakStats(history), [history])
+
+  useEffect(() => {
+    preloadLetterAudio()
+  }, [])
 
   return (
     <AppShell navItems={NAV_ITEMS} activeId={screen} onNavigate={setScreen} streak={streak}>
