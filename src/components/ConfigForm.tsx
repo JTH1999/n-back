@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import { unlockAudio } from '../audio/letterAudio'
 import { sessionDurationMs } from '../derived/sessionDuration'
 import { useDraftConfig } from '../hooks/useDraftConfig'
 import type { SessionRunnerConfig } from '../hooks/useSessionRunner'
@@ -122,7 +123,10 @@ export function ConfigForm({ onStart }: ConfigFormProps) {
       className="flex flex-col gap-7"
       onSubmit={(event) => {
         event.preventDefault()
-        if (isValid) onStart(config)
+        if (isValid) {
+          unlockAudio()
+          onStart(config)
+        }
       }}
     >
       <div className="flex flex-wrap items-end justify-between gap-4">
