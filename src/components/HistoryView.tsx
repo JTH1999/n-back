@@ -26,12 +26,12 @@ interface KpiTileProps {
 function KpiTile({ value, label, icon }: KpiTileProps) {
   return (
     <Panel>
-      <div className="flex items-center gap-3" role="group" aria-label={label}>
-        {icon}
-        <div>
-          <p className="font-mono text-[32px] font-semibold">{value}</p>
-          <p className="mt-1 font-mono text-[11px] tracking-[0.2em] text-dim uppercase">{label}</p>
-        </div>
+      <div role="group" aria-label={label}>
+        <p className="flex items-center gap-2 font-mono text-[32px] font-semibold">
+          {icon}
+          {value}
+        </p>
+        <p className="mt-1 font-mono text-[11px] tracking-[0.2em] text-dim uppercase">{label}</p>
       </div>
     </Panel>
   )
@@ -131,22 +131,24 @@ export function HistoryView() {
           {tab === 'log' && (
             <div id="history-tabpanel-log" role="tabpanel" aria-labelledby="history-tab-log">
               <Panel>
-                <div role="table">
-                  <div
-                    className={clsx(ROW_CLASS, EYEBROW_CLASS, 'border-b border-border py-2.5')}
-                    role="row"
-                  >
-                    <span role="columnheader">Date</span>
-                    <span role="columnheader">Streams</span>
-                    <span role="columnheader">N</span>
-                    <span role="columnheader">Trials</span>
-                    <span className="text-right" role="columnheader">
-                      Acc
-                    </span>
+                <div className="overflow-x-auto">
+                  <div role="table" className="min-w-[420px]">
+                    <div
+                      className={clsx(ROW_CLASS, EYEBROW_CLASS, 'border-b border-border py-2.5')}
+                      role="row"
+                    >
+                      <span role="columnheader">Date</span>
+                      <span role="columnheader">Streams</span>
+                      <span role="columnheader">N</span>
+                      <span role="columnheader">Trials</span>
+                      <span className="text-right" role="columnheader">
+                        Acc
+                      </span>
+                    </div>
+                    {rows.map((record) => (
+                      <HistoryRow key={record.timestamp} record={record} />
+                    ))}
                   </div>
-                  {rows.map((record) => (
-                    <HistoryRow key={record.timestamp} record={record} />
-                  ))}
                 </div>
               </Panel>
             </div>

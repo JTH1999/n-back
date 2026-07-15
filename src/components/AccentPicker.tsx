@@ -24,7 +24,7 @@ const ACCENT_OPTIONS: AccentOption[] = [
 export function AccentPicker({ accent, onChange }: AccentPickerProps) {
   return (
     <fieldset className="flex flex-col gap-2.5">
-      <SubHeading as="legend" className="mb-1">
+      <SubHeading as="legend" className="mb-2.5">
         Accent color
       </SubHeading>
       <div className="flex gap-3" role="radiogroup" aria-label="Accent color">
