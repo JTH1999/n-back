@@ -10,11 +10,15 @@ type ActivityMetric = 'sessions' | 'time'
 
 const METRIC_LABELS: Record<ActivityMetric, string> = { sessions: 'Session count', time: 'Total time' }
 
+// Shading is relative to a fixed reference (20 sessions / 20 minutes) rather than the visible grid's max,
+// so a day's color stays meaningful across different history windows.
+const METRIC_REFERENCE_MAX: Record<ActivityMetric, number> = { sessions: 20, time: 20 * 60 * 1000 }
+
 function metricValue(day: ActivityDay, metric: ActivityMetric): number {
   return metric === 'sessions' ? day.sessionCount : day.totalTimeMs
 }
 
-// Zero maps to the lowest step; the rest are quartiles of the metric's max across the visible grid.
+// Zero maps to the lowest step; the rest are quartiles of the metric's reference max.
 function intensityLevel(value: number, max: number): 0 | 1 | 2 | 3 | 4 {
   if (value <= 0 || max <= 0) return 0
   const ratio = value / max
@@ -47,7 +51,7 @@ export interface ActivityGraphProps {
 export function ActivityGraph({ history, now }: ActivityGraphProps) {
   const [metric, setMetric] = useState<ActivityMetric>('sessions')
   const weeks = useMemo(() => computeActivityGraph(history, now), [history, now])
-  const max = Math.max(0, ...weeks.flat().map((day) => metricValue(day, metric)))
+  const max = METRIC_REFERENCE_MAX[metric]
 
   return (
     <div className="flex flex-col gap-3">

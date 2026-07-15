@@ -55,7 +55,7 @@ describe('ActivityGraph', () => {
     render(<ActivityGraph history={history} now={new Date('2026-07-14T12:00:00')} />)
 
     const activeDay = screen.getByTitle('Jul 14, 2026: 1 session')
-    expect(activeDay).toHaveAttribute('data-level', '4')
+    expect(activeDay).toHaveAttribute('data-level', '1')
     expect(screen.getByTitle('Jul 13, 2026: no sessions')).toHaveAttribute('data-level', '0')
   })
 
