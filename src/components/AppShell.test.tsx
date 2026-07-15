@@ -24,8 +24,6 @@ function renderShell(streakOverride: StreakStats = streak) {
       navItems={NAV_ITEMS}
       activeId="train"
       onNavigate={onNavigate}
-      themeOverride={null}
-      onChangeTheme={() => {}}
       streak={streakOverride}
     >
       <p>Content</p>
@@ -71,10 +69,46 @@ describe('AppShell streak display', () => {
 describe('AppShell navigation', () => {
   it('still navigates and highlights the active item alongside the streak display', () => {
     const { onNavigate } = renderShell()
+    const sidebar = screen.getByRole('navigation', { name: 'Main' })
 
-    fireEvent.click(screen.getByRole('button', { name: 'History' }))
+    fireEvent.click(within(sidebar).getByRole('button', { name: 'History' }))
 
     expect(onNavigate).toHaveBeenCalledWith('history')
-    expect(screen.getByRole('button', { name: 'Train' })).toHaveAttribute('aria-current', 'page')
+    expect(within(sidebar).getByRole('button', { name: 'Train' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+  })
+})
+
+describe('AppShell mobile tab bar', () => {
+  it('renders all nav items in the mobile tab bar', () => {
+    renderShell()
+    const tabBar = screen.getByRole('navigation', { name: 'Main mobile' })
+
+    expect(within(tabBar).getByRole('button', { name: 'Train' })).toBeInTheDocument()
+    expect(within(tabBar).getByRole('button', { name: 'History' })).toBeInTheDocument()
+  })
+
+  it('calls onNavigate with the right id when a tab is clicked', () => {
+    const { onNavigate } = renderShell()
+    const tabBar = screen.getByRole('navigation', { name: 'Main mobile' })
+
+    fireEvent.click(within(tabBar).getByRole('button', { name: 'History' }))
+
+    expect(onNavigate).toHaveBeenCalledWith('history')
+  })
+
+  it('marks the active tab with aria-current', () => {
+    renderShell()
+    const tabBar = screen.getByRole('navigation', { name: 'Main mobile' })
+
+    expect(within(tabBar).getByRole('button', { name: 'Train' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    expect(within(tabBar).getByRole('button', { name: 'History' })).not.toHaveAttribute(
+      'aria-current',
+    )
   })
 })
