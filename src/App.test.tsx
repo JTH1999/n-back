@@ -33,14 +33,16 @@ describe('App navigation during a session', () => {
     fireEvent.click(screen.getByRole('button', { name: /start session/i }))
     expect(screen.getByText(/trial 1 of 5/i)).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Presets' }))
+    const sidebar = screen.getByRole('navigation', { name: 'Main' })
+
+    fireEvent.click(within(sidebar).getByRole('button', { name: 'Presets' }))
     expect(screen.queryByText(/trial \d+ of 5/i)).not.toBeInTheDocument()
 
     act(() => {
       vi.advanceTimersByTime(10_000)
     })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Train' }))
+    fireEvent.click(within(sidebar).getByRole('button', { name: 'Train' }))
 
     expect(screen.getByText(/trial 1 of 5/i)).toBeInTheDocument()
     expect(screen.getByRole('dialog', { name: /session paused/i })).toBeInTheDocument()
@@ -59,8 +61,9 @@ describe('App navigation during a session', () => {
 
     expect(screen.getByText(/session results/i)).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Settings' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Train' }))
+    const sidebar = screen.getByRole('navigation', { name: 'Main' })
+    fireEvent.click(within(sidebar).getByRole('button', { name: 'Settings' }))
+    fireEvent.click(within(sidebar).getByRole('button', { name: 'Train' }))
 
     expect(screen.getByText(/session results/i)).toBeInTheDocument()
   })
