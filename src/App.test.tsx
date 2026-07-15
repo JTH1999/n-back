@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { saveDraftSettings } from './persistence/settingsStorage'
@@ -63,5 +63,34 @@ describe('App navigation during a session', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Train' }))
 
     expect(screen.getByText(/session results/i)).toBeInTheDocument()
+  })
+})
+
+describe('App nav bar streak', () => {
+  beforeEach(() => {
+    window.localStorage.clear()
+    saveDraftSettings(fastConfig)
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('reflects the updated streak and today stats in the nav bar after a session completes', () => {
+    saveDraftSettings({ ...fastConfig, trialCount: 1 })
+    vi.useFakeTimers()
+    render(<App />)
+
+    const streakGroup = () => screen.getByRole('group', { name: "Streak and today's stats" })
+    expect(within(streakGroup()).getByText('0')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /start session/i }))
+    act(() => {
+      vi.advanceTimersByTime(fastConfig.trialLengthMs)
+    })
+
+    expect(screen.getByText(/session results/i)).toBeInTheDocument()
+    expect(within(streakGroup()).getByText('1')).toBeInTheDocument()
+    expect(within(streakGroup()).getByText('1 today')).toBeInTheDocument()
   })
 })

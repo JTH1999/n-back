@@ -1,6 +1,9 @@
 import clsx from 'clsx'
 import type { ReactNode } from 'react'
 import type { ThemeOverride } from '../config/theme'
+import type { StreakStats } from '../derived/streakStats'
+import { formatDuration } from '../utils/formatDuration'
+import { FlameIcon } from './FlameIcon'
 import { SubHeading } from './SubHeading'
 import { ThemeToggle } from './ThemeToggle'
 
@@ -15,7 +18,51 @@ export interface AppShellProps<TId extends string> {
   onNavigate: (id: TId) => void
   themeOverride: ThemeOverride | null
   onChangeTheme: (theme: ThemeOverride | null) => void
+  streak: StreakStats
   children: ReactNode
+}
+
+function SidebarStreak({ streak }: { streak: StreakStats }) {
+  return (
+    <div className="hidden shell:flex shell:flex-col shell:gap-2">
+      <SubHeading>streak</SubHeading>
+      <div
+        className="flex flex-col gap-2 rounded-lg bg-panel p-3"
+        role="group"
+        aria-label="Streak and today's stats"
+      >
+        <div className="flex items-center gap-2">
+          <FlameIcon filled={streak.streakActiveToday} className="h-5 w-5" />
+          <span className="font-mono text-lg font-semibold">{streak.currentStreak}</span>
+          <span className="text-[9px] tracking-[0.08em] text-dim uppercase">Day streak</span>
+        </div>
+        <div className="flex justify-between gap-2">
+          <div className="flex flex-col gap-0.5">
+            <SubHeading>time</SubHeading>
+            <span className="font-mono text-xs text-dim">{formatDuration(streak.todaysTotalTimeMs)}</span>
+          </div>
+          <div className="flex flex-col items-end gap-0.5">
+            <SubHeading>sessions</SubHeading>
+            <span className="font-mono text-xs text-dim">{streak.todaysSessionCount}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TopBarStreak({ streak }: { streak: StreakStats }) {
+  return (
+    <div
+      className="flex items-center gap-1.5 shell:hidden"
+      role="group"
+      aria-label="Streak and today's session count"
+    >
+      <FlameIcon filled={streak.streakActiveToday} className="h-4 w-4" />
+      <span className="font-mono text-sm font-semibold">{streak.currentStreak}</span>
+      <span className="font-mono text-xs text-dim">· {streak.todaysSessionCount}</span>
+    </div>
+  )
 }
 
 export function AppShell<TId extends string>({
@@ -24,6 +71,7 @@ export function AppShell<TId extends string>({
   onNavigate,
   themeOverride,
   onChangeTheme,
+  streak,
   children,
 }: AppShellProps<TId>) {
   return (
@@ -51,7 +99,9 @@ export function AppShell<TId extends string>({
             </button>
           ))}
         </nav>
-        <div className="flex items-center gap-2 shell:mt-auto shell:flex-col shell:items-stretch">
+        <TopBarStreak streak={streak} />
+        <div className="flex items-center gap-2 shell:mt-auto shell:flex-col shell:items-stretch shell:gap-4">
+          <SidebarStreak streak={streak} />
           <SubHeading className="hidden shell:block">theme</SubHeading>
           <ThemeToggle override={themeOverride} onChange={onChangeTheme} variant="compact" />
         </div>
