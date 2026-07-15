@@ -26,12 +26,12 @@ interface KpiTileProps {
 function KpiTile({ value, label, icon }: KpiTileProps) {
   return (
     <Panel>
-      <div className="flex items-center gap-3" role="group" aria-label={label}>
-        {icon}
-        <div>
-          <p className="font-mono text-[32px] font-semibold">{value}</p>
-          <p className="mt-1 font-mono text-[11px] tracking-[0.2em] text-dim uppercase">{label}</p>
-        </div>
+      <div role="group" aria-label={label}>
+        <p className="flex items-center gap-2 font-mono text-[32px] font-semibold">
+          {icon}
+          {value}
+        </p>
+        <p className="mt-1 font-mono text-[11px] tracking-[0.2em] text-dim uppercase">{label}</p>
       </div>
     </Panel>
   )
