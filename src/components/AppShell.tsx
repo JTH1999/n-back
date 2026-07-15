@@ -1,11 +1,9 @@
 import clsx from 'clsx'
 import type { ReactNode } from 'react'
-import type { ThemeOverride } from '../config/theme'
 import type { StreakStats } from '../derived/streakStats'
 import { formatDuration } from '../utils/formatDuration'
 import { FlameIcon } from './FlameIcon'
 import { SubHeading } from './SubHeading'
-import { ThemeToggle } from './ThemeToggle'
 
 export interface NavItem<TId extends string> {
   id: TId
@@ -16,15 +14,13 @@ export interface AppShellProps<TId extends string> {
   navItems: NavItem<TId>[]
   activeId: TId
   onNavigate: (id: TId) => void
-  themeOverride: ThemeOverride | null
-  onChangeTheme: (theme: ThemeOverride | null) => void
   streak: StreakStats
   children: ReactNode
 }
 
 function SidebarStreak({ streak }: { streak: StreakStats }) {
   return (
-    <div className="hidden shell:flex shell:flex-col shell:gap-2">
+    <div className="hidden shell:mt-auto shell:flex shell:flex-col shell:gap-2">
       <SubHeading>streak</SubHeading>
       <div
         className="flex flex-col gap-2 rounded-lg bg-panel p-3"
@@ -123,8 +119,6 @@ export function AppShell<TId extends string>({
   navItems,
   activeId,
   onNavigate,
-  themeOverride,
-  onChangeTheme,
   streak,
   children,
 }: AppShellProps<TId>) {
@@ -147,11 +141,7 @@ export function AppShell<TId extends string>({
           ))}
         </nav>
         <TopBarStreak streak={streak} />
-        <div className="flex items-center gap-2 shell:mt-auto shell:flex-col shell:items-stretch shell:gap-4">
-          <SidebarStreak streak={streak} />
-          <SubHeading className="hidden shell:block">theme</SubHeading>
-          <ThemeToggle override={themeOverride} onChange={onChangeTheme} variant="compact" />
-        </div>
+        <SidebarStreak streak={streak} />
       </aside>
       <main className="flex-1 overflow-x-hidden min-w-0 p-6 pb-[calc(56px+env(safe-area-inset-bottom)+24px)] shell:p-[34px_40px_60px]">
         <div className="mx-auto max-w-[960px]">{children}</div>

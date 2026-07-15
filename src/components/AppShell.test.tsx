@@ -24,8 +24,6 @@ function renderShell(streakOverride: StreakStats = streak) {
       navItems={NAV_ITEMS}
       activeId="train"
       onNavigate={onNavigate}
-      themeOverride={null}
-      onChangeTheme={() => {}}
       streak={streakOverride}
     >
       <p>Content</p>

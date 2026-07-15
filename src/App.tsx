@@ -31,14 +31,7 @@ function App() {
   const streak = useMemo(() => computeStreakStats(history), [history])
 
   return (
-    <AppShell
-      navItems={NAV_ITEMS}
-      activeId={screen}
-      onNavigate={setScreen}
-      themeOverride={themeOverride}
-      onChangeTheme={setThemeOverride}
-      streak={streak}
-    >
+    <AppShell navItems={NAV_ITEMS} activeId={screen} onNavigate={setScreen} streak={streak}>
       {config ? (
         <SessionRunner
           config={config}
