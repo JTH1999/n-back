@@ -50,7 +50,7 @@ function SidebarStreak({ streak }: { streak: StreakStats }) {
 function TopBarStreak({ streak }: { streak: StreakStats }) {
   return (
     <div
-      className="flex items-center gap-1.5 shell:hidden"
+      className="flex items-center gap-1.5 ml-auto shell:hidden"
       role="group"
       aria-label="Streak and today's session count"
     >
