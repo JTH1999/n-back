@@ -36,9 +36,15 @@ function SidebarStreak({ streak }: { streak: StreakStats }) {
           <span className="font-mono text-lg font-semibold">{streak.currentStreak}</span>
           <span className="text-[9px] tracking-[0.08em] text-dim uppercase">Day streak</span>
         </div>
-        <div className="flex justify-between font-mono text-xs text-dim">
-          <span>{formatDuration(streak.todaysTotalTimeMs)}</span>
-          <span>{streak.todaysSessionCount} today</span>
+        <div className="flex justify-between gap-2">
+          <div className="flex flex-col gap-0.5">
+            <SubHeading>time</SubHeading>
+            <span className="font-mono text-xs text-dim">{formatDuration(streak.todaysTotalTimeMs)}</span>
+          </div>
+          <div className="flex flex-col items-end gap-0.5">
+            <SubHeading>sessions</SubHeading>
+            <span className="font-mono text-xs text-dim">{streak.todaysSessionCount}</span>
+          </div>
         </div>
       </div>
     </div>
