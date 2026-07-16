@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { usePresets, type PresetConfig } from './usePresets'
+import { isPresetConfigEqual, usePresets, type PresetConfig } from './usePresets'
 
 const config: PresetConfig = {
   n: 2,
@@ -172,5 +172,30 @@ describe('usePresets', () => {
 
     expect(loaded?.config).not.toHaveProperty('volume')
     expect(loaded?.config).not.toHaveProperty('muted')
+  })
+})
+
+describe('isPresetConfigEqual', () => {
+  it('returns true for identical configs', () => {
+    expect(isPresetConfigEqual(config, { ...config })).toBe(true)
+  })
+
+  it('returns false when a scalar field differs', () => {
+    expect(isPresetConfigEqual(config, { ...config, n: 3 })).toBe(false)
+  })
+
+  it('returns false when the streams array differs', () => {
+    expect(isPresetConfigEqual(config, { ...config, streams: ['position', 'color'] })).toBe(false)
+  })
+
+  it('returns false when a nested adaptive field differs', () => {
+    expect(
+      isPresetConfigEqual(config, { ...config, adaptive: { ...config.adaptive, enabled: true } }),
+    ).toBe(false)
+  })
+
+  it('ignores extraneous fields like volume/muted', () => {
+    const withExtras = { ...config, volume: 0.4, muted: true } as PresetConfig
+    expect(isPresetConfigEqual(config, withExtras)).toBe(true)
   })
 })
