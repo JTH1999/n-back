@@ -136,6 +136,53 @@ describe('usePresets', () => {
     expect(remounted.current.presets).toEqual([])
   })
 
+  it('renames a preset by id', () => {
+    const { result } = renderHook(() => usePresets())
+
+    act(() => {
+      result.current.savePreset('Warm-up', config)
+    })
+    const id = result.current.presets[0].id
+
+    act(() => {
+      result.current.renamePreset(id, 'Morning warm-up')
+    })
+
+    expect(result.current.presets[0]).toMatchObject({ id, name: 'Morning warm-up' })
+  })
+
+  it('leaves the active preset id untouched when renaming the active preset', () => {
+    const { result } = renderHook(() => usePresets())
+
+    act(() => {
+      result.current.savePreset('Warm-up', config)
+    })
+    const id = result.current.presets[0].id
+
+    act(() => {
+      result.current.renamePreset(id, 'Morning warm-up')
+    })
+
+    expect(result.current.activePresetId).toBe(id)
+  })
+
+  it('persists renames across remounts', () => {
+    const { result, unmount } = renderHook(() => usePresets())
+
+    act(() => {
+      result.current.savePreset('Warm-up', config)
+    })
+    const id = result.current.presets[0].id
+    act(() => {
+      result.current.renamePreset(id, 'Morning warm-up')
+    })
+    unmount()
+
+    const { result: remounted } = renderHook(() => usePresets())
+
+    expect(remounted.current.presets[0]).toMatchObject({ id, name: 'Morning warm-up' })
+  })
+
   it('persists the saved preset list and active id across remounts', () => {
     const { result, unmount } = renderHook(() => usePresets())
 
