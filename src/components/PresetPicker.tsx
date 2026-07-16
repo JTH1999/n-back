@@ -78,7 +78,7 @@ export function PresetPicker({ config, setConfig }: PresetPickerProps) {
         aria-haspopup="true"
         aria-expanded={isOpen}
         onClick={() => setIsOpen((open) => !open)}
-        className="font-mono"
+        className="bg-panel font-mono"
       >
         {activePreset ? activePreset.name : 'No preset'}
         {isModified && (
