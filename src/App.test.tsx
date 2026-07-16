@@ -108,7 +108,10 @@ describe('App nav bar streak', () => {
     render(<App />)
 
     const streakGroup = () => screen.getByRole('group', { name: "Streak and today's stats" })
-    expect(within(streakGroup()).getByText('0')).toBeInTheDocument()
+    const streakCount = () => within(streakGroup()).getByText('Day streak').previousElementSibling
+    const sessionCount = () => within(streakGroup()).getByText('sessions').nextElementSibling
+    expect(streakCount()).toHaveTextContent('0')
+    expect(sessionCount()).toHaveTextContent('0')
 
     fireEvent.click(screen.getByRole('button', { name: /start session/i }))
     act(() => {
@@ -116,7 +119,7 @@ describe('App nav bar streak', () => {
     })
 
     expect(screen.getByText(/session results/i)).toBeInTheDocument()
-    expect(within(streakGroup()).getByText('1')).toBeInTheDocument()
-    expect(within(streakGroup()).getByText('1 today')).toBeInTheDocument()
+    expect(streakCount()).toHaveTextContent('1')
+    expect(sessionCount()).toHaveTextContent('1')
   })
 })

@@ -39,7 +39,7 @@ describe('AppShell streak display', () => {
     const wide = screen.getByRole('group', { name: "Streak and today's stats" })
     expect(within(wide).getByText('4')).toBeInTheDocument()
     expect(within(wide).getByText('2m 5s')).toBeInTheDocument()
-    expect(within(wide).getByText('3 today')).toBeInTheDocument()
+    expect(within(wide).getByText('3')).toBeInTheDocument()
   })
 
   it("shows streak and today's session count but omits today's time in the mobile top bar", () => {
