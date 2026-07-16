@@ -1,7 +1,7 @@
 import clsx from 'clsx'
+import type { Dispatch, SetStateAction } from 'react'
 import { unlockAudio } from '../audio/letterAudio'
 import { sessionDurationMs } from '../derived/sessionDuration'
-import { useDraftConfig } from '../hooks/useDraftConfig'
 import type { SessionRunnerConfig } from '../hooks/useSessionRunner'
 import { DEFAULT_MATCH_RATE } from '../engine/sessionEngine'
 import { STREAM_KINDS, type StreamKind } from '../engine/streams'
@@ -77,12 +77,12 @@ function InfoLine({ label, value }: { label: string; value: string }) {
 }
 
 export interface ConfigFormProps {
+  config: SessionRunnerConfig
+  setConfig: Dispatch<SetStateAction<SessionRunnerConfig>>
   onStart: (config: SessionRunnerConfig) => void
 }
 
-export function ConfigForm({ onStart }: ConfigFormProps) {
-  const [config, setConfig] = useDraftConfig()
-
+export function ConfigForm({ config, setConfig, onStart }: ConfigFormProps) {
   const validationMessage =
     config.streams.length < 1
       ? 'Select at least one stream.'

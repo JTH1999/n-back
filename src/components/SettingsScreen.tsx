@@ -1,8 +1,9 @@
 import clsx from 'clsx'
-import { useDraftConfig } from '../hooks/useDraftConfig'
+import type { Dispatch, SetStateAction } from 'react'
 import type { Keymap } from '../config/keymap'
 import type { AccentColor, ThemeOverride } from '../config/theme'
 import type { StreamKind } from '../engine/streams'
+import type { SessionRunnerConfig } from '../hooks/useSessionRunner'
 import { AccentPicker } from './AccentPicker'
 import { ExportImportPanel } from './ExportImportPanel'
 import { KeymapEditor } from './KeymapEditor'
@@ -14,6 +15,8 @@ import { ThemeToggle } from './ThemeToggle'
 import { TwoColumnLayout } from './TwoColumnLayout'
 
 export interface SettingsScreenProps {
+  config: SessionRunnerConfig
+  setConfig: Dispatch<SetStateAction<SessionRunnerConfig>>
   keymap: Keymap
   onRebindKey: (kind: StreamKind, key: string) => void
   themeOverride: ThemeOverride | null
@@ -23,6 +26,8 @@ export interface SettingsScreenProps {
 }
 
 export function SettingsScreen({
+  config,
+  setConfig,
   keymap,
   onRebindKey,
   themeOverride,
@@ -30,8 +35,6 @@ export function SettingsScreen({
   accent,
   onChangeAccent,
 }: SettingsScreenProps) {
-  const [config, setConfig] = useDraftConfig()
-
   return (
     <section className="flex flex-col gap-7">
       <ScreenHeader eyebrow="Preferences" title="Settings" />

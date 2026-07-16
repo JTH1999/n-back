@@ -1,19 +1,30 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DEFAULT_KEYMAP } from '../config/keymap'
+import { useDraftConfig } from '../hooks/useDraftConfig'
 import { SettingsScreen, type SettingsScreenProps } from './SettingsScreen'
 
-function renderSettingsScreen(overrides: Partial<SettingsScreenProps> = {}) {
-  const props: SettingsScreenProps = {
-    keymap: DEFAULT_KEYMAP,
-    onRebindKey: vi.fn(),
-    themeOverride: null,
-    onChangeTheme: vi.fn(),
-    accent: 'teal',
-    onChangeAccent: vi.fn(),
-    ...overrides,
-  }
-  return { ...render(<SettingsScreen {...props} />), props }
+type SettingsScreenOverrides = Partial<Omit<SettingsScreenProps, 'config' | 'setConfig'>>
+
+function SettingsScreenHarness(overrides: SettingsScreenOverrides) {
+  const [config, setConfig] = useDraftConfig()
+  return (
+    <SettingsScreen
+      config={config}
+      setConfig={setConfig}
+      keymap={DEFAULT_KEYMAP}
+      onRebindKey={vi.fn()}
+      themeOverride={null}
+      onChangeTheme={vi.fn()}
+      accent="teal"
+      onChangeAccent={vi.fn()}
+      {...overrides}
+    />
+  )
+}
+
+function renderSettingsScreen(overrides: SettingsScreenOverrides = {}) {
+  return render(<SettingsScreenHarness {...overrides} />)
 }
 
 beforeEach(() => {

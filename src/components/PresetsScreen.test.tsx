@@ -1,15 +1,26 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DEFAULT_KEYMAP } from '../config/keymap'
+import { useDraftConfig } from '../hooks/useDraftConfig'
 import { PresetsScreen, type PresetsScreenProps } from './PresetsScreen'
 
-function renderPresetsScreen(overrides: Partial<PresetsScreenProps> = {}) {
-  const props: PresetsScreenProps = {
-    keymap: DEFAULT_KEYMAP,
-    onApplyKeymap: vi.fn(),
-    ...overrides,
-  }
-  return { ...render(<PresetsScreen {...props} />), props }
+type PresetsScreenOverrides = Partial<Omit<PresetsScreenProps, 'config' | 'setConfig'>>
+
+function PresetsScreenHarness(overrides: PresetsScreenOverrides) {
+  const [config, setConfig] = useDraftConfig()
+  return (
+    <PresetsScreen
+      config={config}
+      setConfig={setConfig}
+      keymap={DEFAULT_KEYMAP}
+      onApplyKeymap={vi.fn()}
+      {...overrides}
+    />
+  )
+}
+
+function renderPresetsScreen(overrides: PresetsScreenOverrides = {}) {
+  return render(<PresetsScreenHarness {...overrides} />)
 }
 
 beforeEach(() => {

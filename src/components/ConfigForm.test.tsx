@@ -1,13 +1,15 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { useDraftConfig } from '../hooks/useDraftConfig'
 import { ConfigForm, type ConfigFormProps } from './ConfigForm'
 
-function renderConfigForm(overrides: Partial<ConfigFormProps> = {}) {
-  const props: ConfigFormProps = {
-    onStart: vi.fn(),
-    ...overrides,
-  }
-  return { ...render(<ConfigForm {...props} />), props }
+function ConfigFormHarness(overrides: Partial<Omit<ConfigFormProps, 'config' | 'setConfig'>>) {
+  const [config, setConfig] = useDraftConfig()
+  return <ConfigForm config={config} setConfig={setConfig} onStart={vi.fn()} {...overrides} />
+}
+
+function renderConfigForm(overrides: Partial<Omit<ConfigFormProps, 'config' | 'setConfig'>> = {}) {
+  return render(<ConfigFormHarness {...overrides} />)
 }
 
 beforeEach(() => {

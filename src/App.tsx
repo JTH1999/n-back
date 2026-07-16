@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { preloadLetterAudio } from './audio/letterAudio'
 import { useAccent } from './hooks/useAccent'
+import { useDraftConfig } from './hooks/useDraftConfig'
 import { useKeymap } from './hooks/useKeymap'
 import type { SessionRunnerConfig } from './hooks/useSessionRunner'
 import { useTheme } from './hooks/useTheme'
@@ -24,8 +25,9 @@ const NAV_ITEMS: NavItem<Screen>[] = [
 
 function App() {
   const [screen, setScreen] = useState<Screen>('train')
-  const [config, setConfig] = useState<SessionRunnerConfig | null>(null)
+  const [activeConfig, setActiveConfig] = useState<SessionRunnerConfig | null>(null)
   const [history, setHistory] = useState<SessionHistoryRecord[]>(() => loadHistory())
+  const [draftConfig, setDraftConfig] = useDraftConfig()
   const { keymap, rebind, setKeymap } = useKeymap()
   const { override: themeOverride, setOverride: setThemeOverride } = useTheme()
   const { accent, setAccent } = useAccent()
@@ -37,20 +39,31 @@ function App() {
 
   return (
     <AppShell navItems={NAV_ITEMS} activeId={screen} onNavigate={setScreen} streak={streak}>
-      {config ? (
+      {activeConfig ? (
         <SessionRunner
-          config={config}
+          config={activeConfig}
           keymap={keymap}
-          onRestart={() => setConfig(null)}
+          onRestart={() => setActiveConfig(null)}
           onSessionComplete={() => setHistory(loadHistory())}
           isFocused={screen === 'train'}
         />
       ) : (
-        screen === 'train' && <ConfigForm onStart={setConfig} />
+        screen === 'train' && (
+          <ConfigForm config={draftConfig} setConfig={setDraftConfig} onStart={setActiveConfig} />
+        )
       )}
-      {screen === 'presets' && <PresetsScreen keymap={keymap} onApplyKeymap={setKeymap} />}
+      {screen === 'presets' && (
+        <PresetsScreen
+          config={draftConfig}
+          setConfig={setDraftConfig}
+          keymap={keymap}
+          onApplyKeymap={setKeymap}
+        />
+      )}
       {screen === 'settings' && (
         <SettingsScreen
+          config={draftConfig}
+          setConfig={setDraftConfig}
           keymap={keymap}
           onRebindKey={rebind}
           themeOverride={themeOverride}
