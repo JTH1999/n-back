@@ -150,4 +150,27 @@ describe('usePresets', () => {
     expect(remounted.current.presets).toHaveLength(1)
     expect(remounted.current.activePresetId).toBe(id)
   })
+
+  it('strips stray volume/muted fields from an old-shape preset already in localStorage', () => {
+    const legacyPreset = {
+      id: 'legacy-1',
+      name: 'Legacy',
+      config: { ...config, volume: 0.3, muted: true },
+      keymap: { position: 'a', shape: 's', color: 'd', letter: 'f' },
+    }
+    window.localStorage.setItem('n-back:presets', JSON.stringify([legacyPreset]))
+
+    const { result } = renderHook(() => usePresets())
+
+    expect(result.current.presets).toHaveLength(1)
+    expect(result.current.presets[0].config).toEqual(config)
+
+    let loaded: ReturnType<typeof result.current.loadPreset>
+    act(() => {
+      loaded = result.current.loadPreset('legacy-1')
+    })
+
+    expect(loaded?.config).not.toHaveProperty('volume')
+    expect(loaded?.config).not.toHaveProperty('muted')
+  })
 })

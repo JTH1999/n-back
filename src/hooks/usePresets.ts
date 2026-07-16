@@ -30,8 +30,14 @@ function toPresetConfig(config: PresetConfig): PresetConfig {
   return { n, trialCount, streams, matchRate, displayDurationMs, trialLengthMs, liveFeedback, adaptive }
 }
 
+function sanitizePreset(preset: Preset): Preset {
+  return { ...preset, config: toPresetConfig(preset.config) }
+}
+
 export function usePresets(): UsePresetsResult {
-  const [presets, setPresets] = useState<Preset[]>(() => loadPresets<Preset[]>() ?? [])
+  const [presets, setPresets] = useState<Preset[]>(() =>
+    (loadPresets<Preset[]>() ?? []).map(sanitizePreset),
+  )
   const [activePresetId, setActivePresetId] = useState<string | null>(() => loadLastPresetId())
 
   const savePreset = useCallback((name: string, config: PresetConfig) => {
