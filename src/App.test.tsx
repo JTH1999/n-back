@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
+import * as settingsStorage from './persistence/settingsStorage'
 import { saveDraftSettings } from './persistence/settingsStorage'
 import type { SessionRunnerConfig } from './hooks/useSessionRunner'
 
@@ -66,6 +67,28 @@ describe('App navigation during a session', () => {
     fireEvent.click(within(sidebar).getByRole('button', { name: 'Train' }))
 
     expect(screen.getByText(/session results/i)).toBeInTheDocument()
+  })
+})
+
+describe('App shared draft config', () => {
+  beforeEach(() => {
+    window.localStorage.clear()
+    saveDraftSettings(fastConfig)
+  })
+
+  it('keeps an edited training param in memory when navigating to Settings and back', () => {
+    render(<App />)
+
+    fireEvent.change(screen.getByLabelText(/n-back level/i), { target: { value: '5' } })
+
+    const loadDraftSettingsSpy = vi.spyOn(settingsStorage, 'loadDraftSettings')
+
+    const sidebar = screen.getByRole('navigation', { name: 'Main' })
+    fireEvent.click(within(sidebar).getByRole('button', { name: 'Settings' }))
+    fireEvent.click(within(sidebar).getByRole('button', { name: 'Train' }))
+
+    expect(screen.getByLabelText(/n-back level/i)).toHaveValue(5)
+    expect(loadDraftSettingsSpy).not.toHaveBeenCalled()
   })
 })
 
