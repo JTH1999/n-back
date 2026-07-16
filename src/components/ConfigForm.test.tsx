@@ -115,6 +115,18 @@ describe('ConfigForm', () => {
     )
   })
 
+  it('saves a preset on Enter from the picker instead of starting a session', () => {
+    const onStart = vi.fn()
+    renderConfigForm({ onStart })
+
+    fireEvent.click(screen.getByRole('button', { name: /no preset/i }))
+    fireEvent.change(screen.getByLabelText(/preset name/i), { target: { value: 'Warm-up' } })
+    fireEvent.keyDown(screen.getByLabelText(/preset name/i), { key: 'Enter' })
+
+    expect(onStart).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: /^warm-up/i })).toBeInTheDocument()
+  })
+
   it('rejects a lower adaptive threshold above the upper threshold', () => {
     renderConfigForm()
 

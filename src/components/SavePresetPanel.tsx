@@ -28,6 +28,12 @@ export function SavePresetPanel({ currentSummary, onSave }: SavePresetPanelProps
         type="text"
         value={name}
         onChange={(event) => setName(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault()
+            handleSave()
+          }
+        }}
         placeholder="Preset name…"
         aria-label="Preset name"
         className={clsx(BORDERED_CONTROL_CLASS, 'w-full bg-panel2 px-3 py-2.5 font-mono text-sm')}
