@@ -7,7 +7,7 @@ export interface PresetListProps {
   presets: Preset[]
   activePresetId: string | null
   onLoad: (id: string) => void
-  onDelete: (id: string) => void
+  onDelete?: (id: string) => void
 }
 
 export function PresetList({ presets, activePresetId, onLoad, onDelete }: PresetListProps) {
@@ -42,13 +42,15 @@ export function PresetList({ presets, activePresetId, onLoad, onDelete }: Preset
             <Button variant="ghost" onClick={() => onLoad(preset.id)}>
               Load
             </Button>
-            <Button
-              variant="icon"
-              aria-label={`Delete ${preset.name}`}
-              onClick={() => onDelete(preset.id)}
-            >
-              ✕
-            </Button>
+            {onDelete && (
+              <Button
+                variant="icon"
+                aria-label={`Delete ${preset.name}`}
+                onClick={() => onDelete(preset.id)}
+              >
+                ✕
+              </Button>
+            )}
           </div>
         </div>
       ))}

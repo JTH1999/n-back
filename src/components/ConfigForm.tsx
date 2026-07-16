@@ -8,6 +8,7 @@ import { STREAM_KINDS, type StreamKind } from '../engine/streams'
 import { formatDuration } from '../utils/formatDuration'
 import { Button } from './Button'
 import { Panel } from './Panel'
+import { PresetPicker } from './PresetPicker'
 import { ScreenHeader } from './ScreenHeader'
 import { SliderParam } from './SliderParam'
 import { StreamCard } from './StreamCard'
@@ -131,9 +132,12 @@ export function ConfigForm({ config, setConfig, onStart }: ConfigFormProps) {
     >
       <div className="flex flex-wrap items-end justify-between gap-4">
         <ScreenHeader eyebrow="Configure" title="Session Setup" />
-        <Button type="submit" disabled={!isValid} className="font-mono">
-          Start Session →
-        </Button>
+        <div className="flex items-center gap-3">
+          <PresetPicker config={config} setConfig={setConfig} />
+          <Button type="submit" disabled={!isValid} className="font-mono">
+            Start Session →
+          </Button>
+        </div>
       </div>
 
       <fieldset className="flex flex-col gap-4">
