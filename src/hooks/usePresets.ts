@@ -21,6 +21,7 @@ export interface UsePresetsResult {
   activePresetId: string | null
   savePreset: (name: string, config: PresetConfig) => void
   loadPreset: (id: string) => Preset | undefined
+  renamePreset: (id: string, name: string) => void
   deletePreset: (id: string) => void
 }
 
@@ -66,6 +67,14 @@ export function usePresets(): UsePresetsResult {
     [presets],
   )
 
+  const renamePreset = useCallback((id: string, name: string) => {
+    setPresets((current) => {
+      const next = current.map((preset) => (preset.id === id ? { ...preset, name } : preset))
+      savePresets(next)
+      return next
+    })
+  }, [])
+
   const deletePreset = useCallback(
     (id: string) => {
       setPresets((current) => {
@@ -82,5 +91,5 @@ export function usePresets(): UsePresetsResult {
     [],
   )
 
-  return { presets, activePresetId, savePreset, loadPreset, deletePreset }
+  return { presets, activePresetId, savePreset, loadPreset, renamePreset, deletePreset }
 }

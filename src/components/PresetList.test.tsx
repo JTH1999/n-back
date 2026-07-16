@@ -81,4 +81,78 @@ describe('PresetList', () => {
 
     expect(onDelete).toHaveBeenCalledWith('1')
   })
+
+  it('does not show a rename button when onRename is not provided', () => {
+    render(<PresetList presets={presets} activePresetId={null} onLoad={vi.fn()} />)
+
+    expect(screen.queryByRole('button', { name: /rename warm-up/i })).not.toBeInTheDocument()
+  })
+
+  it('shows an inline rename input when the rename button is clicked', () => {
+    render(<PresetList presets={presets} activePresetId={null} onLoad={vi.fn()} onRename={vi.fn()} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /rename warm-up/i }))
+
+    expect(screen.getByLabelText(/new name for warm-up/i)).toHaveValue('Warm-up')
+  })
+
+  it('calls onRename with the trimmed new name when Enter is pressed', () => {
+    const onRename = vi.fn()
+    render(<PresetList presets={presets} activePresetId={null} onLoad={vi.fn()} onRename={onRename} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /rename warm-up/i }))
+    fireEvent.change(screen.getByLabelText(/new name for warm-up/i), {
+      target: { value: '  Morning warm-up  ' },
+    })
+    fireEvent.keyDown(screen.getByLabelText(/new name for warm-up/i), { key: 'Enter' })
+
+    expect(onRename).toHaveBeenCalledWith('1', 'Morning warm-up')
+    expect(screen.queryByRole('textbox', { name: /rename warm-up/i })).not.toBeInTheDocument()
+  })
+
+  it('calls onRename with the trimmed new name when Save is clicked', () => {
+    const onRename = vi.fn()
+    render(<PresetList presets={presets} activePresetId={null} onLoad={vi.fn()} onRename={onRename} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /rename warm-up/i }))
+    fireEvent.change(screen.getByLabelText(/new name for warm-up/i), { target: { value: 'Morning warm-up' } })
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+    expect(onRename).toHaveBeenCalledWith('1', 'Morning warm-up')
+  })
+
+  it('cancels the rename without calling onRename when Escape is pressed', () => {
+    const onRename = vi.fn()
+    render(<PresetList presets={presets} activePresetId={null} onLoad={vi.fn()} onRename={onRename} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /rename warm-up/i }))
+    fireEvent.change(screen.getByLabelText(/new name for warm-up/i), { target: { value: 'Morning warm-up' } })
+    fireEvent.keyDown(screen.getByLabelText(/new name for warm-up/i), { key: 'Escape' })
+
+    expect(onRename).not.toHaveBeenCalled()
+    expect(screen.queryByRole('textbox', { name: /rename warm-up/i })).not.toBeInTheDocument()
+    expect(screen.getByText('Warm-up')).toBeInTheDocument()
+  })
+
+  it('cancels the rename without calling onRename when Cancel is clicked', () => {
+    const onRename = vi.fn()
+    render(<PresetList presets={presets} activePresetId={null} onLoad={vi.fn()} onRename={onRename} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /rename warm-up/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^cancel$/i }))
+
+    expect(onRename).not.toHaveBeenCalled()
+    expect(screen.queryByRole('textbox', { name: /rename warm-up/i })).not.toBeInTheDocument()
+  })
+
+  it('does not call onRename when the trimmed name is empty', () => {
+    const onRename = vi.fn()
+    render(<PresetList presets={presets} activePresetId={null} onLoad={vi.fn()} onRename={onRename} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /rename warm-up/i }))
+    fireEvent.change(screen.getByLabelText(/new name for warm-up/i), { target: { value: '   ' } })
+    fireEvent.keyDown(screen.getByLabelText(/new name for warm-up/i), { key: 'Enter' })
+
+    expect(onRename).not.toHaveBeenCalled()
+  })
 })

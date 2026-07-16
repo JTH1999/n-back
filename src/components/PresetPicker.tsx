@@ -4,6 +4,7 @@ import { summarizePresetConfig } from '../config/presetSummary'
 import { isPresetConfigEqual, usePresets } from '../hooks/usePresets'
 import type { SessionRunnerConfig } from '../hooks/useSessionRunner'
 import { Button } from './Button'
+import { ManagePresetsModal } from './ManagePresetsModal'
 import { PresetList } from './PresetList'
 import { PresetLoadConfirmDialog } from './PresetLoadConfirmDialog'
 import { SavePresetPanel } from './SavePresetPanel'
@@ -14,8 +15,9 @@ export interface PresetPickerProps {
 }
 
 export function PresetPicker({ config, setConfig }: PresetPickerProps) {
-  const { presets, activePresetId, savePreset, loadPreset } = usePresets()
+  const { presets, activePresetId, savePreset, loadPreset, renamePreset, deletePreset } = usePresets()
   const [isOpen, setIsOpen] = useState(false)
+  const [isManageOpen, setIsManageOpen] = useState(false)
   const [pendingPresetId, setPendingPresetId] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -45,6 +47,7 @@ export function PresetPicker({ config, setConfig }: PresetPickerProps) {
   }
 
   const handleLoadRequest = (id: string) => {
+    setIsManageOpen(false)
     if (isModified) {
       setPendingPresetId(id)
       return
@@ -69,6 +72,11 @@ export function PresetPicker({ config, setConfig }: PresetPickerProps) {
 
   const handleCancelLoad = () => {
     setPendingPresetId(null)
+  }
+
+  const handleOpenManagePresets = () => {
+    setIsOpen(false)
+    setIsManageOpen(true)
   }
 
   return (
@@ -97,6 +105,9 @@ export function PresetPicker({ config, setConfig }: PresetPickerProps) {
             onLoad={handleLoadRequest}
           />
           <SavePresetPanel currentSummary={summarizePresetConfig(config)} onSave={handleSave} />
+          <Button variant="ghost" onClick={handleOpenManagePresets}>
+            Manage presets…
+          </Button>
         </div>
       )}
       {pendingPreset && (
@@ -105,6 +116,17 @@ export function PresetPicker({ config, setConfig }: PresetPickerProps) {
           onSaveAsNewAndLoad={handleSaveAsNewAndLoad}
           onDiscardAndLoad={handleDiscardAndLoad}
           onCancel={handleCancelLoad}
+        />
+      )}
+      {isManageOpen && (
+        <ManagePresetsModal
+          presets={presets}
+          activePresetId={activePresetId}
+          isActiveModified={isModified}
+          onLoad={handleLoadRequest}
+          onRename={renamePreset}
+          onDelete={deletePreset}
+          onClose={() => setIsManageOpen(false)}
         />
       )}
     </div>

@@ -213,4 +213,70 @@ describe('PresetPicker', () => {
     fireEvent.click(screen.getByRole('button', { name: /^warm-up/i }))
     expect(screen.getByText('My drift')).toBeInTheDocument()
   })
+
+  it('opens the manage presets modal from a picker entry', () => {
+    renderPresetPicker()
+
+    fireEvent.click(screen.getByRole('button', { name: /no preset/i }))
+    fireEvent.click(screen.getByRole('button', { name: /manage presets/i }))
+
+    expect(screen.getByRole('dialog', { name: /manage presets/i })).toBeInTheDocument()
+  })
+
+  it('renames a preset from the manage presets modal', () => {
+    renderPresetPicker()
+
+    fireEvent.click(screen.getByRole('button', { name: /no preset/i }))
+    fireEvent.change(screen.getByLabelText(/preset name/i), { target: { value: 'Warm-up' } })
+    fireEvent.click(screen.getByRole('button', { name: /save preset/i }))
+
+    fireEvent.click(screen.getByRole('button', { name: /manage presets/i }))
+    const dialog = screen.getByRole('dialog', { name: /manage presets/i })
+    fireEvent.click(within(dialog).getByRole('button', { name: /rename warm-up/i }))
+    fireEvent.change(within(dialog).getByLabelText(/new name for warm-up/i), {
+      target: { value: 'Morning warm-up' },
+    })
+    fireEvent.click(within(dialog).getByRole('button', { name: /^save$/i }))
+
+    expect(within(dialog).getByText('Morning warm-up')).toBeInTheDocument()
+  })
+
+  it('deletes a preset from the manage presets modal', () => {
+    renderPresetPicker()
+
+    fireEvent.click(screen.getByRole('button', { name: /no preset/i }))
+    fireEvent.change(screen.getByLabelText(/preset name/i), { target: { value: 'Warm-up' } })
+    fireEvent.click(screen.getByRole('button', { name: /save preset/i }))
+
+    fireEvent.click(screen.getByRole('button', { name: /manage presets/i }))
+    const dialog = screen.getByRole('dialog', { name: /manage presets/i })
+    fireEvent.click(within(dialog).getByRole('button', { name: /delete warm-up/i }))
+
+    expect(within(dialog).getByText(/no saved presets/i)).toBeInTheDocument()
+  })
+
+  it('clears the active preset button label after deleting the active preset from the modal', () => {
+    renderPresetPicker()
+
+    fireEvent.click(screen.getByRole('button', { name: /no preset/i }))
+    fireEvent.change(screen.getByLabelText(/preset name/i), { target: { value: 'Warm-up' } })
+    fireEvent.click(screen.getByRole('button', { name: /save preset/i }))
+
+    fireEvent.click(screen.getByRole('button', { name: /manage presets/i }))
+    const dialog = screen.getByRole('dialog', { name: /manage presets/i })
+    fireEvent.click(within(dialog).getByRole('button', { name: /delete warm-up/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^close$/i }))
+
+    expect(screen.getByRole('button', { name: /^no preset/i })).toBeInTheDocument()
+  })
+
+  it('closes the manage presets modal when Close is clicked', () => {
+    renderPresetPicker()
+
+    fireEvent.click(screen.getByRole('button', { name: /no preset/i }))
+    fireEvent.click(screen.getByRole('button', { name: /manage presets/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^close$/i }))
+
+    expect(screen.queryByRole('dialog', { name: /manage presets/i })).not.toBeInTheDocument()
+  })
 })
