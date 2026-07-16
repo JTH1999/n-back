@@ -34,6 +34,10 @@ function sanitizePreset(preset: Preset): Preset {
   return { ...preset, config: toPresetConfig(preset.config) }
 }
 
+export function isPresetConfigEqual(a: PresetConfig, b: PresetConfig): boolean {
+  return JSON.stringify(toPresetConfig(a)) === JSON.stringify(toPresetConfig(b))
+}
+
 export function usePresets(): UsePresetsResult {
   const [presets, setPresets] = useState<Preset[]>(() =>
     (loadPresets<Preset[]>() ?? []).map(sanitizePreset),
