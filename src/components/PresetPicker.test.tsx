@@ -59,6 +59,7 @@ describe('PresetPicker', () => {
     expect(JSON.parse(screen.getByTestId('config').textContent ?? '{}').n).toBe(5)
 
     fireEvent.click(screen.getByRole('button', { name: /^load$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /discard and load/i }))
 
     expect(JSON.parse(screen.getByTestId('config').textContent ?? '{}').n).toBe(2)
   })
@@ -89,7 +90,22 @@ describe('PresetPicker', () => {
     expect(screen.getByLabelText(/modified/i)).toBeInTheDocument()
   })
 
-  it('clears the modified marker after reloading the same preset', () => {
+  it('clears the modified marker after reloading the same preset via the confirm dialog', () => {
+    renderPresetPicker()
+
+    fireEvent.click(screen.getByRole('button', { name: /no preset/i }))
+    fireEvent.change(screen.getByLabelText(/preset name/i), { target: { value: 'Warm-up' } })
+    fireEvent.click(screen.getByRole('button', { name: /save preset/i }))
+    fireEvent.click(screen.getByRole('button', { name: /mutate draft/i }))
+
+    fireEvent.click(screen.getByRole('button', { name: /^load$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /discard and load/i }))
+
+    fireEvent.click(screen.getByRole('button', { name: /^warm-up/i }))
+    expect(screen.queryByLabelText(/modified/i)).not.toBeInTheDocument()
+  })
+
+  it('shows a confirm dialog when reloading the same preset while modified', () => {
     renderPresetPicker()
 
     fireEvent.click(screen.getByRole('button', { name: /no preset/i }))
@@ -99,8 +115,7 @@ describe('PresetPicker', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /^load$/i }))
 
-    fireEvent.click(screen.getByRole('button', { name: /^warm-up/i }))
-    expect(screen.queryByLabelText(/modified/i)).not.toBeInTheDocument()
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument()
   })
 
   it('loads a different preset immediately when unmodified, with no confirm dialog', () => {

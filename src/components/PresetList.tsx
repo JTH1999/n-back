@@ -6,11 +6,18 @@ import { Button } from './Button'
 export interface PresetListProps {
   presets: Preset[]
   activePresetId: string | null
+  isActiveModified?: boolean
   onLoad: (id: string) => void
   onDelete?: (id: string) => void
 }
 
-export function PresetList({ presets, activePresetId, onLoad, onDelete }: PresetListProps) {
+export function PresetList({
+  presets,
+  activePresetId,
+  isActiveModified = false,
+  onLoad,
+  onDelete,
+}: PresetListProps) {
   if (presets.length === 0) {
     return <p className="text-sm text-dim">No saved presets yet.</p>
   }
@@ -30,7 +37,7 @@ export function PresetList({ presets, activePresetId, onLoad, onDelete }: Preset
               {preset.name}
               {preset.id === activePresetId && (
                 <span className="ml-2 font-mono text-[11px] tracking-[0.1em] text-accent uppercase">
-                  Active
+                  {isActiveModified ? 'Modified' : 'Active'}
                 </span>
               )}
             </div>

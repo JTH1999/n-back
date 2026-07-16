@@ -40,6 +40,21 @@ describe('PresetList', () => {
     expect(screen.getByText(/active/i)).toBeInTheDocument()
   })
 
+  it('shows a modified badge instead of active when the active preset has drifted', () => {
+    render(
+      <PresetList
+        presets={presets}
+        activePresetId="2"
+        isActiveModified
+        onLoad={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByText(/modified/i)).toBeInTheDocument()
+    expect(screen.queryByText(/^active$/i)).not.toBeInTheDocument()
+  })
+
   it('renders each preset with its name and config summary', () => {
     render(<PresetList presets={presets} activePresetId={null} onLoad={vi.fn()} onDelete={vi.fn()} />)
 
