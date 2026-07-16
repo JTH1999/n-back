@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
+import type { FormEvent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { SavePresetPanel } from './SavePresetPanel'
 
@@ -37,5 +38,21 @@ describe('SavePresetPanel', () => {
     fireEvent.change(screen.getByPlaceholderText(/preset name/i), { target: { value: '   ' } })
 
     expect(screen.getByRole('button', { name: /save preset/i })).toBeDisabled()
+  })
+
+  it('saves on Enter without submitting an enclosing form', () => {
+    const onSave = vi.fn()
+    const onFormSubmit = vi.fn((event: FormEvent) => event.preventDefault())
+    render(
+      <form onSubmit={onFormSubmit}>
+        <SavePresetPanel currentSummary="N2 · position · 20t" onSave={onSave} />
+      </form>,
+    )
+
+    fireEvent.change(screen.getByPlaceholderText(/preset name/i), { target: { value: 'Warm-up' } })
+    fireEvent.keyDown(screen.getByPlaceholderText(/preset name/i), { key: 'Enter' })
+
+    expect(onSave).toHaveBeenCalledWith('Warm-up')
+    expect(onFormSubmit).not.toHaveBeenCalled()
   })
 })
