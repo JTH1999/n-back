@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react'
-import type { Keymap } from '../config/keymap'
 import {
   clearLastPresetId,
   loadLastPresetId,
@@ -9,27 +8,34 @@ import {
 } from '../persistence/presetStorage'
 import type { SessionRunnerConfig } from './useSessionRunner'
 
+export type PresetConfig = Omit<SessionRunnerConfig, 'volume' | 'muted'>
+
 export interface Preset {
   id: string
   name: string
-  config: SessionRunnerConfig
-  keymap: Keymap
+  config: PresetConfig
 }
 
 export interface UsePresetsResult {
   presets: Preset[]
   activePresetId: string | null
-  savePreset: (name: string, config: SessionRunnerConfig, keymap: Keymap) => void
+  savePreset: (name: string, config: PresetConfig) => void
   loadPreset: (id: string) => Preset | undefined
   deletePreset: (id: string) => void
+}
+
+function toPresetConfig(config: PresetConfig): PresetConfig {
+  const { n, trialCount, streams, matchRate, displayDurationMs, trialLengthMs, liveFeedback, adaptive } =
+    config
+  return { n, trialCount, streams, matchRate, displayDurationMs, trialLengthMs, liveFeedback, adaptive }
 }
 
 export function usePresets(): UsePresetsResult {
   const [presets, setPresets] = useState<Preset[]>(() => loadPresets<Preset[]>() ?? [])
   const [activePresetId, setActivePresetId] = useState<string | null>(() => loadLastPresetId())
 
-  const savePreset = useCallback((name: string, config: SessionRunnerConfig, keymap: Keymap) => {
-    const preset: Preset = { id: crypto.randomUUID(), name, config, keymap }
+  const savePreset = useCallback((name: string, config: PresetConfig) => {
+    const preset: Preset = { id: crypto.randomUUID(), name, config: toPresetConfig(config) }
     setPresets((current) => {
       const next = [...current, preset]
       savePresets(next)

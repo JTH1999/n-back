@@ -53,7 +53,6 @@ const preset: Preset = {
   id: 'preset-1',
   name: 'Warm-up',
   config,
-  keymap: { position: 'a', shape: 's', color: 'd', letter: 'f' },
 }
 
 const keymap: Keymap = { position: 'a', shape: 's', color: 'd', letter: 'f' }
@@ -203,12 +202,12 @@ describe('parseExportedState', () => {
     expect(() => parseExportedState(JSON.stringify(payload))).toThrow(ImportValidationError)
   })
 
-  it('throws ImportValidationError when a preset keymap is missing stream bindings', () => {
+  it('throws ImportValidationError when a preset config is missing training params', () => {
     const payload = {
       version: EXPORT_FORMAT_VERSION,
       exportedAt: '2026-07-08T12:00:00.000Z',
       history: [],
-      presets: [{ ...preset, keymap: { position: 'a' } }],
+      presets: [{ ...preset, config: { n: 2 } }],
       lastPresetId: null,
       draftSettings: null,
       keymap: null,
