@@ -1,6 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { DEFAULT_KEYMAP } from '../config/keymap'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { useDraftConfig } from '../hooks/useDraftConfig'
 import { PresetsScreen, type PresetsScreenProps } from './PresetsScreen'
 
@@ -9,13 +8,13 @@ type PresetsScreenOverrides = Partial<Omit<PresetsScreenProps, 'config' | 'setCo
 function PresetsScreenHarness(overrides: PresetsScreenOverrides) {
   const [config, setConfig] = useDraftConfig()
   return (
-    <PresetsScreen
-      config={config}
-      setConfig={setConfig}
-      keymap={DEFAULT_KEYMAP}
-      onApplyKeymap={vi.fn()}
-      {...overrides}
-    />
+    <>
+      <button onClick={() => setConfig((current) => ({ ...current, n: 5, volume: 0.2, muted: true }))}>
+        mutate draft
+      </button>
+      <pre data-testid="config">{JSON.stringify(config)}</pre>
+      <PresetsScreen config={config} setConfig={setConfig} {...overrides} />
+    </>
   )
 }
 
@@ -41,8 +40,8 @@ describe('PresetsScreen', () => {
     expect(screen.getByText('N2 · position · 20t')).toBeInTheDocument()
   })
 
-  it('saves the current draft settings and keymap as a named preset', () => {
-    renderPresetsScreen({ keymap: { ...DEFAULT_KEYMAP, position: 'g' } })
+  it('saves the current draft settings as a named preset', () => {
+    renderPresetsScreen()
 
     fireEvent.change(screen.getByLabelText(/preset name/i), { target: { value: 'Warm-up' } })
     fireEvent.click(screen.getByRole('button', { name: /save preset/i }))
@@ -51,16 +50,21 @@ describe('PresetsScreen', () => {
     expect(screen.getByText(/active/i)).toBeInTheDocument()
   })
 
-  it('loads a saved preset, replacing the draft config and reporting the keymap', () => {
-    const onApplyKeymap = vi.fn()
-    renderPresetsScreen({ keymap: { ...DEFAULT_KEYMAP, position: 'g' }, onApplyKeymap })
+  it('loads a saved preset, restoring training params without touching audio settings', () => {
+    renderPresetsScreen()
 
-    fireEvent.change(screen.getByLabelText(/preset name/i), { target: { value: 'Hard mode' } })
+    fireEvent.change(screen.getByLabelText(/preset name/i), { target: { value: 'Warm-up' } })
     fireEvent.click(screen.getByRole('button', { name: /save preset/i }))
+
+    fireEvent.click(screen.getByRole('button', { name: /mutate draft/i }))
+    expect(screen.getByText('N5 · position · 20t')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /^load$/i }))
 
-    expect(onApplyKeymap).toHaveBeenCalledWith({ ...DEFAULT_KEYMAP, position: 'g' })
+    expect(screen.getAllByText('N2 · position · 20t').length).toBeGreaterThan(0)
+    const config = JSON.parse(screen.getByTestId('config').textContent ?? '{}')
+    expect(config.volume).toBe(0.2)
+    expect(config.muted).toBe(true)
   })
 
   it('deletes a saved preset', () => {

@@ -189,8 +189,22 @@ function isPartialKeymap(value: unknown): value is Partial<Keymap> {
   )
 }
 
-function isKeymap(value: unknown): value is Keymap {
-  return isPartialKeymap(value) && STREAM_KINDS.every((kind) => typeof value[kind] === 'string')
+function isPresetConfig(value: unknown): value is Preset['config'] {
+  if (!isPlainObject(value)) return false
+  const adaptive = value.adaptive
+  return (
+    typeof value.n === 'number' &&
+    typeof value.trialCount === 'number' &&
+    Array.isArray(value.streams) &&
+    value.streams.every((stream) => typeof stream === 'string') &&
+    typeof value.displayDurationMs === 'number' &&
+    typeof value.trialLengthMs === 'number' &&
+    typeof value.liveFeedback === 'boolean' &&
+    isPlainObject(adaptive) &&
+    typeof adaptive.enabled === 'boolean' &&
+    typeof adaptive.lowerThreshold === 'number' &&
+    typeof adaptive.upperThreshold === 'number'
+  )
 }
 
 function isPreset(value: unknown): value is Preset {
@@ -198,7 +212,6 @@ function isPreset(value: unknown): value is Preset {
   return (
     typeof value.id === 'string' &&
     typeof value.name === 'string' &&
-    isSessionRunnerConfig(value.config) &&
-    isKeymap(value.keymap)
+    isPresetConfig(value.config)
   )
 }

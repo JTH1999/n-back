@@ -28,7 +28,7 @@ function App() {
   const [activeConfig, setActiveConfig] = useState<SessionRunnerConfig | null>(null)
   const [history, setHistory] = useState<SessionHistoryRecord[]>(() => loadHistory())
   const [draftConfig, setDraftConfig] = useDraftConfig()
-  const { keymap, rebind, setKeymap } = useKeymap()
+  const { keymap, rebind } = useKeymap()
   const { override: themeOverride, setOverride: setThemeOverride } = useTheme()
   const { accent, setAccent } = useAccent()
   const streak = useMemo(() => computeStreakStats(history), [history])
@@ -53,12 +53,7 @@ function App() {
         )
       )}
       {screen === 'presets' && (
-        <PresetsScreen
-          config={draftConfig}
-          setConfig={setDraftConfig}
-          keymap={keymap}
-          onApplyKeymap={setKeymap}
-        />
+        <PresetsScreen config={draftConfig} setConfig={setDraftConfig} />
       )}
       {screen === 'settings' && (
         <SettingsScreen

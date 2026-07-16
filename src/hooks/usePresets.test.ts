@@ -1,17 +1,13 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { DEFAULT_KEYMAP } from '../config/keymap'
-import { usePresets } from './usePresets'
-import type { SessionRunnerConfig } from './useSessionRunner'
+import { usePresets, type PresetConfig } from './usePresets'
 
-const config: SessionRunnerConfig = {
+const config: PresetConfig = {
   n: 2,
   trialCount: 20,
   streams: ['position'],
   displayDurationMs: 500,
   trialLengthMs: 2500,
-  volume: 1,
-  muted: false,
   liveFeedback: false,
   adaptive: { enabled: false, lowerThreshold: 0.5, upperThreshold: 0.8 },
 }
@@ -32,11 +28,11 @@ describe('usePresets', () => {
     const { result } = renderHook(() => usePresets())
 
     act(() => {
-      result.current.savePreset('Warm-up', config, DEFAULT_KEYMAP)
+      result.current.savePreset('Warm-up', config)
     })
 
     expect(result.current.presets).toHaveLength(1)
-    expect(result.current.presets[0]).toMatchObject({ name: 'Warm-up', config, keymap: DEFAULT_KEYMAP })
+    expect(result.current.presets[0]).toMatchObject({ name: 'Warm-up', config })
     expect(result.current.activePresetId).toBe(result.current.presets[0].id)
   })
 
@@ -44,12 +40,12 @@ describe('usePresets', () => {
     const { result } = renderHook(() => usePresets())
 
     act(() => {
-      result.current.savePreset('Warm-up', config, DEFAULT_KEYMAP)
+      result.current.savePreset('Warm-up', config)
     })
     const id = result.current.presets[0].id
 
     act(() => {
-      result.current.savePreset('Hard mode', { ...config, n: 4 }, DEFAULT_KEYMAP)
+      result.current.savePreset('Hard mode', { ...config, n: 4 })
     })
     expect(result.current.activePresetId).not.toBe(id)
 
@@ -78,7 +74,7 @@ describe('usePresets', () => {
     const { result } = renderHook(() => usePresets())
 
     act(() => {
-      result.current.savePreset('Warm-up', config, DEFAULT_KEYMAP)
+      result.current.savePreset('Warm-up', config)
     })
     const id = result.current.presets[0].id
 
@@ -93,7 +89,7 @@ describe('usePresets', () => {
     const { result } = renderHook(() => usePresets())
 
     act(() => {
-      result.current.savePreset('Warm-up', config, DEFAULT_KEYMAP)
+      result.current.savePreset('Warm-up', config)
     })
     const id = result.current.presets[0].id
 
@@ -108,11 +104,11 @@ describe('usePresets', () => {
     const { result } = renderHook(() => usePresets())
 
     act(() => {
-      result.current.savePreset('Warm-up', config, DEFAULT_KEYMAP)
+      result.current.savePreset('Warm-up', config)
     })
     const warmUpId = result.current.presets[0].id
     act(() => {
-      result.current.savePreset('Hard mode', { ...config, n: 4 }, DEFAULT_KEYMAP)
+      result.current.savePreset('Hard mode', { ...config, n: 4 })
     })
 
     act(() => {
@@ -127,7 +123,7 @@ describe('usePresets', () => {
     const { result, unmount } = renderHook(() => usePresets())
 
     act(() => {
-      result.current.savePreset('Warm-up', config, DEFAULT_KEYMAP)
+      result.current.savePreset('Warm-up', config)
     })
     const id = result.current.presets[0].id
     act(() => {
@@ -144,7 +140,7 @@ describe('usePresets', () => {
     const { result, unmount } = renderHook(() => usePresets())
 
     act(() => {
-      result.current.savePreset('Warm-up', config, DEFAULT_KEYMAP)
+      result.current.savePreset('Warm-up', config)
     })
     const id = result.current.presets[0].id
     unmount()
@@ -153,5 +149,28 @@ describe('usePresets', () => {
 
     expect(remounted.current.presets).toHaveLength(1)
     expect(remounted.current.activePresetId).toBe(id)
+  })
+
+  it('strips stray volume/muted fields from an old-shape preset already in localStorage', () => {
+    const legacyPreset = {
+      id: 'legacy-1',
+      name: 'Legacy',
+      config: { ...config, volume: 0.3, muted: true },
+      keymap: { position: 'a', shape: 's', color: 'd', letter: 'f' },
+    }
+    window.localStorage.setItem('n-back:presets', JSON.stringify([legacyPreset]))
+
+    const { result } = renderHook(() => usePresets())
+
+    expect(result.current.presets).toHaveLength(1)
+    expect(result.current.presets[0].config).toEqual(config)
+
+    let loaded: ReturnType<typeof result.current.loadPreset>
+    act(() => {
+      loaded = result.current.loadPreset('legacy-1')
+    })
+
+    expect(loaded?.config).not.toHaveProperty('volume')
+    expect(loaded?.config).not.toHaveProperty('muted')
   })
 })

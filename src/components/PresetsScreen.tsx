@@ -1,6 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react'
 import { usePresets } from '../hooks/usePresets'
-import type { Keymap } from '../config/keymap'
 import { summarizePresetConfig } from '../config/presetSummary'
 import type { SessionRunnerConfig } from '../hooks/useSessionRunner'
 import { PresetList } from './PresetList'
@@ -11,22 +10,19 @@ import { TwoColumnLayout } from './TwoColumnLayout'
 export interface PresetsScreenProps {
   config: SessionRunnerConfig
   setConfig: Dispatch<SetStateAction<SessionRunnerConfig>>
-  keymap: Keymap
-  onApplyKeymap: (keymap: Keymap) => void
 }
 
-export function PresetsScreen({ config, setConfig, keymap, onApplyKeymap }: PresetsScreenProps) {
+export function PresetsScreen({ config, setConfig }: PresetsScreenProps) {
   const { presets, activePresetId, savePreset, loadPreset, deletePreset } = usePresets()
 
   const handleSavePreset = (name: string) => {
-    savePreset(name, config, keymap)
+    savePreset(name, config)
   }
 
   const handleLoadPreset = (id: string) => {
     const preset = loadPreset(id)
     if (!preset) return
-    setConfig(preset.config)
-    onApplyKeymap(preset.keymap)
+    setConfig((current) => ({ ...current, ...preset.config }))
   }
 
   return (

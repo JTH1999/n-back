@@ -1,6 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { DEFAULT_KEYMAP } from '../config/keymap'
 import type { Preset } from '../hooks/usePresets'
 import { PresetList } from './PresetList'
 
@@ -10,15 +9,13 @@ const config = {
   streams: ['position'] as const,
   displayDurationMs: 500,
   trialLengthMs: 2500,
-  volume: 1,
-  muted: false,
   liveFeedback: false,
   adaptive: { enabled: false, lowerThreshold: 0.5, upperThreshold: 0.8 },
 }
 
 const presets: Preset[] = [
-  { id: '1', name: 'Warm-up', config, keymap: DEFAULT_KEYMAP },
-  { id: '2', name: 'Hard mode', config: { ...config, n: 4 }, keymap: DEFAULT_KEYMAP },
+  { id: '1', name: 'Warm-up', config },
+  { id: '2', name: 'Hard mode', config: { ...config, n: 4 } },
 ]
 
 describe('PresetList', () => {
