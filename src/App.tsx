@@ -8,18 +8,16 @@ import { useTheme } from './hooks/useTheme'
 import { AppShell, type NavItem } from './components/AppShell'
 import { ConfigForm } from './components/ConfigForm'
 import { HistoryView } from './components/HistoryView'
-import { PresetsScreen } from './components/PresetsScreen'
 import { SessionRunner } from './components/SessionRunner'
 import { SettingsScreen } from './components/SettingsScreen'
 import { computeStreakStats } from './derived/streakStats'
 import { loadHistory, type SessionHistoryRecord } from './persistence/historyStorage'
 
-type Screen = 'train' | 'history' | 'presets' | 'settings'
+type Screen = 'train' | 'history' | 'settings'
 
 const NAV_ITEMS: NavItem<Screen>[] = [
   { id: 'train', label: 'Train' },
   { id: 'history', label: 'History' },
-  { id: 'presets', label: 'Presets' },
   { id: 'settings', label: 'Settings' },
 ]
 
@@ -51,9 +49,6 @@ function App() {
         screen === 'train' && (
           <ConfigForm config={draftConfig} setConfig={setDraftConfig} onStart={setActiveConfig} />
         )
-      )}
-      {screen === 'presets' && (
-        <PresetsScreen config={draftConfig} setConfig={setDraftConfig} />
       )}
       {screen === 'settings' && (
         <SettingsScreen

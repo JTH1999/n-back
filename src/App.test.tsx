@@ -36,7 +36,7 @@ describe('App navigation during a session', () => {
 
     const sidebar = screen.getByRole('navigation', { name: 'Main' })
 
-    fireEvent.click(within(sidebar).getByRole('button', { name: 'Presets' }))
+    fireEvent.click(within(sidebar).getByRole('button', { name: 'History' }))
     expect(screen.queryByText(/trial \d+ of 5/i)).not.toBeInTheDocument()
 
     act(() => {
