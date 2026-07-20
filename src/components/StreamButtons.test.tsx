@@ -51,6 +51,110 @@ describe('StreamButtons', () => {
     expect(onAssert).toHaveBeenCalledTimes(1)
   })
 
+  it('dispatches an assert-match action on a touch pointer-down', () => {
+    const onAssert = vi.fn()
+    render(
+      <StreamButtons
+        activeStreams={['position', 'letter']}
+        pressedStreams={new Set()}
+        keymap={keymap}
+        onAssert={onAssert}
+      />,
+    )
+
+    fireEvent.pointerDown(screen.getByRole('button', { name: /letter/i }), {
+      pointerType: 'touch',
+    })
+
+    expect(onAssert).toHaveBeenCalledWith('letter')
+    expect(onAssert).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not double-fire when a touch pointer-down is followed by the compatibility click', () => {
+    const onAssert = vi.fn()
+    render(
+      <StreamButtons
+        activeStreams={['position', 'letter']}
+        pressedStreams={new Set()}
+        keymap={keymap}
+        onAssert={onAssert}
+      />,
+    )
+
+    const button = screen.getByRole('button', { name: /letter/i })
+    fireEvent.pointerDown(button, { pointerType: 'touch' })
+    fireEvent.click(button)
+
+    expect(onAssert).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not assert on a mouse pointer-down, only on the paired click', () => {
+    const onAssert = vi.fn()
+    render(
+      <StreamButtons
+        activeStreams={['position', 'letter']}
+        pressedStreams={new Set()}
+        keymap={keymap}
+        onAssert={onAssert}
+      />,
+    )
+
+    const button = screen.getByRole('button', { name: /letter/i })
+    fireEvent.pointerDown(button, { pointerType: 'mouse' })
+    expect(onAssert).not.toHaveBeenCalled()
+
+    fireEvent.click(button)
+    expect(onAssert).toHaveBeenCalledWith('letter')
+    expect(onAssert).toHaveBeenCalledTimes(1)
+  })
+
+  it('registers independent touch pointer-downs on two different buttons', () => {
+    const onAssert = vi.fn()
+    render(
+      <StreamButtons
+        activeStreams={['position', 'letter']}
+        pressedStreams={new Set()}
+        keymap={keymap}
+        onAssert={onAssert}
+      />,
+    )
+
+    fireEvent.pointerDown(screen.getByRole('button', { name: /position/i }), {
+      pointerType: 'touch',
+    })
+    fireEvent.pointerDown(screen.getByRole('button', { name: /letter/i }), {
+      pointerType: 'touch',
+    })
+
+    expect(onAssert).toHaveBeenCalledWith('position')
+    expect(onAssert).toHaveBeenCalledWith('letter')
+    expect(onAssert).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not double-fire either button when two compatibility clicks arrive interleaved', () => {
+    const onAssert = vi.fn()
+    render(
+      <StreamButtons
+        activeStreams={['position', 'letter']}
+        pressedStreams={new Set()}
+        keymap={keymap}
+        onAssert={onAssert}
+      />,
+    )
+
+    const positionButton = screen.getByRole('button', { name: /position/i })
+    const letterButton = screen.getByRole('button', { name: /letter/i })
+
+    fireEvent.pointerDown(positionButton, { pointerType: 'touch' })
+    fireEvent.pointerDown(letterButton, { pointerType: 'touch' })
+    fireEvent.click(positionButton)
+    fireEvent.click(letterButton)
+
+    expect(onAssert).toHaveBeenCalledWith('position')
+    expect(onAssert).toHaveBeenCalledWith('letter')
+    expect(onAssert).toHaveBeenCalledTimes(2)
+  })
+
   it('shows an ack flash only for streams marked as pressed', () => {
     render(
       <StreamButtons
