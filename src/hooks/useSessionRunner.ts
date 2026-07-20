@@ -36,7 +36,6 @@ export interface SessionRunner {
   assertStreamMatch: (kind: StreamKind) => void
   pause: () => void
   resume: () => void
-  restart: () => void
 }
 
 // Between trials, once a trial resolves. Feedback occupies this whole gap, and
@@ -112,11 +111,6 @@ export function useSessionRunner(config: SessionRunnerConfig): SessionRunner {
 
   const pause = useCallback(() => setPaused(true), [])
   const resume = useCallback(() => setPaused(false), [])
-  const restart = useCallback(() => {
-    setState(createSession(config))
-    setPhase('trial')
-    setPaused(false)
-  }, [config])
 
   const acceptingInput = state.status === 'active' && phase === 'trial' && !paused
 
@@ -141,6 +135,5 @@ export function useSessionRunner(config: SessionRunnerConfig): SessionRunner {
     assertStreamMatch,
     pause,
     resume,
-    restart,
   }
 }

@@ -7,6 +7,7 @@ import { DEFAULT_MATCH_RATE } from '../engine/sessionEngine'
 import { STREAM_KINDS, type StreamKind } from '../engine/streams'
 import { formatDuration } from '../utils/formatDuration'
 import { Button } from './Button'
+import { MAX_N, NStepper } from './NStepper'
 import { Panel } from './Panel'
 import { PresetPicker } from './PresetPicker'
 import { ScreenHeader } from './ScreenHeader'
@@ -15,7 +16,6 @@ import { StreamCard } from './StreamCard'
 import { SubHeading } from './SubHeading'
 import { TwoColumnLayout } from './TwoColumnLayout'
 
-export const MAX_N = 20
 const MAX_TRIAL_COUNT = 500
 const MAX_DISPLAY_DURATION_MS = 60_000
 const MAX_TRIAL_LENGTH_MS = 60_000
@@ -114,7 +114,7 @@ export function ConfigForm({ config, setConfig, onStart }: ConfigFormProps) {
     }))
   }
 
-  const handleN = (n: number) => setConfig({ ...config, n: Math.min(MAX_N, Math.max(1, n)) })
+  const handleN = (n: number) => setConfig({ ...config, n })
 
   const judgedCount = Math.max(0, config.trialCount - config.n)
   const estimatedDuration = formatDuration(sessionDurationMs(config.trialCount, config.trialLengthMs))
@@ -165,33 +165,7 @@ export function ConfigForm({ config, setConfig, onStart }: ConfigFormProps) {
                 <span>Global N</span>
                 <span className="font-mono text-xs font-normal text-dim">back-distance</span>
               </div>
-              <div className="flex items-center gap-0.5 rounded-lg border border-border bg-panel2 p-[3px]">
-                <button
-                  type="button"
-                  aria-label="Decrease N"
-                  onClick={() => handleN(config.n - 1)}
-                  className="h-[30px] w-[34px] rounded-md text-lg hover:bg-panel"
-                >
-                  −
-                </button>
-                <input
-                  type="number"
-                  aria-label="N-back level"
-                  min={1}
-                  max={MAX_N}
-                  value={config.n}
-                  onChange={(event) => handleN(Number(event.target.value))}
-                  className="w-9 [appearance:textfield] bg-transparent text-center font-mono text-lg font-semibold [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                />
-                <button
-                  type="button"
-                  aria-label="Increase N"
-                  onClick={() => handleN(config.n + 1)}
-                  className="h-[30px] w-[34px] rounded-md text-lg hover:bg-panel"
-                >
-                  +
-                </button>
-              </div>
+              <NStepper value={config.n} onChange={handleN} ariaLabel="N-back level" />
             </div>
             <SliderParam
               label="Stimulus duration"

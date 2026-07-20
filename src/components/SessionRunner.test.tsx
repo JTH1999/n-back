@@ -2,7 +2,6 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FEEDBACK_FLASH_MS, type SessionRunnerConfig } from '../hooks/useSessionRunner'
 import { loadHistory } from '../persistence/historyStorage'
-import { loadDraftSettings } from '../persistence/settingsStorage'
 import { SessionRunner } from './SessionRunner'
 
 const config: SessionRunnerConfig = {
@@ -24,6 +23,8 @@ describe('SessionRunner keyboard handling', () => {
         config={config}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
       />,
     )
 
@@ -43,6 +44,8 @@ describe('SessionRunner keyboard handling', () => {
         config={config}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
       />,
     )
 
@@ -74,6 +77,8 @@ describe('SessionRunner history persistence', () => {
         config={{ ...config, trialCount: 1, displayDurationMs: 100, trialLengthMs: 200 }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
       />,
     )
 
@@ -93,6 +98,8 @@ describe('SessionRunner history persistence', () => {
         config={{ ...config, trialCount: 5 }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
       />,
     )
 
@@ -143,6 +150,8 @@ describe('SessionRunner streak display', () => {
         config={{ ...config, trialCount: 1, displayDurationMs: 100, trialLengthMs: 200 }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
       />,
     )
 
@@ -161,6 +170,8 @@ describe('SessionRunner streak display', () => {
         config={{ ...config, trialCount: 1, displayDurationMs: 100, trialLengthMs: 200 }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
       />,
     )
 
@@ -170,102 +181,6 @@ describe('SessionRunner streak display', () => {
 
     const streakGroup = screen.getByRole('group', { name: /day streak/i })
     expect(within(streakGroup).getByText('1')).toBeInTheDocument()
-  })
-})
-
-describe('SessionRunner adaptive mode', () => {
-  beforeEach(() => {
-    window.localStorage.clear()
-  })
-
-  afterEach(() => {
-    vi.useRealTimers()
-  })
-
-  it('saves a recommended N to draft settings when accuracy exceeds the upper threshold', () => {
-    vi.useFakeTimers()
-    render(
-      <SessionRunner
-        config={{
-          ...config,
-          n: 1,
-          trialCount: 2,
-          matchRate: 1,
-          displayDurationMs: 100,
-          trialLengthMs: 200,
-          adaptive: { enabled: true, lowerThreshold: 0.5, upperThreshold: 0.8 },
-        }}
-        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
-        onRestart={vi.fn()}
-      />,
-    )
-
-    act(() => {
-      vi.advanceTimersByTime(200)
-    })
-    fireEvent.keyDown(window, { key: 'g' })
-    act(() => {
-      vi.advanceTimersByTime(200)
-    })
-
-    expect(loadDraftSettings<SessionRunnerConfig>()?.n).toBe(2)
-  })
-
-  it('clamps the recommended N to the maximum allowed level', () => {
-    vi.useFakeTimers()
-    render(
-      <SessionRunner
-        config={{
-          ...config,
-          n: 20,
-          trialCount: 21,
-          matchRate: 1,
-          displayDurationMs: 100,
-          trialLengthMs: 200,
-          adaptive: { enabled: true, lowerThreshold: 0.5, upperThreshold: 0.8 },
-        }}
-        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
-        onRestart={vi.fn()}
-      />,
-    )
-
-    // Trials 0-19 sit below N and are never eligible for a match; only trial
-    // index 20 (i >= n) can resolve as a hit, so respond only on that one.
-    for (let i = 0; i < 20; i++) {
-      act(() => {
-        vi.advanceTimersByTime(200)
-      })
-    }
-    fireEvent.keyDown(window, { key: 'g' })
-    act(() => {
-      vi.advanceTimersByTime(200)
-    })
-
-    expect(loadDraftSettings<SessionRunnerConfig>()?.n).toBe(20)
-  })
-
-  it('does not touch draft settings when adaptive mode is disabled', () => {
-    vi.useFakeTimers()
-    render(
-      <SessionRunner
-        config={{
-          ...config,
-          n: 1,
-          trialCount: 1,
-          displayDurationMs: 100,
-          trialLengthMs: 200,
-          adaptive: { enabled: false, lowerThreshold: 0.5, upperThreshold: 0.8 },
-        }}
-        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
-        onRestart={vi.fn()}
-      />,
-    )
-
-    act(() => {
-      vi.advanceTimersByTime(200)
-    })
-
-    expect(loadDraftSettings<SessionRunnerConfig>()).toBeNull()
   })
 })
 
@@ -287,6 +202,8 @@ describe('SessionRunner live feedback', () => {
         }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
       />,
     )
 
@@ -313,6 +230,8 @@ describe('SessionRunner live feedback', () => {
         }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
       />,
     )
 
@@ -336,6 +255,8 @@ describe('SessionRunner live feedback', () => {
         }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
       />,
     )
 
@@ -373,6 +294,8 @@ describe('SessionRunner live feedback', () => {
         }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
       />,
     )
 
@@ -404,6 +327,8 @@ describe('SessionRunner live feedback', () => {
         }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
       />,
     )
 
@@ -424,13 +349,16 @@ describe('SessionRunner results actions', () => {
     vi.useRealTimers()
   })
 
-  it('restarts a fresh session with the same config when Retry is clicked', () => {
+  it('calls onPlayAgain with the current N when Play Again is clicked', () => {
     vi.useFakeTimers()
+    const onPlayAgain = vi.fn()
     render(
       <SessionRunner
-        config={{ ...config, trialCount: 1, displayDurationMs: 100, trialLengthMs: 200 }}
+        config={{ ...config, n: 1, trialCount: 1, displayDurationMs: 100, trialLengthMs: 200 }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={onPlayAgain}
       />,
     )
 
@@ -440,26 +368,21 @@ describe('SessionRunner results actions', () => {
     expect(screen.getByText(/session results/i)).toBeInTheDocument()
     expect(loadHistory()).toHaveLength(1)
 
-    fireEvent.click(screen.getByRole('button', { name: /retry/i }))
+    fireEvent.click(screen.getByRole('button', { name: /play again/i }))
 
-    expect(screen.queryByText(/session results/i)).not.toBeInTheDocument()
-    expect(screen.getByText(/trial 1 of 1/i)).toBeInTheDocument()
-
-    act(() => {
-      vi.advanceTimersByTime(200)
-    })
-    expect(screen.getByText(/session results/i)).toBeInTheDocument()
-    expect(loadHistory()).toHaveLength(2)
+    expect(onPlayAgain).toHaveBeenCalledWith(1)
   })
 
-  it('calls onRestart when Done is clicked', () => {
+  it('calls onReturnToSetup with the current N when Return to Setup is clicked', () => {
     vi.useFakeTimers()
-    const onRestart = vi.fn()
+    const onReturnToSetup = vi.fn()
     render(
       <SessionRunner
-        config={{ ...config, trialCount: 1, displayDurationMs: 100, trialLengthMs: 200 }}
+        config={{ ...config, n: 1, trialCount: 1, displayDurationMs: 100, trialLengthMs: 200 }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
-        onRestart={onRestart}
+        onRestart={vi.fn()}
+        onReturnToSetup={onReturnToSetup}
+        onPlayAgain={vi.fn()}
       />,
     )
 
@@ -467,9 +390,9 @@ describe('SessionRunner results actions', () => {
       vi.advanceTimersByTime(200)
     })
 
-    fireEvent.click(screen.getByRole('button', { name: /done/i }))
+    fireEvent.click(screen.getByRole('button', { name: /return to setup/i }))
 
-    expect(onRestart).toHaveBeenCalledTimes(1)
+    expect(onReturnToSetup).toHaveBeenCalledWith(1)
   })
 })
 
@@ -485,6 +408,8 @@ describe('SessionRunner pause and resume', () => {
         config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
       />,
     )
 
@@ -504,6 +429,8 @@ describe('SessionRunner pause and resume', () => {
         config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
         isFocused
       />,
     )
@@ -513,6 +440,8 @@ describe('SessionRunner pause and resume', () => {
         config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
         isFocused={false}
       />,
     )
@@ -528,6 +457,8 @@ describe('SessionRunner pause and resume', () => {
         config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
         isFocused
       />,
     )
@@ -542,6 +473,8 @@ describe('SessionRunner pause and resume', () => {
         config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
         isFocused={false}
       />,
     )
@@ -551,6 +484,8 @@ describe('SessionRunner pause and resume', () => {
         config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
         isFocused
       />,
     )
@@ -564,6 +499,8 @@ describe('SessionRunner pause and resume', () => {
         config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
       />,
     )
 
@@ -580,6 +517,8 @@ describe('SessionRunner pause and resume', () => {
         config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
       />,
     )
 
@@ -597,6 +536,8 @@ describe('SessionRunner pause and resume', () => {
         config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
       />,
     )
 
@@ -630,6 +571,8 @@ describe('SessionRunner abort with confirmation', () => {
         config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
       />,
     )
 
@@ -646,6 +589,8 @@ describe('SessionRunner abort with confirmation', () => {
         config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={onRestart}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
       />,
     )
 
@@ -666,6 +611,8 @@ describe('SessionRunner abort with confirmation', () => {
         config={{ ...config, trialCount: 5, displayDurationMs: 100, trialLengthMs: 200 }}
         keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
         onRestart={onRestart}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
       />,
     )
 

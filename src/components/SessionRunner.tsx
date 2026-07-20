@@ -9,10 +9,9 @@ import type { Keymap } from '../config/keymap'
 import type { StreamKind } from '../engine/streams'
 import { computeStreakStats, type StreakStats } from '../derived/streakStats'
 import { appendHistoryRecord, loadHistory } from '../persistence/historyStorage'
-import { saveDraftSettings } from '../persistence/settingsStorage'
 import { Button } from './Button'
-import { MAX_N } from './ConfigForm'
 import { Grid } from './Grid'
+import { MAX_N } from './NStepper'
 import { Overlay } from './Overlay'
 import { SessionSummary, type AdaptiveRecommendation } from './SessionSummary'
 import { StreamButtons } from './StreamButtons'
@@ -21,6 +20,8 @@ export interface SessionRunnerProps {
   config: SessionRunnerConfig
   keymap: Keymap
   onRestart: () => void
+  onReturnToSetup: (n: number) => void
+  onPlayAgain: (n: number) => void
   onSessionComplete?: () => void
   isFocused?: boolean
 }
@@ -54,6 +55,8 @@ export function SessionRunner({
   config,
   keymap,
   onRestart,
+  onReturnToSetup,
+  onPlayAgain,
   onSessionComplete,
   isFocused = true,
 }: SessionRunnerProps) {
@@ -67,14 +70,12 @@ export function SessionRunner({
     assertStreamMatch,
     pause,
     resume,
-    restart,
   } = useSessionRunner(config)
   const [pressedStreams, setPressedStreams] = useState<ReadonlySet<StreamKind>>(new Set())
   const [showAbortConfirm, setShowAbortConfirm] = useState(false)
   const [streak, setStreak] = useState<StreakStats | null>(null)
   const wasPausedBeforeAbort = useRef(false)
   const hasRecordedHistory = useRef(false)
-  const hasAppliedAdaptiveN = useRef(false)
   const summary = useMemo(() => (readyForSummary ? getSummary(state) : null), [readyForSummary, state])
 
   useEffect(() => {
@@ -100,12 +101,6 @@ export function SessionRunner({
       recommendedN > config.n ? 'increased' : recommendedN < config.n ? 'decreased' : 'held steady'
     return { n: recommendedN, note }
   }, [recommendedN, config.n])
-
-  useEffect(() => {
-    if (recommendedN === null || hasAppliedAdaptiveN.current) return
-    hasAppliedAdaptiveN.current = true
-    saveDraftSettings({ ...config, n: recommendedN })
-  }, [recommendedN, config])
 
   const handleAssert = useCallback(
     (kind: StreamKind) => {
@@ -137,14 +132,6 @@ export function SessionRunner({
   // above, and its state (including a completed summary) survives the trip.
   if (!isFocused) return null
 
-  const handleRetry = () => {
-    hasRecordedHistory.current = false
-    hasAppliedAdaptiveN.current = false
-    setStreak(null)
-    setPressedStreams(new Set())
-    restart()
-  }
-
   if (summary) {
     return (
       <SessionSummary
@@ -153,8 +140,8 @@ export function SessionRunner({
         trialCount={config.trialCount}
         recommendation={recommendation}
         streak={streak}
-        onRetry={handleRetry}
-        onDone={onRestart}
+        onReturnToSetup={onReturnToSetup}
+        onPlayAgain={onPlayAgain}
       />
     )
   }
