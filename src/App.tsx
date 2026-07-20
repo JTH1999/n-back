@@ -24,6 +24,7 @@ const NAV_ITEMS: NavItem<Screen>[] = [
 function App() {
   const [screen, setScreen] = useState<Screen>('train')
   const [activeConfig, setActiveConfig] = useState<SessionRunnerConfig | null>(null)
+  const [sessionKey, setSessionKey] = useState(0)
   const [history, setHistory] = useState<SessionHistoryRecord[]>(() => loadHistory())
   const [draftConfig, setDraftConfig] = useDraftConfig()
   const { keymap, rebind } = useKeymap()
@@ -35,13 +36,27 @@ function App() {
     preloadLetterAudio()
   }, [])
 
+  const handleReturnToSetup = (n: number) => {
+    setDraftConfig((current) => ({ ...current, n }))
+    setActiveConfig(null)
+  }
+
+  const handlePlayAgain = (n: number) => {
+    setDraftConfig((current) => ({ ...current, n }))
+    setActiveConfig((current) => (current ? { ...current, n } : current))
+    setSessionKey((key) => key + 1)
+  }
+
   return (
     <AppShell navItems={NAV_ITEMS} activeId={screen} onNavigate={setScreen} streak={streak}>
       {activeConfig ? (
         <SessionRunner
+          key={sessionKey}
           config={activeConfig}
           keymap={keymap}
           onRestart={() => setActiveConfig(null)}
+          onReturnToSetup={handleReturnToSetup}
+          onPlayAgain={handlePlayAgain}
           onSessionComplete={() => setHistory(loadHistory())}
           isFocused={screen === 'train'}
         />

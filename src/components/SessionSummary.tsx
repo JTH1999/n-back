@@ -1,10 +1,12 @@
 import clsx from 'clsx'
+import { useState } from 'react'
 import type { StreakStats } from '../derived/streakStats'
 import type { SessionSummary as Summary, StreamSummary } from '../engine/sessionEngine'
 import { STREAM_DOT_CLASS } from '../engine/streams'
 import { accuracyTextClass } from '../styles/controls'
 import { Button } from './Button'
 import { FlameIcon } from './FlameIcon'
+import { NStepper } from './NStepper'
 import { Panel } from './Panel'
 import { ScreenHeader } from './ScreenHeader'
 import { SubHeading } from './SubHeading'
@@ -21,8 +23,8 @@ export interface SessionSummaryProps {
   trialCount: number
   recommendation: AdaptiveRecommendation | null
   streak: StreakStats | null
-  onRetry: () => void
-  onDone: () => void
+  onReturnToSetup: (n: number) => void
+  onPlayAgain: (n: number) => void
 }
 
 interface StreakBadgeProps {
@@ -87,9 +89,10 @@ export function SessionSummary({
   trialCount,
   recommendation,
   streak,
-  onRetry,
-  onDone,
+  onReturnToSetup,
+  onPlayAgain,
 }: SessionSummaryProps) {
+  const [nextN, setNextN] = useState(recommendation?.n ?? n)
   const accuracyPercent = Math.round(summary.accuracy * 100)
 
   return (
@@ -99,10 +102,10 @@ export function SessionSummary({
         <div className="flex items-center gap-4">
           {streak && <StreakBadge streak={streak} />}
           <div className="flex gap-2.5">
-            <Button variant="ghost" onClick={onRetry}>
-              Retry
+            <Button variant="ghost" onClick={() => onReturnToSetup(nextN)}>
+              Return to Setup
             </Button>
-            <Button onClick={onDone}>Done →</Button>
+            <Button onClick={() => onPlayAgain(nextN)}>Play Again →</Button>
           </div>
         </div>
       </div>
@@ -126,15 +129,19 @@ export function SessionSummary({
                 N={n} · {trialCount} trials
               </p>
             </div>
-            {recommendation && (
-              <div className="mt-5 border-t border-border pt-[18px] text-left">
-                <SubHeading>Adaptive</SubHeading>
-                <p className="mt-2 text-sm">
-                  Next session → <b className="font-semibold text-accent">N = {recommendation.n}</b> ·{' '}
+            <div className="mt-5 border-t border-border pt-[18px] text-left">
+              <SubHeading>Next session</SubHeading>
+              <div className="mt-2.5 flex items-center justify-between gap-3">
+                <span className="text-sm font-medium">N-back level</span>
+                <NStepper value={nextN} onChange={setNextN} ariaLabel="Next session N-back level" />
+              </div>
+              {recommendation && (
+                <p className="mt-2.5 text-sm">
+                  Recommended <b className="font-semibold text-accent">N = {recommendation.n}</b> ·{' '}
                   {recommendation.note}
                 </p>
-              </div>
-            )}
+              )}
+            </div>
           </Panel>
         }
         main={
