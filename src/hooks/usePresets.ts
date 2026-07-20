@@ -1,4 +1,5 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import { BUILT_IN_PRESETS } from '../config/builtInPresets'
 import {
   clearLastPresetId,
   loadLastPresetId,
@@ -14,6 +15,7 @@ export interface Preset {
   id: string
   name: string
   config: PresetConfig
+  readOnly?: boolean
 }
 
 export interface UsePresetsResult {
@@ -40,14 +42,16 @@ export function isPresetConfigEqual(a: PresetConfig, b: PresetConfig): boolean {
 }
 
 export function usePresets(): UsePresetsResult {
-  const [presets, setPresets] = useState<Preset[]>(() =>
+  const [userPresets, setUserPresets] = useState<Preset[]>(() =>
     (loadPresets<Preset[]>() ?? []).map(sanitizePreset),
   )
   const [activePresetId, setActivePresetId] = useState<string | null>(() => loadLastPresetId())
 
+  const presets = useMemo(() => [...BUILT_IN_PRESETS, ...userPresets], [userPresets])
+
   const savePreset = useCallback((name: string, config: PresetConfig) => {
     const preset: Preset = { id: crypto.randomUUID(), name, config: toPresetConfig(config) }
-    setPresets((current) => {
+    setUserPresets((current) => {
       const next = [...current, preset]
       savePresets(next)
       return next
@@ -68,28 +72,27 @@ export function usePresets(): UsePresetsResult {
   )
 
   const renamePreset = useCallback((id: string, name: string) => {
-    setPresets((current) => {
+    if (BUILT_IN_PRESETS.some((preset) => preset.id === id)) return
+    setUserPresets((current) => {
       const next = current.map((preset) => (preset.id === id ? { ...preset, name } : preset))
       savePresets(next)
       return next
     })
   }, [])
 
-  const deletePreset = useCallback(
-    (id: string) => {
-      setPresets((current) => {
-        const next = current.filter((preset) => preset.id !== id)
-        savePresets(next)
-        return next
-      })
-      setActivePresetId((current) => {
-        if (current !== id) return current
-        clearLastPresetId()
-        return null
-      })
-    },
-    [],
-  )
+  const deletePreset = useCallback((id: string) => {
+    if (BUILT_IN_PRESETS.some((preset) => preset.id === id)) return
+    setUserPresets((current) => {
+      const next = current.filter((preset) => preset.id !== id)
+      savePresets(next)
+      return next
+    })
+    setActivePresetId((current) => {
+      if (current !== id) return current
+      clearLastPresetId()
+      return null
+    })
+  }, [])
 
   return { presets, activePresetId, savePreset, loadPreset, renamePreset, deletePreset }
 }

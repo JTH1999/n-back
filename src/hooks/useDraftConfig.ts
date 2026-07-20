@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { DEFAULT_MATCH_RATE } from '../engine/sessionEngine'
 import { loadDraftSettings, saveDraftSettings } from '../persistence/settingsStorage'
 import type { SessionRunnerConfig } from './useSessionRunner'
 
@@ -6,6 +7,7 @@ export const DEFAULT_CONFIG: SessionRunnerConfig = {
   n: 2,
   trialCount: 20,
   streams: ['position'],
+  matchRate: DEFAULT_MATCH_RATE,
   displayDurationMs: 600,
   trialLengthMs: 2500,
   volume: 1,

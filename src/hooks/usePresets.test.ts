@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { BUILT_IN_PRESETS } from '../config/builtInPresets'
 import { isPresetConfigEqual, usePresets, type PresetConfig } from './usePresets'
 
 const config: PresetConfig = {
@@ -12,15 +13,21 @@ const config: PresetConfig = {
   adaptive: { enabled: false, lowerThreshold: 0.5, upperThreshold: 0.8 },
 }
 
+const BUILT_IN_COUNT = BUILT_IN_PRESETS.length
+
+function userPresetsOf(result: { current: ReturnType<typeof usePresets> }) {
+  return result.current.presets.slice(BUILT_IN_COUNT)
+}
+
 beforeEach(() => {
   window.localStorage.clear()
 })
 
 describe('usePresets', () => {
-  it('starts with no saved presets and no active preset', () => {
+  it('starts with no saved user presets and no active preset', () => {
     const { result } = renderHook(() => usePresets())
 
-    expect(result.current.presets).toEqual([])
+    expect(userPresetsOf(result)).toEqual([])
     expect(result.current.activePresetId).toBeNull()
   })
 
@@ -31,9 +38,9 @@ describe('usePresets', () => {
       result.current.savePreset('Warm-up', config)
     })
 
-    expect(result.current.presets).toHaveLength(1)
-    expect(result.current.presets[0]).toMatchObject({ name: 'Warm-up', config })
-    expect(result.current.activePresetId).toBe(result.current.presets[0].id)
+    expect(userPresetsOf(result)).toHaveLength(1)
+    expect(userPresetsOf(result)[0]).toMatchObject({ name: 'Warm-up', config })
+    expect(result.current.activePresetId).toBe(userPresetsOf(result)[0].id)
   })
 
   it('loads a saved preset by id and marks it active', () => {
@@ -42,7 +49,7 @@ describe('usePresets', () => {
     act(() => {
       result.current.savePreset('Warm-up', config)
     })
-    const id = result.current.presets[0].id
+    const id = userPresetsOf(result)[0].id
 
     act(() => {
       result.current.savePreset('Hard mode', { ...config, n: 4 })
@@ -76,13 +83,13 @@ describe('usePresets', () => {
     act(() => {
       result.current.savePreset('Warm-up', config)
     })
-    const id = result.current.presets[0].id
+    const id = userPresetsOf(result)[0].id
 
     act(() => {
       result.current.deletePreset(id)
     })
 
-    expect(result.current.presets).toEqual([])
+    expect(userPresetsOf(result)).toEqual([])
   })
 
   it('clears the active preset id when the active preset is deleted', () => {
@@ -91,7 +98,7 @@ describe('usePresets', () => {
     act(() => {
       result.current.savePreset('Warm-up', config)
     })
-    const id = result.current.presets[0].id
+    const id = userPresetsOf(result)[0].id
 
     act(() => {
       result.current.deletePreset(id)
@@ -106,7 +113,7 @@ describe('usePresets', () => {
     act(() => {
       result.current.savePreset('Warm-up', config)
     })
-    const warmUpId = result.current.presets[0].id
+    const warmUpId = userPresetsOf(result)[0].id
     act(() => {
       result.current.savePreset('Hard mode', { ...config, n: 4 })
     })
@@ -116,7 +123,7 @@ describe('usePresets', () => {
     })
 
     expect(result.current.activePresetId).not.toBe(warmUpId)
-    expect(result.current.presets).toHaveLength(1)
+    expect(userPresetsOf(result)).toHaveLength(1)
   })
 
   it('persists deletions across remounts', () => {
@@ -125,7 +132,7 @@ describe('usePresets', () => {
     act(() => {
       result.current.savePreset('Warm-up', config)
     })
-    const id = result.current.presets[0].id
+    const id = userPresetsOf(result)[0].id
     act(() => {
       result.current.deletePreset(id)
     })
@@ -133,7 +140,7 @@ describe('usePresets', () => {
 
     const { result: remounted } = renderHook(() => usePresets())
 
-    expect(remounted.current.presets).toEqual([])
+    expect(userPresetsOf(remounted)).toEqual([])
   })
 
   it('renames a preset by id', () => {
@@ -142,13 +149,13 @@ describe('usePresets', () => {
     act(() => {
       result.current.savePreset('Warm-up', config)
     })
-    const id = result.current.presets[0].id
+    const id = userPresetsOf(result)[0].id
 
     act(() => {
       result.current.renamePreset(id, 'Morning warm-up')
     })
 
-    expect(result.current.presets[0]).toMatchObject({ id, name: 'Morning warm-up' })
+    expect(userPresetsOf(result)[0]).toMatchObject({ id, name: 'Morning warm-up' })
   })
 
   it('leaves the active preset id untouched when renaming the active preset', () => {
@@ -157,7 +164,7 @@ describe('usePresets', () => {
     act(() => {
       result.current.savePreset('Warm-up', config)
     })
-    const id = result.current.presets[0].id
+    const id = userPresetsOf(result)[0].id
 
     act(() => {
       result.current.renamePreset(id, 'Morning warm-up')
@@ -172,7 +179,7 @@ describe('usePresets', () => {
     act(() => {
       result.current.savePreset('Warm-up', config)
     })
-    const id = result.current.presets[0].id
+    const id = userPresetsOf(result)[0].id
     act(() => {
       result.current.renamePreset(id, 'Morning warm-up')
     })
@@ -180,7 +187,7 @@ describe('usePresets', () => {
 
     const { result: remounted } = renderHook(() => usePresets())
 
-    expect(remounted.current.presets[0]).toMatchObject({ id, name: 'Morning warm-up' })
+    expect(userPresetsOf(remounted)[0]).toMatchObject({ id, name: 'Morning warm-up' })
   })
 
   it('persists the saved preset list and active id across remounts', () => {
@@ -189,12 +196,12 @@ describe('usePresets', () => {
     act(() => {
       result.current.savePreset('Warm-up', config)
     })
-    const id = result.current.presets[0].id
+    const id = userPresetsOf(result)[0].id
     unmount()
 
     const { result: remounted } = renderHook(() => usePresets())
 
-    expect(remounted.current.presets).toHaveLength(1)
+    expect(userPresetsOf(remounted)).toHaveLength(1)
     expect(remounted.current.activePresetId).toBe(id)
   })
 
@@ -209,8 +216,8 @@ describe('usePresets', () => {
 
     const { result } = renderHook(() => usePresets())
 
-    expect(result.current.presets).toHaveLength(1)
-    expect(result.current.presets[0].config).toEqual(config)
+    expect(userPresetsOf(result)).toHaveLength(1)
+    expect(userPresetsOf(result)[0].config).toEqual(config)
 
     let loaded: ReturnType<typeof result.current.loadPreset>
     act(() => {
@@ -219,6 +226,73 @@ describe('usePresets', () => {
 
     expect(loaded?.config).not.toHaveProperty('volume')
     expect(loaded?.config).not.toHaveProperty('muted')
+  })
+})
+
+describe('usePresets built-in presets', () => {
+  it('lists the built-in presets ahead of any user presets, in fixed order', () => {
+    const { result } = renderHook(() => usePresets())
+
+    act(() => {
+      result.current.savePreset('Warm-up', config)
+    })
+
+    expect(result.current.presets.slice(0, 3)).toEqual(BUILT_IN_PRESETS)
+    expect(result.current.presets[3]).toMatchObject({ name: 'Warm-up' })
+  })
+
+  it('does not persist built-in presets to localStorage', () => {
+    renderHook(() => usePresets())
+
+    const raw = window.localStorage.getItem('n-back:presets')
+    expect(raw ? JSON.parse(raw) : []).toEqual([])
+  })
+
+  it('loads a built-in preset by id', () => {
+    const { result } = renderHook(() => usePresets())
+
+    let loaded
+    act(() => {
+      loaded = result.current.loadPreset('builtin-hard')
+    })
+
+    expect(loaded).toMatchObject({ name: 'Hard' })
+    expect(result.current.activePresetId).toBe('builtin-hard')
+  })
+
+  it('does not rename a built-in preset', () => {
+    const { result } = renderHook(() => usePresets())
+
+    act(() => {
+      result.current.renamePreset('builtin-hard', 'My Hard')
+    })
+
+    expect(result.current.presets.find((preset) => preset.id === 'builtin-hard')).toMatchObject({
+      name: 'Hard',
+    })
+  })
+
+  it('does not delete a built-in preset', () => {
+    const { result } = renderHook(() => usePresets())
+
+    act(() => {
+      result.current.deletePreset('builtin-hard')
+    })
+
+    expect(result.current.presets.find((preset) => preset.id === 'builtin-hard')).toBeDefined()
+  })
+
+  it('leaves activePresetId untouched when deletePreset is called on the active built-in preset', () => {
+    const { result } = renderHook(() => usePresets())
+
+    act(() => {
+      result.current.loadPreset('builtin-hard')
+    })
+    act(() => {
+      result.current.deletePreset('builtin-hard')
+    })
+
+    expect(result.current.activePresetId).toBe('builtin-hard')
   })
 })
 

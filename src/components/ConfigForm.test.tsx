@@ -127,6 +127,27 @@ describe('ConfigForm', () => {
     expect(screen.getByRole('button', { name: /^warm-up/i })).toBeInTheDocument()
   })
 
+  it('defaults the match rate slider to 30% and starts a session with it', () => {
+    const onStart = vi.fn()
+    renderConfigForm({ onStart })
+
+    expect(screen.getByLabelText(/match rate/i)).toHaveValue('0.3')
+
+    fireEvent.click(screen.getByRole('button', { name: /start session/i }))
+
+    expect(onStart).toHaveBeenCalledWith(expect.objectContaining({ matchRate: 0.3 }))
+  })
+
+  it('applies a changed match rate to the started session', () => {
+    const onStart = vi.fn()
+    renderConfigForm({ onStart })
+
+    fireEvent.change(screen.getByLabelText(/match rate/i), { target: { value: '0.45' } })
+    fireEvent.click(screen.getByRole('button', { name: /start session/i }))
+
+    expect(onStart).toHaveBeenCalledWith(expect.objectContaining({ matchRate: 0.45 }))
+  })
+
   it('rejects a lower adaptive threshold above the upper threshold', () => {
     renderConfigForm()
 

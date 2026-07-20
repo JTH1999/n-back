@@ -155,4 +155,28 @@ describe('PresetList', () => {
 
     expect(onRename).not.toHaveBeenCalled()
   })
+
+  it('shows a Template badge for read-only presets', () => {
+    const readOnlyPresets: Preset[] = [{ id: '1', name: 'Standard', config, readOnly: true }]
+    render(<PresetList presets={readOnlyPresets} activePresetId={null} onLoad={vi.fn()} />)
+
+    expect(screen.getByText(/template/i)).toBeInTheDocument()
+  })
+
+  it('hides rename and delete buttons for a read-only preset even when the handlers are provided', () => {
+    const readOnlyPresets: Preset[] = [{ id: '1', name: 'Standard', config, readOnly: true }]
+    render(
+      <PresetList
+        presets={readOnlyPresets}
+        activePresetId={null}
+        onLoad={vi.fn()}
+        onRename={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    )
+
+    expect(screen.queryByRole('button', { name: /rename standard/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /delete standard/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^load$/i })).toBeInTheDocument()
+  })
 })
