@@ -106,7 +106,7 @@ describe('createSession', () => {
     }
   })
 
-  it('approximates the configured match rate over a large sample for every active stream', () => {
+  it('matches the configured match rate exactly for every active stream', () => {
     const n = 2
     const trialCount = 5000
     const matchRate = 0.3
@@ -125,9 +125,43 @@ describe('createSession', () => {
         eligibleTrials++
         if (sequence[i] === sequence[i - n]) matches++
       }
-      const observedRate = matches / eligibleTrials
-      expect(observedRate).toBeGreaterThan(matchRate - 0.05)
-      expect(observedRate).toBeLessThan(matchRate + 0.05)
+      expect(matches).toBe(Math.round(matchRate * eligibleTrials))
+    }
+  })
+
+  it('produces an exact match count for a small, hand-verified case', () => {
+    const n = 1
+    const trialCount = 11
+    const matchRate = 0.5
+    const state = createSession({ n, trialCount, streams: ['position'], matchRate })
+    const sequence = state.streams.position!.sequence
+
+    let matches = 0
+    for (let i = n; i < trialCount; i++) {
+      if (sequence[i] === sequence[i - n]) matches++
+    }
+    expect(matches).toBe(5)
+  })
+
+  it('produces zero matches when matchRate is 0', () => {
+    const n = 2
+    const trialCount = 50
+    const state = createSession({ n, trialCount, streams: ['position'], matchRate: 0 })
+    const sequence = state.streams.position!.sequence
+
+    for (let i = n; i < trialCount; i++) {
+      expect(sequence[i]).not.toBe(sequence[i - n])
+    }
+  })
+
+  it('produces all matches when matchRate is 1', () => {
+    const n = 2
+    const trialCount = 50
+    const state = createSession({ n, trialCount, streams: ['position'], matchRate: 1 })
+    const sequence = state.streams.position!.sequence
+
+    for (let i = n; i < trialCount; i++) {
+      expect(sequence[i]).toBe(sequence[i - n])
     }
   })
 

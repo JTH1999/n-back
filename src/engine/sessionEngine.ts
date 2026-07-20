@@ -61,6 +61,26 @@ function randomValueExcluding<T>(rng: () => number, pool: readonly T[], exclude:
   return pool[index >= excludeIndex ? index + 1 : index]
 }
 
+// Fisher-Yates shuffle, driven by the injected RNG so results stay
+// deterministic under a seeded/mock rng.
+function shuffle<T>(rng: () => number, items: T[]): T[] {
+  const result = items.slice()
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1))
+    ;[result[i], result[j]] = [result[j], result[i]]
+  }
+  return result
+}
+
+// Builds an array of `eligibleCount` booleans containing exactly `matchCount`
+// `true` values, then shuffles it so the fixed match total lands on
+// randomized eligible-trial positions rather than an independent per-trial roll.
+function buildMatchAssignment(eligibleCount: number, matchRate: number, rng: () => number): boolean[] {
+  const matchCount = Math.min(eligibleCount, Math.max(0, Math.round(matchRate * eligibleCount)))
+  const assignment = Array.from({ length: eligibleCount }, (_, i) => i < matchCount)
+  return shuffle(rng, assignment)
+}
+
 function generateStreamSequence<K extends StreamKind>(
   kind: K,
   n: number,
@@ -69,9 +89,11 @@ function generateStreamSequence<K extends StreamKind>(
   rng: () => number,
 ): StreamValueMap[K][] {
   const pool = STREAM_VALUE_POOLS[kind]
+  const eligibleCount = Math.max(0, trialCount - n)
+  const matchAssignment = buildMatchAssignment(eligibleCount, matchRate, rng)
   const sequence: StreamValueMap[K][] = []
   for (let i = 0; i < trialCount; i++) {
-    if (i >= n && rng() < matchRate) {
+    if (i >= n && matchAssignment[i - n]) {
       sequence.push(sequence[i - n])
     } else if (i >= n) {
       sequence.push(randomValueExcluding(rng, pool, sequence[i - n]))
