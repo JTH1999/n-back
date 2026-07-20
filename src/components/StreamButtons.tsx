@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import { useRef, type PointerEvent } from 'react'
 import type { Keymap } from '../config/keymap'
 import type { TrialOutcome } from '../engine/sessionEngine'
 import { STREAM_BORDER_TOP_CLASS, type StreamKind } from '../engine/streams'
@@ -38,6 +39,20 @@ export function StreamButtons({
   feedback,
   onAssert,
 }: StreamButtonsProps) {
+  const suppressedClicks = useRef<Set<StreamKind>>(new Set())
+
+  const handleClick = (kind: StreamKind) => {
+    if (suppressedClicks.current.delete(kind)) return
+    onAssert(kind)
+  }
+
+  const handlePointerDown = (kind: StreamKind, event: PointerEvent) => {
+    if (event.pointerType === 'mouse') return
+    event.preventDefault()
+    suppressedClicks.current.add(kind)
+    onAssert(kind)
+  }
+
   return (
     <div className="mt-auto flex w-full flex-wrap gap-3">
       {activeStreams.map((kind) => {
@@ -47,9 +62,10 @@ export function StreamButtons({
             key={kind}
             type="button"
             data-feedback={flash}
-            onClick={() => onAssert(kind)}
+            onClick={() => handleClick(kind)}
+            onPointerDown={(event) => handlePointerDown(kind, event)}
             className={clsx(
-              'flex min-w-[130px] flex-1 flex-col items-center gap-1.5 rounded-xl border border-t-[3px] border-border p-3.5 transition-colors active:scale-[0.97]',
+              'flex min-w-[130px] flex-1 flex-col items-center gap-1.5 touch-manipulation rounded-xl border border-t-[3px] border-border p-3.5 transition-colors active:scale-[0.97]',
               !flash && 'bg-panel',
               STREAM_BORDER_TOP_CLASS[kind],
               flash && FLASH_CLASS[flash],
