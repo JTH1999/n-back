@@ -1,7 +1,10 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { BUILT_IN_PRESETS } from '../config/builtInPresets'
 import { useDraftConfig } from '../hooks/useDraftConfig'
 import { PresetPicker } from './PresetPicker'
+
+const FIRST_USER_PRESET_INDEX = BUILT_IN_PRESETS.length
 
 function PresetPickerHarness() {
   const [config, setConfig] = useDraftConfig()
@@ -34,7 +37,7 @@ describe('PresetPicker', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /no preset/i }))
 
-    expect(screen.getByText(/no saved presets/i)).toBeInTheDocument()
+    expect(screen.getByText('Easy')).toBeInTheDocument()
     expect(screen.getByLabelText(/preset name/i)).toBeInTheDocument()
   })
 
@@ -58,7 +61,7 @@ describe('PresetPicker', () => {
     fireEvent.click(screen.getByRole('button', { name: /mutate draft/i }))
     expect(JSON.parse(screen.getByTestId('config').textContent ?? '{}').n).toBe(5)
 
-    fireEvent.click(screen.getByRole('button', { name: /^load$/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /^load$/i })[FIRST_USER_PRESET_INDEX])
     fireEvent.click(screen.getByRole('button', { name: /discard and load/i }))
 
     expect(JSON.parse(screen.getByTestId('config').textContent ?? '{}').n).toBe(2)
@@ -71,7 +74,7 @@ describe('PresetPicker', () => {
     fireEvent.change(screen.getByLabelText(/preset name/i), { target: { value: 'Warm-up' } })
     fireEvent.click(screen.getByRole('button', { name: /save preset/i }))
 
-    fireEvent.click(screen.getByRole('button', { name: /^load$/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /^load$/i })[FIRST_USER_PRESET_INDEX])
 
     expect(screen.queryByLabelText(/preset name/i)).not.toBeInTheDocument()
   })
@@ -98,7 +101,7 @@ describe('PresetPicker', () => {
     fireEvent.click(screen.getByRole('button', { name: /save preset/i }))
     fireEvent.click(screen.getByRole('button', { name: /mutate draft/i }))
 
-    fireEvent.click(screen.getByRole('button', { name: /^load$/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /^load$/i })[FIRST_USER_PRESET_INDEX])
     fireEvent.click(screen.getByRole('button', { name: /discard and load/i }))
 
     fireEvent.click(screen.getByRole('button', { name: /^warm-up/i }))
@@ -113,7 +116,7 @@ describe('PresetPicker', () => {
     fireEvent.click(screen.getByRole('button', { name: /save preset/i }))
     fireEvent.click(screen.getByRole('button', { name: /mutate draft/i }))
 
-    fireEvent.click(screen.getByRole('button', { name: /^load$/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /^load$/i })[FIRST_USER_PRESET_INDEX])
 
     expect(screen.getByRole('alertdialog')).toBeInTheDocument()
   })
@@ -128,7 +131,7 @@ describe('PresetPicker', () => {
     fireEvent.change(screen.getByLabelText(/preset name/i), { target: { value: 'Hard mode' } })
     fireEvent.click(screen.getByRole('button', { name: /save preset/i }))
 
-    fireEvent.click(screen.getAllByRole('button', { name: /^load$/i })[0])
+    fireEvent.click(screen.getAllByRole('button', { name: /^load$/i })[FIRST_USER_PRESET_INDEX])
 
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
     expect(JSON.parse(screen.getByTestId('config').textContent ?? '{}').n).toBe(2)
@@ -145,7 +148,7 @@ describe('PresetPicker', () => {
     fireEvent.click(screen.getByRole('button', { name: /save preset/i }))
 
     fireEvent.click(screen.getByRole('button', { name: /mutate draft/i }))
-    fireEvent.click(screen.getAllByRole('button', { name: /^load$/i })[0])
+    fireEvent.click(screen.getAllByRole('button', { name: /^load$/i })[FIRST_USER_PRESET_INDEX])
 
     expect(screen.getByRole('alertdialog')).toBeInTheDocument()
   })
@@ -161,7 +164,7 @@ describe('PresetPicker', () => {
     fireEvent.click(screen.getByRole('button', { name: /save preset/i }))
 
     fireEvent.click(screen.getByRole('button', { name: /mutate draft/i }))
-    fireEvent.click(screen.getAllByRole('button', { name: /^load$/i })[0])
+    fireEvent.click(screen.getAllByRole('button', { name: /^load$/i })[FIRST_USER_PRESET_INDEX])
 
     fireEvent.click(screen.getByRole('button', { name: /^cancel$/i }))
 
@@ -180,7 +183,7 @@ describe('PresetPicker', () => {
     fireEvent.click(screen.getByRole('button', { name: /save preset/i }))
 
     fireEvent.click(screen.getByRole('button', { name: /mutate draft/i }))
-    fireEvent.click(screen.getAllByRole('button', { name: /^load$/i })[0])
+    fireEvent.click(screen.getAllByRole('button', { name: /^load$/i })[FIRST_USER_PRESET_INDEX])
 
     fireEvent.click(screen.getByRole('button', { name: /discard and load/i }))
 
@@ -199,7 +202,7 @@ describe('PresetPicker', () => {
     fireEvent.click(screen.getByRole('button', { name: /save preset/i }))
 
     fireEvent.click(screen.getByRole('button', { name: /mutate draft/i }))
-    fireEvent.click(screen.getAllByRole('button', { name: /^load$/i })[0])
+    fireEvent.click(screen.getAllByRole('button', { name: /^load$/i })[FIRST_USER_PRESET_INDEX])
 
     const dialog = screen.getByRole('alertdialog')
     fireEvent.change(within(dialog).getByLabelText(/new preset name/i), {
@@ -252,7 +255,7 @@ describe('PresetPicker', () => {
     const dialog = screen.getByRole('dialog', { name: /manage presets/i })
     fireEvent.click(within(dialog).getByRole('button', { name: /delete warm-up/i }))
 
-    expect(within(dialog).getByText(/no saved presets/i)).toBeInTheDocument()
+    expect(within(dialog).queryByText('Warm-up')).not.toBeInTheDocument()
   })
 
   it('clears the active preset button label after deleting the active preset from the modal', () => {

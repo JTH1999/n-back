@@ -51,6 +51,7 @@ export function PresetList({
     <div className="flex flex-col gap-3">
       {presets.map((preset) => {
         const isEditing = editingId === preset.id
+        const canEdit = !preset.readOnly
         return (
           <div
             key={preset.id}
@@ -84,6 +85,11 @@ export function PresetList({
               <div className="flex-1 min-w-0">
                 <div className="text-[15px] font-semibold">
                   {preset.name}
+                  {preset.readOnly && (
+                    <span className="ml-2 font-mono text-[11px] tracking-[0.1em] text-dim uppercase">
+                      Template
+                    </span>
+                  )}
                   {preset.id === activePresetId && (
                     <span className="ml-2 font-mono text-[11px] tracking-[0.1em] text-accent uppercase">
                       {isActiveModified ? 'Modified' : 'Active'}
@@ -110,7 +116,7 @@ export function PresetList({
                   <Button variant="ghost" onClick={() => onLoad(preset.id)}>
                     Load
                   </Button>
-                  {onRename && (
+                  {onRename && canEdit && (
                     <Button
                       variant="icon"
                       aria-label={`Rename ${preset.name}`}
@@ -119,7 +125,7 @@ export function PresetList({
                       ✎
                     </Button>
                   )}
-                  {onDelete && (
+                  {onDelete && canEdit && (
                     <Button
                       variant="icon"
                       aria-label={`Delete ${preset.name}`}

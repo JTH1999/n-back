@@ -103,6 +103,7 @@ export function ConfigForm({ config, setConfig, onStart }: ConfigFormProps) {
           : null))
 
   const isValid = validationMessage === null
+  const matchRate = config.matchRate ?? DEFAULT_MATCH_RATE
 
   const handleToggleStream = (kind: StreamKind) => {
     setConfig((current) => ({
@@ -222,6 +223,16 @@ export function ConfigForm({ config, setConfig, onStart }: ConfigFormProps) {
               value={config.trialCount}
               onChange={(value) => setConfig({ ...config, trialCount: value })}
             />
+            <SliderParam
+              label="Match rate"
+              ariaLabel="Match rate"
+              valueLabel={`${Math.round(matchRate * 100)}%`}
+              min={0.1}
+              max={0.5}
+              step={0.05}
+              value={matchRate}
+              onChange={(value) => setConfig({ ...config, matchRate: value })}
+            />
             <ToggleRow
               label="Live feedback"
               hint="show correctness mid-trial"
@@ -270,7 +281,7 @@ export function ConfigForm({ config, setConfig, onStart }: ConfigFormProps) {
           <Panel>
             <SubHeading className="mb-3">Configuration</SubHeading>
             <InfoLine label="Active streams" value={activeStreamsSummary} />
-            <InfoLine label="Match rate" value={`${Math.round(DEFAULT_MATCH_RATE * 100)}%`} />
+            <InfoLine label="Match rate" value={`${Math.round(matchRate * 100)}%`} />
             <InfoLine label="Est. duration" value={estimatedDuration} />
             <InfoLine label="Judged trials" value={`${judgedCount}`} />
             {validationMessage && (
