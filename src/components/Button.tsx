@@ -3,11 +3,12 @@ import type { ButtonHTMLAttributes } from 'react'
 import { GHOST_BUTTON_CLASS } from '../styles/controls'
 
 const PRIMARY_BUTTON_CLASS =
-  'rounded-lg bg-accent px-4 py-2.5 font-semibold text-accent-fg disabled:cursor-not-allowed disabled:bg-panel disabled:text-dim2'
+  'rounded-lg bg-accent px-4 py-2.5 font-mono text-[13px] font-semibold text-accent-fg disabled:cursor-not-allowed disabled:bg-panel disabled:text-dim2'
 
 const ICON_BUTTON_CLASS = 'rounded-md p-2 text-dim hover:bg-panel2 hover:text-danger'
 
-const DANGER_BUTTON_CLASS = 'rounded-lg bg-danger px-4 py-2.5 font-semibold text-white'
+const DANGER_BUTTON_CLASS =
+  'rounded-lg bg-danger px-4 py-2.5 font-mono text-[13px] font-semibold text-white'
 
 const VARIANT_CLASS = {
   primary: PRIMARY_BUTTON_CLASS,
