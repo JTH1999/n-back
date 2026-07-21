@@ -5,6 +5,8 @@ import { summarizePresetConfig } from '../config/presetSummary'
 import { BORDERED_CONTROL_CLASS } from '../styles/controls'
 import { Button } from './Button'
 
+const PRESET_ROW_MAIN_CLASS = 'flex-1 min-w-[12rem]'
+
 export interface PresetListProps {
   presets: Preset[]
   activePresetId: string | null
@@ -56,7 +58,7 @@ export function PresetList({
           <div
             key={preset.id}
             className={clsx(
-              'flex items-center gap-3 rounded-xl border bg-panel p-[16px_18px]',
+              'flex flex-wrap items-center gap-3 rounded-xl border bg-panel p-[16px_18px]',
               preset.id === activePresetId ? 'border-accent' : 'border-border',
             )}
           >
@@ -78,11 +80,12 @@ export function PresetList({
                 aria-label={`New name for ${preset.name}`}
                 className={clsx(
                   BORDERED_CONTROL_CLASS,
-                  'flex-1 min-w-0 bg-panel2 px-3 py-2 font-mono text-sm',
+                  PRESET_ROW_MAIN_CLASS,
+                  'bg-panel2 px-3 py-2 font-mono text-sm',
                 )}
               />
             ) : (
-              <div className="flex-1 min-w-0">
+              <div className={PRESET_ROW_MAIN_CLASS}>
                 <div className="text-[15px] font-semibold">
                   {preset.name}
                   {preset.readOnly && (
@@ -101,7 +104,7 @@ export function PresetList({
                 </div>
               </div>
             )}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 ml-auto">
               {isEditing ? (
                 <>
                   <Button variant="ghost" onClick={handleCommitRename}>
