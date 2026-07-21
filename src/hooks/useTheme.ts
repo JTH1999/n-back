@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { ResolvedTheme, ThemeOverride } from '../config/theme'
+import { BACKGROUND_COLOR, type ResolvedTheme, type ThemeOverride } from '../config/theme'
 import { clearThemeOverride, loadThemeOverride, saveThemeOverride } from '../persistence/themeStorage'
 
 const DARK_MEDIA_QUERY = '(prefers-color-scheme: dark)'
@@ -34,6 +34,11 @@ export function useTheme(): UseThemeResult {
   useEffect(() => {
     if (typeof document === 'undefined') return
     document.documentElement.classList.toggle('dark', resolvedTheme === 'dark')
+  }, [resolvedTheme])
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', BACKGROUND_COLOR[resolvedTheme])
   }, [resolvedTheme])
 
   const setOverride = useCallback((theme: ThemeOverride | null) => {
