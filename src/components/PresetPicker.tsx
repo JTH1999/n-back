@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { summarizePresetConfig } from '../config/presetSummary'
 import { isPresetConfigEqual, usePresets } from '../hooks/usePresets'
@@ -8,6 +8,8 @@ import { ManagePresetsModal } from './ManagePresetsModal'
 import { PresetList } from './PresetList'
 import { PresetLoadConfirmDialog } from './PresetLoadConfirmDialog'
 import { SavePresetPanel } from './SavePresetPanel'
+
+const VIEWPORT_EDGE_MARGIN_PX = 16
 
 export interface PresetPickerProps {
   config: SessionRunnerConfig
@@ -19,7 +21,9 @@ export function PresetPicker({ config, setConfig }: PresetPickerProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isManageOpen, setIsManageOpen] = useState(false)
   const [pendingPresetId, setPendingPresetId] = useState<string | null>(null)
+  const [panelOffsetX, setPanelOffsetX] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!isOpen) return
@@ -32,6 +36,31 @@ export function PresetPicker({ config, setConfig }: PresetPickerProps) {
 
     document.addEventListener('mousedown', handlePointerDown)
     return () => document.removeEventListener('mousedown', handlePointerDown)
+  }, [isOpen])
+
+  useLayoutEffect(() => {
+    if (!isOpen) {
+      setPanelOffsetX(0)
+      return
+    }
+
+    function handleResize() {
+      const container = containerRef.current
+      const panel = panelRef.current
+      if (!container || !panel) return
+
+      const containerRight = container.getBoundingClientRect().right
+      const panelWidth = panel.offsetWidth
+      const naturalLeft = containerRight - panelWidth
+      const minLeft = VIEWPORT_EDGE_MARGIN_PX
+      const maxLeft = window.innerWidth - VIEWPORT_EDGE_MARGIN_PX - panelWidth
+      const clampedLeft = Math.min(Math.max(naturalLeft, minLeft), maxLeft)
+      setPanelOffsetX(clampedLeft - naturalLeft)
+    }
+
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
   }, [isOpen])
 
   const activePreset = presets.find((preset) => preset.id === activePresetId)
@@ -97,7 +126,11 @@ export function PresetPicker({ config, setConfig }: PresetPickerProps) {
         ▾
       </Button>
       {isOpen && (
-        <div className="absolute top-[calc(100%+8px)] right-0 z-10 flex flex-col gap-4 p-4 w-80 rounded-xl border border-border bg-panel shadow-lg">
+        <div
+          ref={panelRef}
+          style={panelOffsetX !== 0 ? { transform: `translateX(${panelOffsetX}px)` } : undefined}
+          className="absolute top-[calc(100%+8px)] right-0 z-10 flex flex-col gap-4 p-4 w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-panel shadow-lg"
+        >
           <PresetList
             presets={presets}
             activePresetId={activePresetId}
