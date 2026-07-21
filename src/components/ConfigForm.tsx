@@ -135,7 +135,7 @@ export function ConfigForm({ config, setConfig, onStart }: ConfigFormProps) {
         <ScreenHeader eyebrow="Configure" title="Session Setup" />
         <div className="flex items-center gap-3">
           <PresetPicker config={config} setConfig={setConfig} />
-          <Button type="submit" disabled={!isValid} className="font-mono">
+          <Button type="submit" disabled={!isValid}>
             Start Session →
           </Button>
         </div>

@@ -33,7 +33,7 @@ export function Grid({ stimulus }: GridProps) {
                 className={clsx(
                   'h-[62%] w-[62%]',
                   stimulus.shape ? SHAPE_CLASS[stimulus.shape] : 'rounded-lg',
-                  stimulus.color ? COLOR_BG_CLASS[stimulus.color] : 'bg-tile',
+                  stimulus.color ? COLOR_BG_CLASS[stimulus.color] : COLOR_BG_CLASS.blue,
                 )}
               />
             )}
