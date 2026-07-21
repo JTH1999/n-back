@@ -27,10 +27,14 @@ function stubMatchMedia(matches: boolean) {
 beforeEach(() => {
   window.localStorage.clear()
   document.documentElement.classList.remove('dark')
+  const meta = document.createElement('meta')
+  meta.setAttribute('name', 'theme-color')
+  document.head.appendChild(meta)
 })
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  document.querySelector('meta[name="theme-color"]')?.remove()
 })
 
 describe('useTheme', () => {
@@ -92,6 +96,31 @@ describe('useTheme', () => {
     expect(result.current.override).toBeNull()
     expect(result.current.resolvedTheme).toBe('dark')
     expect(loadThemeOverride()).toBeNull()
+  })
+
+  it('sets the theme-color meta tag to match the light background', () => {
+    stubMatchMedia(false)
+    renderHook(() => useTheme())
+
+    expect(document.querySelector('meta[name="theme-color"]')?.getAttribute('content')).toBe('#f2f5f6')
+  })
+
+  it('sets the theme-color meta tag to match the dark background', () => {
+    stubMatchMedia(true)
+    renderHook(() => useTheme())
+
+    expect(document.querySelector('meta[name="theme-color"]')?.getAttribute('content')).toBe('#15181b')
+  })
+
+  it('updates the theme-color meta tag when the override changes', () => {
+    stubMatchMedia(false)
+    const { result } = renderHook(() => useTheme())
+
+    act(() => {
+      result.current.setOverride('dark')
+    })
+
+    expect(document.querySelector('meta[name="theme-color"]')?.getAttribute('content')).toBe('#15181b')
   })
 
   it('tracks system preference changes when no override is set', () => {
