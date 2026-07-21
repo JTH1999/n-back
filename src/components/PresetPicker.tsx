@@ -97,7 +97,7 @@ export function PresetPicker({ config, setConfig }: PresetPickerProps) {
         ▾
       </Button>
       {isOpen && (
-        <div className="absolute top-[calc(100%+8px)] right-0 z-10 flex flex-col gap-4 p-4 w-80 rounded-xl border border-border bg-panel shadow-lg">
+        <div className="absolute top-[calc(100%+8px)] left-0 right-auto z-10 flex flex-col gap-4 p-4 w-[calc(100vw-3rem)] max-w-80 rounded-xl border border-border bg-panel shadow-lg sm:left-auto sm:right-0">
           <PresetList
             presets={presets}
             activePresetId={activePresetId}
