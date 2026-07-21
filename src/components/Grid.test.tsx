@@ -17,11 +17,10 @@ describe('Grid', () => {
     expect(cell.querySelector('div > div')).toHaveClass('bg-palette-orange')
   })
 
-  it('does not apply the blue fallback when the Shape stream is inactive', () => {
+  it('renders the neutral marker in blue when Shape and Color are both inactive', () => {
     render(<Grid stimulus={{ cell: 0, shape: null, color: null }} />)
 
     const cell = screen.getByTestId('grid-cell-0')
-    expect(cell.querySelector('div > div')).toHaveClass('bg-tile')
-    expect(cell.querySelector('div > div')).not.toHaveClass('bg-palette-blue')
+    expect(cell.querySelector('div > div')).toHaveClass('bg-palette-blue')
   })
 })
