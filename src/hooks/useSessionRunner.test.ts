@@ -1,6 +1,11 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { FEEDBACK_FLASH_MS, useSessionRunner, type SessionRunnerConfig } from './useSessionRunner'
+import {
+  FEEDBACK_FLASH_MS,
+  PRE_TRIAL_PAUSE_MS,
+  useSessionRunner,
+  type SessionRunnerConfig,
+} from './useSessionRunner'
 
 const config: SessionRunnerConfig = {
   n: 1,
@@ -28,6 +33,9 @@ describe('useSessionRunner input gating during the feedback pause', () => {
     const { result } = renderHook(() => useSessionRunner(config))
 
     act(() => {
+      vi.advanceTimersByTime(PRE_TRIAL_PAUSE_MS)
+    })
+    act(() => {
       vi.advanceTimersByTime(config.trialLengthMs)
     })
 
@@ -54,6 +62,9 @@ describe('useSessionRunner input gating during the feedback pause', () => {
     const { result } = renderHook(() => useSessionRunner(config))
 
     act(() => {
+      vi.advanceTimersByTime(PRE_TRIAL_PAUSE_MS)
+    })
+    act(() => {
       vi.advanceTimersByTime(config.trialLengthMs)
     })
     act(() => {
@@ -79,6 +90,9 @@ describe('useSessionRunner pause and resume', () => {
     const { result } = renderHook(() => useSessionRunner(config))
 
     act(() => {
+      vi.advanceTimersByTime(PRE_TRIAL_PAUSE_MS)
+    })
+    act(() => {
       result.current.pause()
     })
 
@@ -98,6 +112,9 @@ describe('useSessionRunner pause and resume', () => {
     const { result } = renderHook(() => useSessionRunner(config))
 
     act(() => {
+      vi.advanceTimersByTime(PRE_TRIAL_PAUSE_MS)
+    })
+    act(() => {
       result.current.pause()
     })
 
@@ -108,6 +125,9 @@ describe('useSessionRunner pause and resume', () => {
     vi.useFakeTimers()
     const { result } = renderHook(() => useSessionRunner(config))
 
+    act(() => {
+      vi.advanceTimersByTime(PRE_TRIAL_PAUSE_MS)
+    })
     act(() => {
       vi.advanceTimersByTime(config.trialLengthMs - 20)
     })
@@ -139,6 +159,9 @@ describe('useSessionRunner pause and resume', () => {
     vi.useFakeTimers()
     const { result } = renderHook(() => useSessionRunner(config))
 
+    act(() => {
+      vi.advanceTimersByTime(PRE_TRIAL_PAUSE_MS)
+    })
     act(() => {
       vi.advanceTimersByTime(config.trialLengthMs)
     })

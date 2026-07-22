@@ -47,6 +47,10 @@ function App() {
     setSessionKey((key) => key + 1)
   }
 
+  const handleRestartSession = () => {
+    setSessionKey((key) => key + 1)
+  }
+
   return (
     <AppShell navItems={NAV_ITEMS} activeId={screen} onNavigate={setScreen} streak={streak}>
       {activeConfig ? (
@@ -55,6 +59,7 @@ function App() {
           config={activeConfig}
           keymap={keymap}
           onRestart={() => setActiveConfig(null)}
+          onRestartSession={handleRestartSession}
           onReturnToSetup={handleReturnToSetup}
           onPlayAgain={handlePlayAgain}
           onSessionComplete={() => setHistory(loadHistory())}

@@ -20,6 +20,7 @@ export interface SessionRunnerProps {
   config: SessionRunnerConfig
   keymap: Keymap
   onRestart: () => void
+  onRestartSession: () => void
   onReturnToSetup: (n: number) => void
   onPlayAgain: (n: number) => void
   onSessionComplete?: () => void
@@ -55,6 +56,7 @@ export function SessionRunner({
   config,
   keymap,
   onRestart,
+  onRestartSession,
   onReturnToSetup,
   onPlayAgain,
   onSessionComplete,
@@ -160,6 +162,10 @@ export function SessionRunner({
     setShowAbortConfirm(false)
     onRestart()
   }
+  const handleRestartSessionConfirm = () => {
+    setShowAbortConfirm(false)
+    onRestartSession()
+  }
 
   const stimulus = getStimulusDisplay(state, stimulusVisible)
   const audioActive = stimulusVisible && state.activeStreams.includes('letter')
@@ -214,6 +220,9 @@ export function SessionRunner({
           <div className="mt-3 flex gap-2.5">
             <Button variant="ghost" onClick={handleAbortDecline}>
               Keep training
+            </Button>
+            <Button variant="primary" onClick={handleRestartSessionConfirm}>
+              Restart
             </Button>
             <Button variant="danger" onClick={handleAbortConfirm}>
               Abort
