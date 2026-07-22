@@ -38,13 +38,19 @@ export interface SessionRunner {
   resume: () => void
 }
 
-// Between trials, once a trial resolves. Feedback occupies this whole gap, and
-// no stimulus is shown, so it never overlaps the next trial's question.
-type Phase = 'trial' | 'feedback'
+// 'countdown' is a brief pause before the very first trial, giving the user
+// a moment to reorient after the config screen. 'feedback' sits between
+// trials, once a trial resolves — it occupies the whole gap, and no stimulus
+// is shown, so it never overlaps the next trial's question.
+type Phase = 'countdown' | 'trial' | 'feedback'
 
 // A quick flash, deliberately shorter than the stimulus display duration —
 // long enough to register, brief enough not to slow down the session.
 export const FEEDBACK_FLASH_MS = 500
+
+// Gives the user a moment to reorient after switching from the config screen
+// before the first trial begins.
+export const PRE_TRIAL_PAUSE_MS = 2000
 
 function consumeElapsed(remainingRef: { current: number }, start: number): void {
   remainingRef.current = Math.max(0, remainingRef.current - (Date.now() - start))
@@ -52,8 +58,8 @@ function consumeElapsed(remainingRef: { current: number }, start: number): void 
 
 export function useSessionRunner(config: SessionRunnerConfig): SessionRunner {
   const [state, setState] = useState<SessionState>(() => createSession(config))
-  const [stimulusVisible, setStimulusVisible] = useState(true)
-  const [phase, setPhase] = useState<Phase>('trial')
+  const [stimulusVisible, setStimulusVisible] = useState(false)
+  const [phase, setPhase] = useState<Phase>('countdown')
   const [paused, setPaused] = useState(false)
   const currentLetter = state.streams.letter?.sequence[state.currentTrialIndex] ?? null
 
@@ -62,6 +68,7 @@ export function useSessionRunner(config: SessionRunnerConfig): SessionRunner {
   const hideRemainingRef = useRef(config.displayDurationMs)
   const endRemainingRef = useRef(config.trialLengthMs)
   const feedbackRemainingRef = useRef(FEEDBACK_FLASH_MS)
+  const countdownRemainingRef = useRef(PRE_TRIAL_PAUSE_MS)
 
   useEffect(() => {
     if (state.status !== 'active' || !currentLetter) return
@@ -72,6 +79,16 @@ export function useSessionRunner(config: SessionRunnerConfig): SessionRunner {
     hideRemainingRef.current = config.displayDurationMs
     endRemainingRef.current = config.trialLengthMs
   }, [state.currentTrialIndex, config.displayDurationMs, config.trialLengthMs])
+
+  useEffect(() => {
+    if (phase !== 'countdown' || paused) return
+    const start = Date.now()
+    const endCountdown = setTimeout(() => setPhase('trial'), countdownRemainingRef.current)
+    return () => {
+      clearTimeout(endCountdown)
+      consumeElapsed(countdownRemainingRef, start)
+    }
+  }, [phase, paused])
 
   useEffect(() => {
     if (state.status !== 'active' || phase !== 'trial' || paused) return

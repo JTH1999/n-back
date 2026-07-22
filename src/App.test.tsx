@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import * as settingsStorage from './persistence/settingsStorage'
 import { saveDraftSettings } from './persistence/settingsStorage'
-import type { SessionRunnerConfig } from './hooks/useSessionRunner'
+import { PRE_TRIAL_PAUSE_MS, type SessionRunnerConfig } from './hooks/useSessionRunner'
 
 const fastConfig: SessionRunnerConfig = {
   n: 1,
@@ -57,6 +57,9 @@ describe('App navigation during a session', () => {
     fireEvent.click(screen.getByRole('button', { name: /start session/i }))
 
     act(() => {
+      vi.advanceTimersByTime(PRE_TRIAL_PAUSE_MS)
+    })
+    act(() => {
       vi.advanceTimersByTime(fastConfig.trialLengthMs)
     })
 
@@ -109,6 +112,9 @@ describe('App summary actions', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /start session/i }))
     act(() => {
+      vi.advanceTimersByTime(PRE_TRIAL_PAUSE_MS)
+    })
+    act(() => {
       vi.advanceTimersByTime(fastConfig.trialLengthMs)
     })
     expect(screen.getByText(/session results/i)).toBeInTheDocument()
@@ -126,6 +132,9 @@ describe('App summary actions', () => {
     render(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: /start session/i }))
+    act(() => {
+      vi.advanceTimersByTime(PRE_TRIAL_PAUSE_MS)
+    })
     act(() => {
       vi.advanceTimersByTime(fastConfig.trialLengthMs)
     })
@@ -149,6 +158,9 @@ describe('App summary actions', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /start session/i }))
     act(() => {
+      vi.advanceTimersByTime(PRE_TRIAL_PAUSE_MS)
+    })
+    act(() => {
       vi.advanceTimersByTime(fastConfig.trialLengthMs)
     })
     fireEvent.keyDown(window, { key: 'a' })
@@ -171,12 +183,18 @@ describe('App summary actions', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /start session/i }))
     act(() => {
+      vi.advanceTimersByTime(PRE_TRIAL_PAUSE_MS)
+    })
+    act(() => {
       vi.advanceTimersByTime(fastConfig.trialLengthMs)
     })
     fireEvent.click(screen.getByRole('button', { name: /increase n/i }))
     fireEvent.click(screen.getByRole('button', { name: /play again/i }))
 
     expect(screen.getByText('N = 2')).toBeInTheDocument()
+    act(() => {
+      vi.advanceTimersByTime(PRE_TRIAL_PAUSE_MS)
+    })
     act(() => {
       vi.advanceTimersByTime(fastConfig.trialLengthMs)
     })
@@ -216,6 +234,9 @@ describe('App nav bar streak', () => {
     expect(sessionCount()).toHaveTextContent('0')
 
     fireEvent.click(screen.getByRole('button', { name: /start session/i }))
+    act(() => {
+      vi.advanceTimersByTime(PRE_TRIAL_PAUSE_MS)
+    })
     act(() => {
       vi.advanceTimersByTime(fastConfig.trialLengthMs)
     })
