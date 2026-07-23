@@ -21,6 +21,10 @@ function toRecord(row: PresetRow): RemotePresetRecord {
   return { id: row.id, name: row.name, config: row.config, updatedAt: row.updated_at, deletedAt: row.deleted_at }
 }
 
+function toPreset(record: RemotePresetRecord): Preset {
+  return { id: record.id, name: record.name, config: record.config, updatedAt: record.updatedAt }
+}
+
 function toRow(preset: Preset, userId: string) {
   return {
     id: preset.id,
@@ -101,7 +105,7 @@ export function mergePresets(local: Preset[], remote: RemotePresetRecord[]): Mer
       continue
     }
     if (updatedAtMs(remoteRecord.updatedAt) > updatedAtMs(preset.updatedAt)) {
-      merged.push({ id: remoteRecord.id, name: remoteRecord.name, config: remoteRecord.config, updatedAt: remoteRecord.updatedAt })
+      merged.push(toPreset(remoteRecord))
     } else {
       merged.push(preset)
       toPush.push(preset)
@@ -110,7 +114,7 @@ export function mergePresets(local: Preset[], remote: RemotePresetRecord[]): Mer
 
   for (const record of remote) {
     if (localIds.has(record.id) || record.deletedAt) continue
-    merged.push({ id: record.id, name: record.name, config: record.config, updatedAt: record.updatedAt })
+    merged.push(toPreset(record))
   }
 
   return { merged, toPush }

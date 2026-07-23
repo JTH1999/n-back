@@ -85,11 +85,11 @@ export function usePresets(): UsePresetsResult {
     }
   }, [status, userId])
 
-  const commitUserPreset = useCallback(
-    (next: Preset[], changed: Preset) => {
+  const commitUserPresets = useCallback(
+    (next: Preset[], pushChange: (userId: string) => void) => {
       savePresets(next)
       mutationVersionRef.current += 1
-      if (status === 'authenticated' && userId) void pushPreset(userId, changed)
+      if (status === 'authenticated' && userId) pushChange(userId)
     },
     [status, userId],
   )
@@ -104,13 +104,13 @@ export function usePresets(): UsePresetsResult {
       }
       setUserPresets((current) => {
         const next = [...current, preset]
-        commitUserPreset(next, preset)
+        commitUserPresets(next, (userId) => void pushPreset(userId, preset))
         return next
       })
       setActivePresetId(preset.id)
       saveLastPresetId(preset.id)
     },
-    [commitUserPreset],
+    [commitUserPresets],
   )
 
   const loadPreset = useCallback(
@@ -134,21 +134,23 @@ export function usePresets(): UsePresetsResult {
           renamed = { ...preset, name, updatedAt: new Date().toISOString() }
           return renamed
         })
-        if (renamed) commitUserPreset(next, renamed)
+        if (renamed) {
+          const changed = renamed
+          commitUserPresets(next, (userId) => void pushPreset(userId, changed))
+        }
         return next
       })
     },
-    [commitUserPreset],
+    [commitUserPresets],
   )
 
   const deletePreset = useCallback(
     (id: string) => {
       if (BUILT_IN_PRESETS.some((preset) => preset.id === id)) return
+      const deletedAt = new Date().toISOString()
       setUserPresets((current) => {
         const next = current.filter((preset) => preset.id !== id)
-        savePresets(next)
-        mutationVersionRef.current += 1
-        if (status === 'authenticated' && userId) void pushTombstone(userId, id, new Date().toISOString())
+        commitUserPresets(next, (userId) => void pushTombstone(userId, id, deletedAt))
         return next
       })
       setActivePresetId((current) => {
@@ -157,7 +159,7 @@ export function usePresets(): UsePresetsResult {
         return null
       })
     },
-    [status, userId],
+    [commitUserPresets],
   )
 
   return { presets, activePresetId, savePreset, loadPreset, renamePreset, deletePreset }
