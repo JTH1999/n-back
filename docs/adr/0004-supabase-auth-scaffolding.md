@@ -1,0 +1,5 @@
+# Supabase for authentication only, sign-ups disabled
+
+The app gains a single-user login/logout (Supabase, email + password) so future work can sync presets and history across devices. Sign-ups are disabled at the Supabase project level — the one account is created manually via the dashboard, so there is no self-service registration flow to build or secure. Password reset is a separate, narrower concern: the login form has a disabled "forgot password" stub, wired up in a later ticket. `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are supplied at build time from GitHub Actions repo secrets, matching Vite's existing `VITE_`-prefixed env var convention, and are never committed.
+
+This qualifies [ADR-0002](0002-localstorage-only-persistence.md): the app is no longer backend-free, since it now depends on Supabase for auth. Session history, stats, and presets are unaffected — they stay in `localStorage` exactly as before, regardless of auth state, until a later ticket wires up sync. Until then, logging in only proves identity; it doesn't yet change what data the app reads or writes.

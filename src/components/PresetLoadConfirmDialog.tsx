@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import clsx from 'clsx'
-import { BORDERED_CONTROL_CLASS } from '../styles/controls'
+import { TEXT_INPUT_CLASS } from '../styles/controls'
 import { Button } from './Button'
 import { Overlay } from './Overlay'
 
@@ -44,7 +43,7 @@ export function PresetLoadConfirmDialog({
         }}
         placeholder="New preset name…"
         aria-label="New preset name"
-        className={clsx(BORDERED_CONTROL_CLASS, 'w-full bg-panel2 px-3 py-2.5 font-mono text-sm')}
+        className={TEXT_INPUT_CLASS}
       />
       <div className="mt-3 flex w-full flex-col gap-2.5">
         <Button disabled={!name.trim()} onClick={handleSaveAsNewAndLoad}>
