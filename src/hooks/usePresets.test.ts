@@ -4,15 +4,21 @@ import { BUILT_IN_PRESETS } from '../config/builtInPresets'
 
 const mockUseAuth = vi.fn()
 const mockFetchRemotePresets = vi.fn()
-const mockReplaceRemotePresets = vi.fn()
+const mockPushPreset = vi.fn()
+const mockPushTombstone = vi.fn()
 
 vi.mock('./useAuth', () => ({
   useAuth: (...args: unknown[]) => mockUseAuth(...args),
 }))
-vi.mock('../persistence/presetSync', () => ({
-  fetchRemotePresets: (...args: unknown[]) => mockFetchRemotePresets(...args),
-  replaceRemotePresets: (...args: unknown[]) => mockReplaceRemotePresets(...args),
-}))
+vi.mock('../persistence/presetSync', async () => {
+  const actual = await vi.importActual<typeof import('../persistence/presetSync')>('../persistence/presetSync')
+  return {
+    mergePresets: actual.mergePresets,
+    fetchRemotePresets: (...args: unknown[]) => mockFetchRemotePresets(...args),
+    pushPreset: (...args: unknown[]) => mockPushPreset(...args),
+    pushTombstone: (...args: unknown[]) => mockPushTombstone(...args),
+  }
+})
 
 import { isPresetConfigEqual, usePresets, type PresetConfig } from './usePresets'
 
@@ -37,7 +43,8 @@ beforeEach(() => {
   vi.clearAllMocks()
   mockUseAuth.mockReturnValue({ status: 'unauthenticated', userId: null })
   mockFetchRemotePresets.mockResolvedValue(null)
-  mockReplaceRemotePresets.mockResolvedValue(undefined)
+  mockPushPreset.mockResolvedValue(undefined)
+  mockPushTombstone.mockResolvedValue(undefined)
 })
 
 describe('usePresets', () => {
@@ -322,20 +329,27 @@ describe('usePresets sync', () => {
     })
 
     expect(mockFetchRemotePresets).not.toHaveBeenCalled()
-    expect(mockReplaceRemotePresets).not.toHaveBeenCalled()
+    expect(mockPushPreset).not.toHaveBeenCalled()
   })
 
-  it('pulls remote presets and overwrites local storage when the remote list is non-empty', async () => {
+  it('pulls remote presets and adopts them locally when the remote list is non-empty', async () => {
     mockUseAuth.mockReturnValue({ status: 'authenticated', userId: 'user-1' })
-    const remotePreset = { id: 'remote-1', name: 'From cloud', config, updatedAt: '2026-07-08T12:00:00.000Z' }
+    const remotePreset = {
+      id: 'remote-1',
+      name: 'From cloud',
+      config,
+      updatedAt: '2026-07-08T12:00:00.000Z',
+      deletedAt: null,
+    }
     mockFetchRemotePresets.mockResolvedValue([remotePreset])
 
     const { result } = renderHook(() => usePresets())
 
-    await waitFor(() => expect(userPresetsOf(result)).toEqual([remotePreset]))
+    const expected = { id: 'remote-1', name: 'From cloud', config, updatedAt: '2026-07-08T12:00:00.000Z' }
+    await waitFor(() => expect(userPresetsOf(result)).toEqual([expected]))
     expect(mockFetchRemotePresets).toHaveBeenCalledWith('user-1')
-    expect(JSON.parse(window.localStorage.getItem('n-back:presets') ?? '[]')).toEqual([remotePreset])
-    expect(mockReplaceRemotePresets).not.toHaveBeenCalled()
+    expect(JSON.parse(window.localStorage.getItem('n-back:presets') ?? '[]')).toEqual([expected])
+    expect(mockPushPreset).not.toHaveBeenCalled()
   })
 
   it('seeds the cloud with existing local presets on first login with an empty remote account', async () => {
@@ -348,14 +362,12 @@ describe('usePresets sync', () => {
 
     const { result } = renderHook(() => usePresets())
 
-    await waitFor(() => expect(mockReplaceRemotePresets).toHaveBeenCalled())
-    expect(mockReplaceRemotePresets).toHaveBeenCalledWith('user-1', [
-      { id: 'local-1', name: 'Local only', config },
-    ])
+    await waitFor(() => expect(mockPushPreset).toHaveBeenCalled())
+    expect(mockPushPreset).toHaveBeenCalledWith('user-1', { id: 'local-1', name: 'Local only', config })
     expect(userPresetsOf(result)).toEqual([{ id: 'local-1', name: 'Local only', config }])
   })
 
-  it('pushes the full local list to Supabase after a mutation while authenticated', async () => {
+  it('pushes only the changed preset to Supabase after a mutation while authenticated', async () => {
     mockUseAuth.mockReturnValue({ status: 'authenticated', userId: 'user-1' })
     mockFetchRemotePresets.mockResolvedValue([])
 
@@ -366,8 +378,29 @@ describe('usePresets sync', () => {
       result.current.savePreset('Warm-up', config)
     })
 
-    await waitFor(() => expect(mockReplaceRemotePresets).toHaveBeenCalledTimes(1))
-    expect(mockReplaceRemotePresets).toHaveBeenCalledWith('user-1', userPresetsOf(result))
+    await waitFor(() => expect(mockPushPreset).toHaveBeenCalledTimes(1))
+    expect(mockPushPreset).toHaveBeenCalledWith('user-1', userPresetsOf(result)[0])
+  })
+
+  it('pushes a tombstone instead of hard-deleting when deleting while authenticated', async () => {
+    mockUseAuth.mockReturnValue({ status: 'authenticated', userId: 'user-1' })
+    mockFetchRemotePresets.mockResolvedValue([])
+
+    const { result } = renderHook(() => usePresets())
+    await waitFor(() => expect(mockFetchRemotePresets).toHaveBeenCalledTimes(1))
+
+    act(() => {
+      result.current.savePreset('Warm-up', config)
+    })
+    const id = userPresetsOf(result)[0].id
+    mockPushPreset.mockClear()
+
+    act(() => {
+      result.current.deletePreset(id)
+    })
+
+    expect(mockPushTombstone).toHaveBeenCalledWith('user-1', id, expect.any(String))
+    expect(userPresetsOf(result)).toEqual([])
   })
 
   it('keeps a local mutation that races ahead of a slow initial pull', async () => {
@@ -400,11 +433,53 @@ describe('usePresets sync', () => {
     mockFetchRemotePresets.mockResolvedValue([])
 
     const { result } = renderHook(() => usePresets())
-    await waitFor(() => expect(mockReplaceRemotePresets).toHaveBeenCalled())
+    await waitFor(() => expect(mockPushPreset).toHaveBeenCalled())
 
-    const pushedIds = mockReplaceRemotePresets.mock.calls[0][1].map((preset: { id: string }) => preset.id)
+    const pushedIds = mockPushPreset.mock.calls.map((call) => (call[1] as { id: string }).id)
     expect(pushedIds.some((id: string) => BUILT_IN_PRESETS.some((preset) => preset.id === id))).toBe(false)
     expect(result.current.presets.slice(0, BUILT_IN_COUNT)).toEqual(BUILT_IN_PRESETS)
+  })
+
+  it('resolves an edit conflict to whichever session has the later updatedAt', async () => {
+    mockUseAuth.mockReturnValue({ status: 'authenticated', userId: 'user-1' })
+    const local = { id: 'preset-1', name: 'Local edit', config, updatedAt: '2026-07-09T12:00:00.000Z' }
+    window.localStorage.setItem('n-back:presets', JSON.stringify([local]))
+    mockFetchRemotePresets.mockResolvedValue([
+      {
+        id: 'preset-1',
+        name: 'Remote edit (older)',
+        config,
+        updatedAt: '2026-07-08T12:00:00.000Z',
+        deletedAt: null,
+      },
+    ])
+
+    const { result } = renderHook(() => usePresets())
+
+    await waitFor(() => expect(mockPushPreset).toHaveBeenCalled())
+    expect(userPresetsOf(result)).toEqual([local])
+    expect(mockPushPreset).toHaveBeenCalledWith('user-1', local)
+  })
+
+  it('removes a locally-held preset once the remote copy is tombstoned', async () => {
+    mockUseAuth.mockReturnValue({ status: 'authenticated', userId: 'user-1' })
+    const local = { id: 'preset-1', name: 'Local copy', config, updatedAt: '2026-07-09T12:00:00.000Z' }
+    window.localStorage.setItem('n-back:presets', JSON.stringify([local]))
+    mockFetchRemotePresets.mockResolvedValue([
+      {
+        id: 'preset-1',
+        name: 'Local copy',
+        config,
+        updatedAt: '2026-07-08T12:00:00.000Z',
+        deletedAt: '2026-07-10T12:00:00.000Z',
+      },
+    ])
+
+    const { result } = renderHook(() => usePresets())
+
+    await waitFor(() => expect(userPresetsOf(result)).toEqual([]))
+    expect(JSON.parse(window.localStorage.getItem('n-back:presets') ?? '[]')).toEqual([])
+    expect(mockPushPreset).not.toHaveBeenCalled()
   })
 })
 

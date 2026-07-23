@@ -7,7 +7,7 @@ import {
   saveLastPresetId,
   savePresets,
 } from '../persistence/presetStorage'
-import { fetchRemotePresets, replaceRemotePresets } from '../persistence/presetSync'
+import { fetchRemotePresets, mergePresets, pushPreset, pushTombstone } from '../persistence/presetSync'
 import { useAuth } from './useAuth'
 import type { SessionRunnerConfig } from './useSessionRunner'
 
@@ -61,10 +61,11 @@ export function usePresets(): UsePresetsResult {
   // stale remote data.
   const mutationVersionRef = useRef(0)
 
-  // Naive tracer-bullet sync: on login, pull the full remote preset set and
-  // let it win locally, unless the cloud account is empty and this device
-  // already has local presets — then seed the cloud with those instead of
-  // discarding them. Fine-grained conflict resolution is a later ticket.
+  // On login, pull the remote preset set (including tombstones) and merge it
+  // per-record with local state: whichever side has the later updatedAt wins
+  // an edit, and a remote tombstone always wins over a local copy regardless
+  // of timestamps. Any local preset that came out ahead is pushed back up to
+  // reconcile the server.
   useEffect(() => {
     if (status !== 'authenticated' || !userId) return
     let cancelled = false
@@ -73,12 +74,10 @@ export function usePresets(): UsePresetsResult {
     fetchRemotePresets(userId).then((remote) => {
       if (cancelled || remote === null || mutationVersionRef.current !== versionAtStart) return
       const local = userPresetsRef.current
-      if (remote.length === 0 && local.length > 0) {
-        void replaceRemotePresets(userId, local)
-        return
-      }
-      savePresets(remote)
-      setUserPresets(remote)
+      const { merged, toPush } = mergePresets(local, remote)
+      savePresets(merged)
+      setUserPresets(merged)
+      for (const preset of toPush) void pushPreset(userId, preset)
     })
 
     return () => {
@@ -86,11 +85,11 @@ export function usePresets(): UsePresetsResult {
     }
   }, [status, userId])
 
-  const commitUserPresets = useCallback(
-    (next: Preset[]) => {
+  const commitUserPreset = useCallback(
+    (next: Preset[], changed: Preset) => {
       savePresets(next)
       mutationVersionRef.current += 1
-      if (status === 'authenticated' && userId) void replaceRemotePresets(userId, next)
+      if (status === 'authenticated' && userId) void pushPreset(userId, changed)
     },
     [status, userId],
   )
@@ -105,13 +104,13 @@ export function usePresets(): UsePresetsResult {
       }
       setUserPresets((current) => {
         const next = [...current, preset]
-        commitUserPresets(next)
+        commitUserPreset(next, preset)
         return next
       })
       setActivePresetId(preset.id)
       saveLastPresetId(preset.id)
     },
-    [commitUserPresets],
+    [commitUserPreset],
   )
 
   const loadPreset = useCallback(
@@ -129,14 +128,17 @@ export function usePresets(): UsePresetsResult {
     (id: string, name: string) => {
       if (BUILT_IN_PRESETS.some((preset) => preset.id === id)) return
       setUserPresets((current) => {
-        const next = current.map((preset) =>
-          preset.id === id ? { ...preset, name, updatedAt: new Date().toISOString() } : preset,
-        )
-        commitUserPresets(next)
+        let renamed: Preset | undefined
+        const next = current.map((preset) => {
+          if (preset.id !== id) return preset
+          renamed = { ...preset, name, updatedAt: new Date().toISOString() }
+          return renamed
+        })
+        if (renamed) commitUserPreset(next, renamed)
         return next
       })
     },
-    [commitUserPresets],
+    [commitUserPreset],
   )
 
   const deletePreset = useCallback(
@@ -144,7 +146,9 @@ export function usePresets(): UsePresetsResult {
       if (BUILT_IN_PRESETS.some((preset) => preset.id === id)) return
       setUserPresets((current) => {
         const next = current.filter((preset) => preset.id !== id)
-        commitUserPresets(next)
+        savePresets(next)
+        mutationVersionRef.current += 1
+        if (status === 'authenticated' && userId) void pushTombstone(userId, id, new Date().toISOString())
         return next
       })
       setActivePresetId((current) => {
@@ -153,7 +157,7 @@ export function usePresets(): UsePresetsResult {
         return null
       })
     },
-    [commitUserPresets],
+    [status, userId],
   )
 
   return { presets, activePresetId, savePreset, loadPreset, renamePreset, deletePreset }
