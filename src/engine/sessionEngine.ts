@@ -139,13 +139,15 @@ export function createSession(
   }
 }
 
+// Toggles rather than only setting, so a user can deselect an accidental
+// press before the trial ends without being scored for it.
 export function assertMatch(state: SessionState, kind: StreamKind): SessionState {
   const streamState = state.streams[kind]
-  if (state.status !== 'active' || !streamState || streamState.responded[state.currentTrialIndex]) {
+  if (state.status !== 'active' || !streamState) {
     return state
   }
   const responded = streamState.responded.slice()
-  responded[state.currentTrialIndex] = true
+  responded[state.currentTrialIndex] = !responded[state.currentTrialIndex]
   return {
     ...state,
     streams: { ...state.streams, [kind]: { ...streamState, responded } },

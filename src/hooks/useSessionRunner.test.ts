@@ -79,6 +79,32 @@ describe('useSessionRunner input gating during the feedback pause', () => {
   })
 })
 
+describe('useSessionRunner answer deselection', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
+
+  it('clears a response when the same stream is asserted twice on the same trial', () => {
+    vi.useFakeTimers()
+    const { result } = renderHook(() => useSessionRunner(config))
+
+    act(() => {
+      vi.advanceTimersByTime(PRE_TRIAL_PAUSE_MS)
+    })
+
+    act(() => {
+      result.current.assertStreamMatch('position')
+    })
+    expect(result.current.state.streams.position!.responded[0]).toBe(true)
+
+    act(() => {
+      result.current.assertStreamMatch('position')
+    })
+    expect(result.current.state.streams.position!.responded[0]).toBe(false)
+  })
+})
+
 describe('useSessionRunner pause and resume', () => {
   afterEach(() => {
     vi.useRealTimers()
