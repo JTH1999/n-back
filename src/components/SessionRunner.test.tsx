@@ -48,6 +48,60 @@ describe('SessionRunner keyboard handling', () => {
     )
   })
 
+  it('clears the ack flash when the same key is pressed again, deselecting the answer', () => {
+    vi.useFakeTimers()
+    render(
+      <SessionRunner
+        config={config}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={vi.fn()}
+        onRestartSession={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
+      />,
+    )
+
+    act(() => {
+      vi.advanceTimersByTime(PRE_TRIAL_PAUSE_MS)
+    })
+
+    fireEvent.keyDown(window, { key: 'g' })
+    expect(screen.getByRole('button', { name: /position/i })).toHaveAttribute(
+      'data-feedback',
+      'ack',
+    )
+
+    fireEvent.keyDown(window, { key: 'g' })
+    expect(screen.getByRole('button', { name: /position/i })).not.toHaveAttribute(
+      'data-feedback',
+    )
+  })
+
+  it('clears the ack flash when the same button is clicked again, deselecting the answer', () => {
+    vi.useFakeTimers()
+    render(
+      <SessionRunner
+        config={config}
+        keymap={{ position: 'g', shape: 's', color: 'd', letter: 'f' }}
+        onRestart={vi.fn()}
+        onRestartSession={vi.fn()}
+        onReturnToSetup={vi.fn()}
+        onPlayAgain={vi.fn()}
+      />,
+    )
+
+    act(() => {
+      vi.advanceTimersByTime(PRE_TRIAL_PAUSE_MS)
+    })
+
+    const positionButton = screen.getByRole('button', { name: /position/i })
+    fireEvent.click(positionButton)
+    expect(positionButton).toHaveAttribute('data-feedback', 'ack')
+
+    fireEvent.click(positionButton)
+    expect(positionButton).not.toHaveAttribute('data-feedback')
+  })
+
   it('ignores keys not present in the keymap', () => {
     vi.useFakeTimers()
     render(

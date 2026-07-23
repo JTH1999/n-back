@@ -314,6 +314,32 @@ describe('assertMatch', () => {
 
     expect(assertMatch(state, 'position')).toEqual(state)
   })
+
+  it('toggles the assertion off when asserted a second time on the same trial', () => {
+    const state = buildState({
+      n: 2,
+      activeStreams: ['position'],
+      sequences: { position: [0, 1, 0] },
+    })
+
+    const asserted = assertMatch(state, 'position')
+    const unasserted = assertMatch(asserted, 'position')
+
+    expect(unasserted.streams.position!.responded[2]).toBe(false)
+    expect(advance(unasserted).streams.position!.outcomes[2]).toBe('miss')
+  })
+
+  it('toggles back on when asserted a third time', () => {
+    const state = buildState({
+      n: 2,
+      activeStreams: ['position'],
+      sequences: { position: [0, 1, 0] },
+    })
+
+    const toggledThrice = assertMatch(assertMatch(assertMatch(state, 'position'), 'position'), 'position')
+
+    expect(toggledThrice.streams.position!.responded[2]).toBe(true)
+  })
 })
 
 describe('getLiveFeedback', () => {

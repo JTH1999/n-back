@@ -73,16 +73,21 @@ export function SessionRunner({
     pause,
     resume,
   } = useSessionRunner(config)
-  const [pressedStreams, setPressedStreams] = useState<ReadonlySet<StreamKind>>(new Set())
   const [showAbortConfirm, setShowAbortConfirm] = useState(false)
   const [streak, setStreak] = useState<StreakStats | null>(null)
   const wasPausedBeforeAbort = useRef(false)
   const hasRecordedHistory = useRef(false)
   const summary = useMemo(() => (readyForSummary ? getSummary(state) : null), [readyForSummary, state])
 
-  useEffect(() => {
-    setPressedStreams(new Set())
-  }, [state.currentTrialIndex])
+  const pressedStreams = useMemo(
+    () =>
+      new Set(
+        state.activeStreams.filter(
+          (kind) => state.streams[kind]?.responded[state.currentTrialIndex] ?? false,
+        ),
+      ),
+    [state.activeStreams, state.streams, state.currentTrialIndex],
+  )
 
   useLayoutEffect(() => {
     if (!summary || hasRecordedHistory.current) return
@@ -108,7 +113,6 @@ export function SessionRunner({
     (kind: StreamKind) => {
       if (!acceptingInput) return
       assertStreamMatch(kind)
-      setPressedStreams((current) => (current.has(kind) ? current : new Set(current).add(kind)))
     },
     [acceptingInput, assertStreamMatch],
   )
