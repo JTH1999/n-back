@@ -6,6 +6,7 @@ export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated'
 export interface UseAuthResult {
   status: AuthStatus
   email: string | null
+  userId: string | null
   error: string | null
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
@@ -14,6 +15,7 @@ export interface UseAuthResult {
 export function useAuth(): UseAuthResult {
   const [status, setStatus] = useState<AuthStatus>(supabase ? 'loading' : 'unauthenticated')
   const [email, setEmail] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -21,6 +23,7 @@ export function useAuth(): UseAuthResult {
 
     supabase.auth.getSession().then(({ data }) => {
       setEmail(data.session?.user.email ?? null)
+      setUserId(data.session?.user.id ?? null)
       setStatus(data.session ? 'authenticated' : 'unauthenticated')
     })
 
@@ -28,6 +31,7 @@ export function useAuth(): UseAuthResult {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setEmail(session?.user.email ?? null)
+      setUserId(session?.user.id ?? null)
       setStatus(session ? 'authenticated' : 'unauthenticated')
     })
 
@@ -49,5 +53,5 @@ export function useAuth(): UseAuthResult {
     await supabase.auth.signOut()
   }, [])
 
-  return { status, email, error, signIn, signOut }
+  return { status, email, userId, error, signIn, signOut }
 }

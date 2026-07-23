@@ -38,7 +38,7 @@ The user's assertion, via that stream's key or tap button, that the current tria
 The four possible per-stream, per-trial scoring outcomes: Hit (matched and asserted), Miss (matched, not asserted), False Alarm (not matched, asserted), Correct Rejection (not matched, not asserted).
 
 **Preset**:
-A named, saved bundle of session configuration (active streams, N, timing, trial count, adaptive settings) that can be recalled later. The most recently used preset is restored automatically on app open.
+A named, saved bundle of session configuration (active streams, N, timing, trial count, adaptive settings) that can be recalled later. The most recently used preset is restored automatically on app open. User-created presets sync to Supabase while logged in; built-in presets never do.
 
 **Adaptive mode**:
 An optional per-session setting where N is automatically raised or lowered for the *next* session based on the previous session's accuracy against configurable thresholds. Off by default (manual N).

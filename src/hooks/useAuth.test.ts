@@ -35,12 +35,15 @@ describe('useAuth', () => {
   })
 
   it('resolves to authenticated when a session already exists', async () => {
-    mockGetSession.mockResolvedValue({ data: { session: { user: { email: 'a@b.com' } } } })
+    mockGetSession.mockResolvedValue({
+      data: { session: { user: { email: 'a@b.com', id: 'user-1' } } },
+    })
 
     const { result } = renderHook(() => useAuth())
 
     await waitFor(() => expect(result.current.status).toBe('authenticated'))
     expect(result.current.email).toBe('a@b.com')
+    expect(result.current.userId).toBe('user-1')
   })
 
   it('signIn calls supabase and surfaces errors', async () => {
@@ -94,11 +97,12 @@ describe('useAuth', () => {
     await waitFor(() => expect(result.current.status).toBe('unauthenticated'))
 
     act(() => {
-      authCallback('SIGNED_IN', { user: { email: 'c@d.com' } })
+      authCallback('SIGNED_IN', { user: { email: 'c@d.com', id: 'user-2' } })
     })
 
     expect(result.current.status).toBe('authenticated')
     expect(result.current.email).toBe('c@d.com')
+    expect(result.current.userId).toBe('user-2')
 
     act(() => {
       authCallback('SIGNED_OUT', null)
@@ -106,5 +110,6 @@ describe('useAuth', () => {
 
     expect(result.current.status).toBe('unauthenticated')
     expect(result.current.email).toBeNull()
+    expect(result.current.userId).toBeNull()
   })
 })

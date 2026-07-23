@@ -1,0 +1,7 @@
+# Preset sync: naive full-state push/pull, no per-record merge yet
+
+When logged in, user-created presets sync to and from a Supabase `presets` table (one row per preset, `auth.uid() = user_id` RLS), wrapping the existing `presetStorage.ts` localStorage module rather than replacing it — local reads/writes behave exactly as before, and a sync layer (`presetSync.ts`) pushes and pulls on top. Built-in presets are defined in code and never touch Supabase.
+
+The sync strategy is intentionally naive: on login, the full remote preset list is pulled and overwrites local state, *unless* the cloud account is empty and the device already has local presets — in that case the local list is pushed up instead, so a first login never silently discards existing presets. After every local mutation (save/rename/delete) while authenticated, the full local list is pushed to replace the full remote list for that user. There is no per-record last-write-wins or merge across two devices that both hold un-synced local presets; that is deferred to a follow-up ticket, which is also why `Preset` gained an `updatedAt` field now even though nothing consumes it for conflict resolution yet.
+
+This further qualifies [ADR-0002](0002-localstorage-only-persistence.md) and [ADR-0004](0004-supabase-auth-scaffolding.md): presets are no longer local-only when a user is logged in. Logged-out behavior, and behavior when Supabase isn't configured for the build, are unchanged — sync is skipped entirely and everything stays local as before.

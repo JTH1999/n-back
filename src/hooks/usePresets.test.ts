@@ -1,6 +1,19 @@
-import { act, renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { act, renderHook, waitFor } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BUILT_IN_PRESETS } from '../config/builtInPresets'
+
+const mockUseAuth = vi.fn()
+const mockFetchRemotePresets = vi.fn()
+const mockReplaceRemotePresets = vi.fn()
+
+vi.mock('./useAuth', () => ({
+  useAuth: (...args: unknown[]) => mockUseAuth(...args),
+}))
+vi.mock('../persistence/presetSync', () => ({
+  fetchRemotePresets: (...args: unknown[]) => mockFetchRemotePresets(...args),
+  replaceRemotePresets: (...args: unknown[]) => mockReplaceRemotePresets(...args),
+}))
+
 import { isPresetConfigEqual, usePresets, type PresetConfig } from './usePresets'
 
 const config: PresetConfig = {
@@ -21,6 +34,10 @@ function userPresetsOf(result: { current: ReturnType<typeof usePresets> }) {
 
 beforeEach(() => {
   window.localStorage.clear()
+  vi.clearAllMocks()
+  mockUseAuth.mockReturnValue({ status: 'unauthenticated', userId: null })
+  mockFetchRemotePresets.mockResolvedValue(null)
+  mockReplaceRemotePresets.mockResolvedValue(undefined)
 })
 
 describe('usePresets', () => {
@@ -293,6 +310,101 @@ describe('usePresets built-in presets', () => {
     })
 
     expect(result.current.activePresetId).toBe('builtin-hard')
+  })
+})
+
+describe('usePresets sync', () => {
+  it('does not call Supabase when unauthenticated', async () => {
+    const { result } = renderHook(() => usePresets())
+
+    act(() => {
+      result.current.savePreset('Warm-up', config)
+    })
+
+    expect(mockFetchRemotePresets).not.toHaveBeenCalled()
+    expect(mockReplaceRemotePresets).not.toHaveBeenCalled()
+  })
+
+  it('pulls remote presets and overwrites local storage when the remote list is non-empty', async () => {
+    mockUseAuth.mockReturnValue({ status: 'authenticated', userId: 'user-1' })
+    const remotePreset = { id: 'remote-1', name: 'From cloud', config, updatedAt: '2026-07-08T12:00:00.000Z' }
+    mockFetchRemotePresets.mockResolvedValue([remotePreset])
+
+    const { result } = renderHook(() => usePresets())
+
+    await waitFor(() => expect(userPresetsOf(result)).toEqual([remotePreset]))
+    expect(mockFetchRemotePresets).toHaveBeenCalledWith('user-1')
+    expect(JSON.parse(window.localStorage.getItem('n-back:presets') ?? '[]')).toEqual([remotePreset])
+    expect(mockReplaceRemotePresets).not.toHaveBeenCalled()
+  })
+
+  it('seeds the cloud with existing local presets on first login with an empty remote account', async () => {
+    window.localStorage.setItem(
+      'n-back:presets',
+      JSON.stringify([{ id: 'local-1', name: 'Local only', config }]),
+    )
+    mockUseAuth.mockReturnValue({ status: 'authenticated', userId: 'user-1' })
+    mockFetchRemotePresets.mockResolvedValue([])
+
+    const { result } = renderHook(() => usePresets())
+
+    await waitFor(() => expect(mockReplaceRemotePresets).toHaveBeenCalled())
+    expect(mockReplaceRemotePresets).toHaveBeenCalledWith('user-1', [
+      { id: 'local-1', name: 'Local only', config },
+    ])
+    expect(userPresetsOf(result)).toEqual([{ id: 'local-1', name: 'Local only', config }])
+  })
+
+  it('pushes the full local list to Supabase after a mutation while authenticated', async () => {
+    mockUseAuth.mockReturnValue({ status: 'authenticated', userId: 'user-1' })
+    mockFetchRemotePresets.mockResolvedValue([])
+
+    const { result } = renderHook(() => usePresets())
+    await waitFor(() => expect(mockFetchRemotePresets).toHaveBeenCalledTimes(1))
+
+    act(() => {
+      result.current.savePreset('Warm-up', config)
+    })
+
+    await waitFor(() => expect(mockReplaceRemotePresets).toHaveBeenCalledTimes(1))
+    expect(mockReplaceRemotePresets).toHaveBeenCalledWith('user-1', userPresetsOf(result))
+  })
+
+  it('keeps a local mutation that races ahead of a slow initial pull', async () => {
+    mockUseAuth.mockReturnValue({ status: 'authenticated', userId: 'user-1' })
+    let resolvePull: (remote: unknown) => void = () => {}
+    mockFetchRemotePresets.mockReturnValue(new Promise((resolve) => (resolvePull = resolve)))
+
+    const { result } = renderHook(() => usePresets())
+
+    act(() => {
+      result.current.savePreset('Warm-up', config)
+    })
+    expect(userPresetsOf(result)).toHaveLength(1)
+
+    await act(async () => {
+      resolvePull([])
+      await Promise.resolve()
+    })
+
+    expect(userPresetsOf(result)).toHaveLength(1)
+    expect(userPresetsOf(result)[0]).toMatchObject({ name: 'Warm-up' })
+  })
+
+  it('never includes built-in presets in what gets pushed or pulled', async () => {
+    window.localStorage.setItem(
+      'n-back:presets',
+      JSON.stringify([{ id: 'local-1', name: 'Local only', config }]),
+    )
+    mockUseAuth.mockReturnValue({ status: 'authenticated', userId: 'user-1' })
+    mockFetchRemotePresets.mockResolvedValue([])
+
+    const { result } = renderHook(() => usePresets())
+    await waitFor(() => expect(mockReplaceRemotePresets).toHaveBeenCalled())
+
+    const pushedIds = mockReplaceRemotePresets.mock.calls[0][1].map((preset: { id: string }) => preset.id)
+    expect(pushedIds.some((id: string) => BUILT_IN_PRESETS.some((preset) => preset.id === id))).toBe(false)
+    expect(result.current.presets.slice(0, BUILT_IN_COUNT)).toEqual(BUILT_IN_PRESETS)
   })
 })
 

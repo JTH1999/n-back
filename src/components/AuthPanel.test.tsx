@@ -12,6 +12,7 @@ function authResult(overrides: Partial<UseAuthResult> = {}): UseAuthResult {
   return {
     status: 'unauthenticated',
     email: null,
+    userId: null,
     error: null,
     signIn: vi.fn(),
     signOut: vi.fn(),
