@@ -1,3 +1,5 @@
 # Client-only persistence via localStorage, no backend
 
 The app is purely client-side (static hosting on GitHub Pages, no server or account system), so all session history, stats, and presets are stored in the browser's `localStorage` as JSON. This was chosen over IndexedDB because the data volume (one small record per session) stays far below localStorage's limits even over years of daily use, and localStorage's synchronous API is simpler to work with. The real consequence is that clearing browser data, or switching browser/device, permanently loses history with no server-side recovery — mitigated by a manual JSON export/import feature, which is the only backup mechanism and won't happen automatically.
+
+This is further qualified by [ADR-0005](0005-preset-sync.md): user-created presets now also sync to Supabase while logged in, though `localStorage` remains the source of truth when logged out. Session history and stats are still unaffected.
