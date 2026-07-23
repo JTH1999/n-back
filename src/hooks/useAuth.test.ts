@@ -1,0 +1,110 @@
+import { act, renderHook, waitFor } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const mockGetSession = vi.fn()
+const mockOnAuthStateChange = vi.fn()
+const mockSignInWithPassword = vi.fn()
+const mockSignOut = vi.fn()
+
+vi.mock('../auth/supabaseClient', () => ({
+  supabase: {
+    auth: {
+      getSession: (...args: unknown[]) => mockGetSession(...args),
+      onAuthStateChange: (...args: unknown[]) => mockOnAuthStateChange(...args),
+      signInWithPassword: (...args: unknown[]) => mockSignInWithPassword(...args),
+      signOut: (...args: unknown[]) => mockSignOut(...args),
+    },
+  },
+}))
+
+import { useAuth } from './useAuth'
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  mockGetSession.mockResolvedValue({ data: { session: null } })
+  mockOnAuthStateChange.mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } })
+})
+
+describe('useAuth', () => {
+  it('starts loading then resolves to unauthenticated when there is no session', async () => {
+    const { result } = renderHook(() => useAuth())
+
+    expect(result.current.status).toBe('loading')
+    await waitFor(() => expect(result.current.status).toBe('unauthenticated'))
+    expect(result.current.email).toBeNull()
+  })
+
+  it('resolves to authenticated when a session already exists', async () => {
+    mockGetSession.mockResolvedValue({ data: { session: { user: { email: 'a@b.com' } } } })
+
+    const { result } = renderHook(() => useAuth())
+
+    await waitFor(() => expect(result.current.status).toBe('authenticated'))
+    expect(result.current.email).toBe('a@b.com')
+  })
+
+  it('signIn calls supabase and surfaces errors', async () => {
+    mockSignInWithPassword.mockResolvedValue({ error: { message: 'Invalid credentials' } })
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.status).toBe('unauthenticated'))
+
+    await act(async () => {
+      await result.current.signIn('a@b.com', 'wrong')
+    })
+
+    expect(mockSignInWithPassword).toHaveBeenCalledWith({ email: 'a@b.com', password: 'wrong' })
+    expect(result.current.error).toBe('Invalid credentials')
+  })
+
+  it('signIn clears a previous error on a fresh attempt', async () => {
+    mockSignInWithPassword.mockResolvedValueOnce({ error: { message: 'Invalid credentials' } })
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.status).toBe('unauthenticated'))
+    await act(async () => {
+      await result.current.signIn('a@b.com', 'wrong')
+    })
+    expect(result.current.error).toBe('Invalid credentials')
+
+    mockSignInWithPassword.mockResolvedValueOnce({ error: null })
+    await act(async () => {
+      await result.current.signIn('a@b.com', 'right')
+    })
+    expect(result.current.error).toBeNull()
+  })
+
+  it('signOut calls supabase.auth.signOut', async () => {
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.status).toBe('unauthenticated'))
+
+    await act(async () => {
+      await result.current.signOut()
+    })
+
+    expect(mockSignOut).toHaveBeenCalled()
+  })
+
+  it('reacts to onAuthStateChange callbacks', async () => {
+    let authCallback: (event: string, session: unknown) => void = () => {}
+    mockOnAuthStateChange.mockImplementation((callback) => {
+      authCallback = callback
+      return { data: { subscription: { unsubscribe: vi.fn() } } }
+    })
+
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.status).toBe('unauthenticated'))
+
+    act(() => {
+      authCallback('SIGNED_IN', { user: { email: 'c@d.com' } })
+    })
+
+    expect(result.current.status).toBe('authenticated')
+    expect(result.current.email).toBe('c@d.com')
+
+    act(() => {
+      authCallback('SIGNED_OUT', null)
+    })
+
+    expect(result.current.status).toBe('unauthenticated')
+    expect(result.current.email).toBeNull()
+  })
+})

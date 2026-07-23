@@ -4,6 +4,16 @@ import { DEFAULT_KEYMAP } from '../config/keymap'
 import { useDraftConfig } from '../hooks/useDraftConfig'
 import { SettingsScreen, type SettingsScreenProps } from './SettingsScreen'
 
+vi.mock('../hooks/useAuth', () => ({
+  useAuth: () => ({
+    status: 'unauthenticated',
+    email: null,
+    error: null,
+    signIn: vi.fn(),
+    signOut: vi.fn(),
+  }),
+}))
+
 type SettingsScreenOverrides = Partial<Omit<SettingsScreenProps, 'config' | 'setConfig'>>
 
 function SettingsScreenHarness(overrides: SettingsScreenOverrides) {
@@ -76,5 +86,11 @@ describe('SettingsScreen', () => {
 
     expect(screen.getByRole('button', { name: /export data/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /import data/i })).toBeInTheDocument()
+  })
+
+  it('renders the account panel', () => {
+    renderSettingsScreen()
+
+    expect(screen.getByRole('button', { name: /log in/i })).toBeInTheDocument()
   })
 })

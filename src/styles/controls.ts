@@ -1,5 +1,7 @@
 export const BORDERED_CONTROL_CLASS = 'rounded border border-slate-300 dark:border-slate-600 dark:bg-slate-800'
 
+export const TEXT_INPUT_CLASS = `${BORDERED_CONTROL_CLASS} w-full bg-panel2 px-3 py-2.5 font-mono text-sm`
+
 export const GHOST_BUTTON_CLASS =
   'rounded-lg border border-border px-4 py-2.5 font-mono text-[13px] hover:border-dim'
 

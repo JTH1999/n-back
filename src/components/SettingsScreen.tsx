@@ -5,6 +5,7 @@ import type { AccentColor, ThemeOverride } from '../config/theme'
 import type { StreamKind } from '../engine/streams'
 import type { SessionRunnerConfig } from '../hooks/useSessionRunner'
 import { AccentPicker } from './AccentPicker'
+import { AuthPanel } from './AuthPanel'
 import { ExportImportPanel } from './ExportImportPanel'
 import { KeymapEditor } from './KeymapEditor'
 import { Panel } from './Panel'
@@ -95,6 +96,9 @@ export function SettingsScreen({
             </Panel>
             <Panel>
               <ExportImportPanel />
+            </Panel>
+            <Panel>
+              <AuthPanel />
             </Panel>
           </>
         }
