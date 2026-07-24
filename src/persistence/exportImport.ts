@@ -2,7 +2,7 @@ import type { Preset } from '../hooks/usePresets'
 import type { SessionRunnerConfig } from '../hooks/useSessionRunner'
 import type { Keymap } from '../config/keymap'
 import { STREAM_KINDS } from '../engine/streams'
-import { loadHistory, replaceHistory, type SessionHistoryRecord } from './historyStorage'
+import { ensureRecordId, loadHistory, replaceHistory, type SessionHistoryRecord } from './historyStorage'
 import { clearKeymap, loadKeymap, saveKeymap } from './keymapStorage'
 import {
   clearLastPresetId,
@@ -136,7 +136,7 @@ function normalizeSessionRunnerConfig(value: unknown): unknown {
 
 function normalizeHistoryRecord(value: unknown): unknown {
   if (!isPlainObject(value)) return value
-  return { ...value, config: normalizeSessionRunnerConfig(value.config) }
+  return { ...ensureRecordId(value), config: normalizeSessionRunnerConfig(value.config) }
 }
 
 function normalizePreset(value: unknown): unknown {
@@ -176,6 +176,7 @@ function isSessionSummary(value: unknown): boolean {
 function isHistoryRecord(value: unknown): value is SessionHistoryRecord {
   if (!isPlainObject(value)) return false
   return (
+    typeof value.id === 'string' &&
     typeof value.timestamp === 'string' &&
     isSessionRunnerConfig(value.config) &&
     isSessionSummary(value.summary)

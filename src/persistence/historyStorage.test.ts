@@ -49,7 +49,7 @@ describe('loadHistory', () => {
 
 describe('appendHistoryRecord', () => {
   it('appends a record and persists it across loads', () => {
-    const record = { timestamp: '2026-07-08T12:00:00.000Z', config, summary }
+    const record = { id: 'record-1', timestamp: '2026-07-08T12:00:00.000Z', config, summary }
 
     appendHistoryRecord(record)
 
@@ -57,8 +57,8 @@ describe('appendHistoryRecord', () => {
   })
 
   it('preserves existing records when appending a new one', () => {
-    const first = { timestamp: '2026-07-08T12:00:00.000Z', config, summary }
-    const second = { timestamp: '2026-07-08T12:05:00.000Z', config, summary }
+    const first = { id: 'record-1', timestamp: '2026-07-08T12:00:00.000Z', config, summary }
+    const second = { id: 'record-2', timestamp: '2026-07-08T12:05:00.000Z', config, summary }
 
     appendHistoryRecord(first)
     appendHistoryRecord(second)
@@ -69,20 +69,55 @@ describe('appendHistoryRecord', () => {
 
 describe('replaceHistory', () => {
   it('overwrites any existing history', () => {
-    const first = { timestamp: '2026-07-08T12:00:00.000Z', config, summary }
+    const first = { id: 'record-1', timestamp: '2026-07-08T12:00:00.000Z', config, summary }
     appendHistoryRecord(first)
 
-    const second = { timestamp: '2026-07-08T12:05:00.000Z', config, summary }
+    const second = { id: 'record-2', timestamp: '2026-07-08T12:05:00.000Z', config, summary }
     replaceHistory([second])
 
     expect(loadHistory()).toEqual([second])
   })
 
   it('can clear history by replacing it with an empty array', () => {
-    appendHistoryRecord({ timestamp: '2026-07-08T12:00:00.000Z', config, summary })
+    appendHistoryRecord({ id: 'record-1', timestamp: '2026-07-08T12:00:00.000Z', config, summary })
 
     replaceHistory([])
 
     expect(loadHistory()).toEqual([])
+  })
+})
+
+describe('loadHistory id backfill', () => {
+  it('assigns an id to a legacy record that was persisted before ids existed', () => {
+    window.localStorage.setItem(
+      'n-back:session-history',
+      JSON.stringify([{ timestamp: '2026-07-08T12:00:00.000Z', config, summary }]),
+    )
+
+    const history = loadHistory()
+
+    expect(history).toHaveLength(1)
+    expect(history[0].id).toEqual(expect.any(String))
+  })
+
+  it('persists the backfilled id so it stays stable across loads', () => {
+    window.localStorage.setItem(
+      'n-back:session-history',
+      JSON.stringify([{ timestamp: '2026-07-08T12:00:00.000Z', config, summary }]),
+    )
+
+    const first = loadHistory()
+    const second = loadHistory()
+
+    expect(second[0].id).toBe(first[0].id)
+  })
+
+  it('leaves an existing id untouched', () => {
+    window.localStorage.setItem(
+      'n-back:session-history',
+      JSON.stringify([{ id: 'record-1', timestamp: '2026-07-08T12:00:00.000Z', config, summary }]),
+    )
+
+    expect(loadHistory()[0].id).toBe('record-1')
   })
 })

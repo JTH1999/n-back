@@ -44,6 +44,7 @@ const summary = {
 }
 
 const historyRecord: SessionHistoryRecord = {
+  id: 'record-1',
   timestamp: '2026-07-08T12:00:00.000Z',
   config,
   summary,
@@ -186,6 +187,23 @@ describe('parseExportedState', () => {
     expect(result.history[0].config.liveFeedback).toBe(false)
     expect(result.presets[0].config.adaptive).toBeDefined()
     expect(result.draftSettings?.adaptive).toBeDefined()
+  })
+
+  it('backfills a missing id onto a history record exported before ids existed', () => {
+    const { id: _id, ...legacyRecord } = historyRecord
+    const payload = {
+      version: EXPORT_FORMAT_VERSION,
+      exportedAt: '2026-07-08T12:00:00.000Z',
+      history: [legacyRecord],
+      presets: [],
+      lastPresetId: null,
+      draftSettings: null,
+      keymap: null,
+    }
+
+    const result = parseExportedState(JSON.stringify(payload))
+
+    expect(result.history[0].id).toEqual(expect.any(String))
   })
 
   it('throws ImportValidationError when presets are malformed', () => {

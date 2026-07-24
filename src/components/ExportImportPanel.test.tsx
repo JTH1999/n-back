@@ -9,6 +9,7 @@ const validPayload = {
   exportedAt: '2026-07-08T12:00:00.000Z',
   history: [
     {
+      id: 'record-1',
       timestamp: '2026-07-08T12:00:00.000Z',
       config: {
         n: 2,

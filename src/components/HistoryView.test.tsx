@@ -44,7 +44,7 @@ describe('HistoryView', () => {
   })
 
   it('renders recorded sessions as a table with the session count in the header', () => {
-    appendHistoryRecord({ timestamp: '2026-07-08T12:00:00.000Z', config, summary })
+    appendHistoryRecord({ id: '1', timestamp: '2026-07-08T12:00:00.000Z', config, summary })
 
     render(<HistoryView />)
     fireEvent.click(screen.getByRole('tab', { name: 'Log' }))
@@ -69,7 +69,7 @@ describe('HistoryView', () => {
       totalTrials: 40,
       streams: { ...summary.streams, shape: { ...summary.streams.position, kind: 'shape' as const } },
     }
-    appendHistoryRecord({ timestamp: '2026-07-08T12:00:00.000Z', config: twoStreamConfig, summary: twoStreamSummary })
+    appendHistoryRecord({ id: '1', timestamp: '2026-07-08T12:00:00.000Z', config: twoStreamConfig, summary: twoStreamSummary })
 
     render(<HistoryView />)
     fireEvent.click(screen.getByRole('tab', { name: 'Log' }))
@@ -79,8 +79,8 @@ describe('HistoryView', () => {
   })
 
   it('computes KPIs from recorded history and renders the trend chart legend', () => {
-    appendHistoryRecord({ timestamp: '2026-07-01T12:00:00.000Z', config: { ...config, n: 2 }, summary: { ...summary, accuracy: 0.6 } })
-    appendHistoryRecord({ timestamp: '2026-07-05T12:00:00.000Z', config: { ...config, n: 4 }, summary: { ...summary, accuracy: 0.8 } })
+    appendHistoryRecord({ id: '1', timestamp: '2026-07-01T12:00:00.000Z', config: { ...config, n: 2 }, summary: { ...summary, accuracy: 0.6 } })
+    appendHistoryRecord({ id: '2', timestamp: '2026-07-05T12:00:00.000Z', config: { ...config, n: 4 }, summary: { ...summary, accuracy: 0.8 } })
 
     render(<HistoryView />)
 
@@ -97,8 +97,8 @@ describe('HistoryView', () => {
     })
 
     it('shows an outlined streak through yesterday and zero today stats when no session has completed today', () => {
-      appendHistoryRecord({ timestamp: '2026-07-12T09:00:00.000Z', config, summary })
-      appendHistoryRecord({ timestamp: '2026-07-13T09:00:00.000Z', config, summary })
+      appendHistoryRecord({ id: '1', timestamp: '2026-07-12T09:00:00.000Z', config, summary })
+      appendHistoryRecord({ id: '2', timestamp: '2026-07-13T09:00:00.000Z', config, summary })
       vi.setSystemTime(new Date('2026-07-14T08:00:00'))
 
       render(<HistoryView />)
@@ -111,8 +111,8 @@ describe('HistoryView', () => {
     })
 
     it('shows a filled streak and today stats once a session has completed today', () => {
-      appendHistoryRecord({ timestamp: '2026-07-13T09:00:00.000Z', config, summary })
-      appendHistoryRecord({ timestamp: '2026-07-14T09:00:00.000Z', config, summary })
+      appendHistoryRecord({ id: '1', timestamp: '2026-07-13T09:00:00.000Z', config, summary })
+      appendHistoryRecord({ id: '2', timestamp: '2026-07-14T09:00:00.000Z', config, summary })
       vi.setSystemTime(new Date('2026-07-14T20:00:00'))
 
       render(<HistoryView />)
@@ -126,7 +126,7 @@ describe('HistoryView', () => {
   })
 
   it('defaults to the overview tab and switches to the log tab on click', () => {
-    appendHistoryRecord({ timestamp: '2026-07-08T12:00:00.000Z', config, summary })
+    appendHistoryRecord({ id: '1', timestamp: '2026-07-08T12:00:00.000Z', config, summary })
 
     render(<HistoryView />)
 

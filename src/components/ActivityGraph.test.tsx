@@ -33,7 +33,7 @@ const summary = {
 }
 
 function record(timestamp: string, overrides: Partial<SessionHistoryRecord['config']> = {}): SessionHistoryRecord {
-  return { timestamp, config: { ...config, ...overrides }, summary }
+  return { id: timestamp, timestamp, config: { ...config, ...overrides }, summary }
 }
 
 describe('ActivityGraph', () => {
