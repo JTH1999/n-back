@@ -5,6 +5,8 @@ const mockGetSession = vi.fn()
 const mockOnAuthStateChange = vi.fn()
 const mockSignInWithPassword = vi.fn()
 const mockSignOut = vi.fn()
+const mockResetPasswordForEmail = vi.fn()
+const mockUpdateUser = vi.fn()
 
 vi.mock('../auth/supabaseClient', () => ({
   supabase: {
@@ -13,6 +15,8 @@ vi.mock('../auth/supabaseClient', () => ({
       onAuthStateChange: (...args: unknown[]) => mockOnAuthStateChange(...args),
       signInWithPassword: (...args: unknown[]) => mockSignInWithPassword(...args),
       signOut: (...args: unknown[]) => mockSignOut(...args),
+      resetPasswordForEmail: (...args: unknown[]) => mockResetPasswordForEmail(...args),
+      updateUser: (...args: unknown[]) => mockUpdateUser(...args),
     },
   },
 }))
@@ -108,6 +112,102 @@ describe('useAuth', () => {
     })
 
     expect(presetPushQueue.getStatus()).toBe('idle')
+  })
+
+  it('resetPasswordForEmail calls supabase and reports success', async () => {
+    mockResetPasswordForEmail.mockResolvedValue({ error: null })
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.status).toBe('unauthenticated'))
+
+    let success: boolean | undefined
+    await act(async () => {
+      success = await result.current.resetPasswordForEmail('a@b.com')
+    })
+
+    expect(mockResetPasswordForEmail).toHaveBeenCalledWith('a@b.com', {
+      redirectTo: window.location.origin,
+    })
+    expect(success).toBe(true)
+    expect(result.current.error).toBeNull()
+  })
+
+  it('resetPasswordForEmail surfaces errors', async () => {
+    mockResetPasswordForEmail.mockResolvedValue({ error: { message: 'Unknown email' } })
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.status).toBe('unauthenticated'))
+
+    let success: boolean | undefined
+    await act(async () => {
+      success = await result.current.resetPasswordForEmail('a@b.com')
+    })
+
+    expect(success).toBe(false)
+    expect(result.current.error).toBe('Unknown email')
+  })
+
+  it('updatePassword calls supabase and reports success', async () => {
+    mockUpdateUser.mockResolvedValue({ error: null })
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.status).toBe('unauthenticated'))
+
+    let success: boolean | undefined
+    await act(async () => {
+      success = await result.current.updatePassword('newpass123')
+    })
+
+    expect(mockUpdateUser).toHaveBeenCalledWith({ password: 'newpass123' })
+    expect(success).toBe(true)
+  })
+
+  it('updatePassword surfaces errors', async () => {
+    mockUpdateUser.mockResolvedValue({ error: { message: 'Password too short' } })
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.status).toBe('unauthenticated'))
+
+    let success: boolean | undefined
+    await act(async () => {
+      success = await result.current.updatePassword('a')
+    })
+
+    expect(success).toBe(false)
+    expect(result.current.error).toBe('Password too short')
+  })
+
+  it('sets isPasswordRecovery on a PASSWORD_RECOVERY event and clears it on sign out', async () => {
+    let authCallback: (event: string, session: unknown) => void = () => {}
+    mockOnAuthStateChange.mockImplementation((callback) => {
+      authCallback = callback
+      return { data: { subscription: { unsubscribe: vi.fn() } } }
+    })
+
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.status).toBe('unauthenticated'))
+
+    act(() => {
+      authCallback('PASSWORD_RECOVERY', { user: { email: 'a@b.com', id: 'user-1' } })
+    })
+    expect(result.current.isPasswordRecovery).toBe(true)
+
+    act(() => {
+      authCallback('SIGNED_OUT', null)
+    })
+    expect(result.current.isPasswordRecovery).toBe(false)
+  })
+
+  it('clearError resets the error to null', async () => {
+    mockSignInWithPassword.mockResolvedValue({ error: { message: 'Invalid credentials' } })
+    const { result } = renderHook(() => useAuth())
+    await waitFor(() => expect(result.current.status).toBe('unauthenticated'))
+
+    await act(async () => {
+      await result.current.signIn('a@b.com', 'wrong')
+    })
+    expect(result.current.error).toBe('Invalid credentials')
+
+    act(() => {
+      result.current.clearError()
+    })
+    expect(result.current.error).toBeNull()
   })
 
   it('reacts to onAuthStateChange callbacks', async () => {
