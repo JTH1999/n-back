@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SessionHistoryRecord } from './historyStorage'
 
 const mockSelect = vi.fn()
@@ -14,7 +14,7 @@ vi.mock('../auth/supabaseClient', () => ({
 
 let mockSupabase: { from: typeof mockFrom } | null = { from: mockFrom }
 
-import { fetchRemoteHistory, mergeHistory, pushHistoryRecord } from './historySync'
+import { fetchRemoteHistory, historyPushQueue, mergeHistory, pushHistoryRecord } from './historySync'
 
 const config: SessionHistoryRecord['config'] = {
   n: 2,
@@ -50,10 +50,16 @@ function resetMocks() {
   mockSelect.mockReset()
   mockEq.mockReset()
   mockUpsert.mockReset()
+  window.localStorage.clear()
+  historyPushQueue.clear()
 }
 
 beforeEach(() => {
   resetMocks()
+})
+
+afterAll(() => {
+  historyPushQueue.clear()
 })
 
 describe('fetchRemoteHistory', () => {
@@ -121,6 +127,38 @@ describe('pushHistoryRecord', () => {
     await expect(
       pushHistoryRecord('user-1', { id: 'record-1', timestamp: '2026-07-08T12:00:00.000Z', config, summary }),
     ).resolves.toBeUndefined()
+  })
+
+  it('queues a failed push for retry instead of dropping it', async () => {
+    mockFrom.mockReturnValue({ upsert: mockUpsert })
+    mockUpsert.mockRejectedValue(new Error('network down'))
+
+    await pushHistoryRecord('user-1', { id: 'record-1', timestamp: '2026-07-08T12:00:00.000Z', config, summary })
+
+    expect(historyPushQueue.getStatus()).toBe('retrying')
+    historyPushQueue.clear()
+  })
+
+  it('treats a Supabase-reported error (not just a thrown rejection) as a failed push', async () => {
+    mockFrom.mockReturnValue({ upsert: mockUpsert })
+    mockUpsert.mockResolvedValue({ error: { message: 'row-level security violation' } })
+
+    await pushHistoryRecord('user-1', { id: 'record-1', timestamp: '2026-07-08T12:00:00.000Z', config, summary })
+
+    expect(historyPushQueue.getStatus()).toBe('retrying')
+    historyPushQueue.clear()
+  })
+
+  it('retries a queued push once it succeeds and clears the queue', async () => {
+    mockFrom.mockReturnValue({ upsert: mockUpsert })
+    mockUpsert.mockRejectedValueOnce(new Error('network down')).mockResolvedValue({ error: null })
+
+    await pushHistoryRecord('user-1', { id: 'record-1', timestamp: '2026-07-08T12:00:00.000Z', config, summary })
+    expect(historyPushQueue.getStatus()).toBe('retrying')
+
+    await pushHistoryRecord('user-1', { id: 'record-2', timestamp: '2026-07-09T12:00:00.000Z', config, summary })
+
+    expect(historyPushQueue.getStatus()).toBe('idle')
   })
 })
 

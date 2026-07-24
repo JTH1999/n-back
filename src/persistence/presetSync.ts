@@ -1,5 +1,6 @@
 import { supabase } from '../auth/supabaseClient'
 import type { Preset } from '../hooks/usePresets'
+import { createRetryQueue } from './retryQueue'
 
 interface PresetRow {
   id: string
@@ -46,30 +47,48 @@ export async function fetchRemotePresets(userId: string): Promise<RemotePresetRe
   return (data as PresetRow[]).map(toRecord)
 }
 
+type PresetPushItem =
+  | { kind: 'upsert'; userId: string; preset: Preset }
+  | { kind: 'tombstone'; userId: string; presetId: string; deletedAt: string }
+
+function presetPushItemId(item: PresetPushItem): string {
+  return item.kind === 'upsert' ? item.preset.id : item.presetId
+}
+
+async function executePresetPush(item: PresetPushItem): Promise<void> {
+  if (item.kind === 'upsert') {
+    const { error } = await supabase!.from('presets').upsert(toRow(item.preset, item.userId), { onConflict: 'id' })
+    if (error) throw error
+    return
+  }
+  const { error } = await supabase!
+    .from('presets')
+    .update({ deleted_at: item.deletedAt, updated_at: item.deletedAt })
+    .eq('user_id', item.userId)
+    .eq('id', item.presetId)
+  if (error) throw error
+}
+
+// Failed pushes are queued (in localStorage) and retried with backoff rather
+// than dropped — local storage stays the source of truth in the meantime.
+export const presetPushQueue = createRetryQueue<PresetPushItem>({
+  storageKey: 'n-back:preset-push-queue',
+  getId: presetPushItemId,
+  execute: executePresetPush,
+})
+
 // Upserts a single preset, un-tombstoning it if a row with this id previously
-// existed. Best-effort — local storage stays the source of truth on failure.
+// existed.
 export async function pushPreset(userId: string, preset: Preset): Promise<void> {
   if (!supabase) return
-  try {
-    await supabase.from('presets').upsert(toRow(preset, userId), { onConflict: 'id' })
-  } catch {
-    // best-effort push — local storage stays the source of truth on failure
-  }
+  await presetPushQueue.push({ kind: 'upsert', userId, preset })
 }
 
 // Marks a preset as deleted rather than removing the row, so other devices
 // that still hold a local copy learn to drop it on their next pull.
 export async function pushTombstone(userId: string, presetId: string, deletedAt: string): Promise<void> {
   if (!supabase) return
-  try {
-    await supabase
-      .from('presets')
-      .update({ deleted_at: deletedAt, updated_at: deletedAt })
-      .eq('user_id', userId)
-      .eq('id', presetId)
-  } catch {
-    // best-effort push — local storage stays the source of truth on failure
-  }
+  await presetPushQueue.push({ kind: 'tombstone', userId, presetId, deletedAt })
 }
 
 export interface MergeResult {
