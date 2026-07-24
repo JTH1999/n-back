@@ -16,8 +16,12 @@ function authResult(overrides: Partial<UseAuthResult> = {}): UseAuthResult {
     email: null,
     userId: null,
     error: null,
+    isPasswordRecovery: false,
     signIn: vi.fn(),
     signOut: vi.fn(),
+    resetPasswordForEmail: vi.fn().mockResolvedValue(true),
+    updatePassword: vi.fn().mockResolvedValue(true),
+    clearError: vi.fn(),
     ...overrides,
   }
 }
@@ -80,5 +84,40 @@ describe('AuthPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: /log in/i }))
 
     expect(signIn).toHaveBeenCalledWith('a@b.com', 'hunter2')
+  })
+
+  it('switches to the forgot password form and sends a reset email', async () => {
+    const resetPasswordForEmail = vi.fn().mockResolvedValue(true)
+    mockUseAuth.mockReturnValue(authResult({ resetPasswordForEmail }))
+    render(<AuthPanel />)
+
+    fireEvent.click(screen.getByRole('button', { name: /forgot password/i }))
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'a@b.com' } })
+    fireEvent.click(screen.getByRole('button', { name: /send reset link/i }))
+
+    expect(resetPasswordForEmail).toHaveBeenCalledWith('a@b.com')
+    expect(await screen.findByText(/check your email/i)).toBeInTheDocument()
+  })
+
+  it('returns to the login form from the forgot password form', () => {
+    mockUseAuth.mockReturnValue(authResult())
+    render(<AuthPanel />)
+
+    fireEvent.click(screen.getByRole('button', { name: /forgot password/i }))
+    fireEvent.click(screen.getByRole('button', { name: /back to log in/i }))
+
+    expect(screen.getByRole('button', { name: /log in/i })).toBeInTheDocument()
+  })
+
+  it('clears a stale error when switching between login and forgot password modes', () => {
+    const clearError = vi.fn()
+    mockUseAuth.mockReturnValue(authResult({ error: 'Invalid credentials', clearError }))
+    render(<AuthPanel />)
+
+    fireEvent.click(screen.getByRole('button', { name: /forgot password/i }))
+    expect(clearError).toHaveBeenCalledTimes(1)
+
+    fireEvent.click(screen.getByRole('button', { name: /back to log in/i }))
+    expect(clearError).toHaveBeenCalledTimes(2)
   })
 })

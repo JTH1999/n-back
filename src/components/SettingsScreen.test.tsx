@@ -9,8 +9,12 @@ vi.mock('../hooks/useAuth', () => ({
     status: 'unauthenticated',
     email: null,
     error: null,
+    isPasswordRecovery: false,
     signIn: vi.fn(),
     signOut: vi.fn(),
+    resetPasswordForEmail: vi.fn(),
+    updatePassword: vi.fn(),
+    clearError: vi.fn(),
   }),
 }))
 

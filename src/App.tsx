@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { preloadLetterAudio } from './audio/letterAudio'
 import { useAccent } from './hooks/useAccent'
+import { useAuth } from './hooks/useAuth'
 import { useDraftConfig } from './hooks/useDraftConfig'
 import { useKeymap } from './hooks/useKeymap'
 import { useSessionHistory } from './hooks/useSessionHistory'
@@ -9,6 +10,7 @@ import { useTheme } from './hooks/useTheme'
 import { AppShell, type NavItem } from './components/AppShell'
 import { ConfigForm } from './components/ConfigForm'
 import { HistoryView } from './components/HistoryView'
+import { ResetPasswordScreen } from './components/ResetPasswordScreen'
 import { SessionRunner } from './components/SessionRunner'
 import { SettingsScreen } from './components/SettingsScreen'
 import { computeStreakStats } from './derived/streakStats'
@@ -22,6 +24,7 @@ const NAV_ITEMS: NavItem<Screen>[] = [
 ]
 
 function App() {
+  const { isPasswordRecovery, updatePassword, error: authError, signOut } = useAuth()
   const [screen, setScreen] = useState<Screen>('train')
   const [activeConfig, setActiveConfig] = useState<SessionRunnerConfig | null>(null)
   const [sessionKey, setSessionKey] = useState(0)
@@ -49,6 +52,10 @@ function App() {
 
   const handleRestartSession = () => {
     setSessionKey((key) => key + 1)
+  }
+
+  if (isPasswordRecovery) {
+    return <ResetPasswordScreen onSubmit={updatePassword} onDone={signOut} error={authError} />
   }
 
   return (

@@ -32,4 +32,28 @@ describe('useAuth (no supabase client configured)', () => {
 
     expect(result.current.status).toBe('unauthenticated')
   })
+
+  it('resetPasswordForEmail reports a configuration error instead of throwing', async () => {
+    const { result } = renderHook(() => useAuth())
+
+    let success: boolean | undefined
+    await act(async () => {
+      success = await result.current.resetPasswordForEmail('a@b.com')
+    })
+
+    expect(success).toBe(false)
+    expect(result.current.error).toBe('Auth is not configured for this build.')
+  })
+
+  it('updatePassword reports a configuration error instead of throwing', async () => {
+    const { result } = renderHook(() => useAuth())
+
+    let success: boolean | undefined
+    await act(async () => {
+      success = await result.current.updatePassword('newpass123')
+    })
+
+    expect(success).toBe(false)
+    expect(result.current.error).toBe('Auth is not configured for this build.')
+  })
 })
