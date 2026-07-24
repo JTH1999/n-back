@@ -8,7 +8,7 @@ import { computeRecommendedN, getStimulusDisplay, getSummary } from '../engine/s
 import type { Keymap } from '../config/keymap'
 import type { StreamKind } from '../engine/streams'
 import { computeStreakStats, type StreakStats } from '../derived/streakStats'
-import { appendHistoryRecord, loadHistory } from '../persistence/historyStorage'
+import { useSessionHistory } from '../hooks/useSessionHistory'
 import { Button } from './Button'
 import { Grid } from './Grid'
 import { MAX_N } from './NStepper'
@@ -75,6 +75,7 @@ export function SessionRunner({
   } = useSessionRunner(config)
   const [showAbortConfirm, setShowAbortConfirm] = useState(false)
   const [streak, setStreak] = useState<StreakStats | null>(null)
+  const { history, recordSession } = useSessionHistory()
   const wasPausedBeforeAbort = useRef(false)
   const hasRecordedHistory = useRef(false)
   const summary = useMemo(() => (readyForSummary ? getSummary(state) : null), [readyForSummary, state])
@@ -92,10 +93,10 @@ export function SessionRunner({
   useLayoutEffect(() => {
     if (!summary || hasRecordedHistory.current) return
     hasRecordedHistory.current = true
-    appendHistoryRecord({ timestamp: new Date().toISOString(), config, summary })
-    setStreak(computeStreakStats(loadHistory()))
+    const record = recordSession(config, summary)
+    setStreak(computeStreakStats([...history, record]))
     onSessionComplete?.()
-  }, [summary, config, onSessionComplete])
+  }, [summary, config, recordSession, history, onSessionComplete])
 
   const recommendedN = useMemo(() => {
     if (!summary || !config.adaptive.enabled) return null

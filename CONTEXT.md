@@ -40,6 +40,9 @@ The four possible per-stream, per-trial scoring outcomes: Hit (matched and asser
 **Preset**:
 A named, saved bundle of session configuration (active streams, N, timing, trial count, adaptive settings) that can be recalled later. The most recently used preset is restored automatically on app open. User-created presets sync to Supabase while logged in; built-in presets never do.
 
+**Session history record**:
+An immutable, append-only entry recorded when a session completes (`timestamp`, `config`, `summary`, plus a client-generated `id`). Sync while logged in is a straightforward de-dupe by `id` — records never change once created, so there's no last-write-wins to resolve like presets have.
+
 **Adaptive mode**:
 An optional per-session setting where N is automatically raised or lowered for the *next* session based on the previous session's accuracy against configurable thresholds. Off by default (manual N).
 _Avoid_: Staircase (used in the training literature but not surfaced as a term in-app)

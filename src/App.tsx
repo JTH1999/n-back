@@ -3,6 +3,7 @@ import { preloadLetterAudio } from './audio/letterAudio'
 import { useAccent } from './hooks/useAccent'
 import { useDraftConfig } from './hooks/useDraftConfig'
 import { useKeymap } from './hooks/useKeymap'
+import { useSessionHistory } from './hooks/useSessionHistory'
 import type { SessionRunnerConfig } from './hooks/useSessionRunner'
 import { useTheme } from './hooks/useTheme'
 import { AppShell, type NavItem } from './components/AppShell'
@@ -11,7 +12,6 @@ import { HistoryView } from './components/HistoryView'
 import { SessionRunner } from './components/SessionRunner'
 import { SettingsScreen } from './components/SettingsScreen'
 import { computeStreakStats } from './derived/streakStats'
-import { loadHistory, type SessionHistoryRecord } from './persistence/historyStorage'
 
 type Screen = 'train' | 'history' | 'settings'
 
@@ -25,7 +25,7 @@ function App() {
   const [screen, setScreen] = useState<Screen>('train')
   const [activeConfig, setActiveConfig] = useState<SessionRunnerConfig | null>(null)
   const [sessionKey, setSessionKey] = useState(0)
-  const [history, setHistory] = useState<SessionHistoryRecord[]>(() => loadHistory())
+  const { history, refresh: refreshHistory } = useSessionHistory()
   const [draftConfig, setDraftConfig] = useDraftConfig()
   const { keymap, rebind } = useKeymap()
   const { override: themeOverride, setOverride: setThemeOverride } = useTheme()
@@ -62,7 +62,7 @@ function App() {
           onRestartSession={handleRestartSession}
           onReturnToSetup={handleReturnToSetup}
           onPlayAgain={handlePlayAgain}
-          onSessionComplete={() => setHistory(loadHistory())}
+          onSessionComplete={refreshHistory}
           isFocused={screen === 'train'}
         />
       ) : (

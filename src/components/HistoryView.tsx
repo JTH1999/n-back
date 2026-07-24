@@ -1,7 +1,8 @@
 import clsx from 'clsx'
 import { useState, type ReactNode } from 'react'
 import { computeStreakStats } from '../derived/streakStats'
-import { loadHistory, type SessionHistoryRecord } from '../persistence/historyStorage'
+import { useSessionHistory } from '../hooks/useSessionHistory'
+import type { SessionHistoryRecord } from '../persistence/historyStorage'
 import { accuracyTextClass, EYEBROW_CLASS } from '../styles/controls'
 import { formatDate } from '../utils/formatDate'
 import { formatDuration } from '../utils/formatDuration'
@@ -62,7 +63,7 @@ function HistoryRow({ record }: { record: SessionHistoryRecord }) {
 }
 
 export function HistoryView() {
-  const [history] = useState(() => loadHistory())
+  const { history } = useSessionHistory()
   const [tab, setTab] = useState<HistoryTab>('overview')
   const rows = history.slice().reverse()
 
@@ -146,7 +147,7 @@ export function HistoryView() {
                       </span>
                     </div>
                     {rows.map((record) => (
-                      <HistoryRow key={record.timestamp} record={record} />
+                      <HistoryRow key={record.id} record={record} />
                     ))}
                   </div>
                 </div>
