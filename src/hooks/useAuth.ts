@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../auth/supabaseClient'
+import { historyPushQueue } from '../persistence/historySync'
+import { presetPushQueue } from '../persistence/presetSync'
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated'
+
+// Queued pushes carry the userId active when they were enqueued — dropping
+// them on logout avoids a stale push later landing (or failing an RLS check)
+// under a different account signed in on the same device.
+function clearPendingSync() {
+  presetPushQueue.clear()
+  historyPushQueue.clear()
+}
 
 export interface UseAuthResult {
   status: AuthStatus
@@ -22,6 +32,7 @@ export function useAuth(): UseAuthResult {
     if (!supabase) return
 
     supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) clearPendingSync()
       setEmail(data.session?.user.email ?? null)
       setUserId(data.session?.user.id ?? null)
       setStatus(data.session ? 'authenticated' : 'unauthenticated')
@@ -30,6 +41,7 @@ export function useAuth(): UseAuthResult {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) clearPendingSync()
       setEmail(session?.user.email ?? null)
       setUserId(session?.user.id ?? null)
       setStatus(session ? 'authenticated' : 'unauthenticated')

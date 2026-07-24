@@ -17,12 +17,17 @@ vi.mock('../auth/supabaseClient', () => ({
   },
 }))
 
+import { historyPushQueue } from '../persistence/historySync'
+import { presetPushQueue } from '../persistence/presetSync'
 import { useAuth } from './useAuth'
 
 beforeEach(() => {
   vi.clearAllMocks()
+  window.localStorage.clear()
   mockGetSession.mockResolvedValue({ data: { session: null } })
   mockOnAuthStateChange.mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } })
+  presetPushQueue.clear()
+  historyPushQueue.clear()
 })
 
 describe('useAuth', () => {
@@ -84,6 +89,25 @@ describe('useAuth', () => {
     })
 
     expect(mockSignOut).toHaveBeenCalled()
+  })
+
+  it('clears queued sync pushes when the session goes away, so they cannot land under a different account', async () => {
+    let authCallback: (event: string, session: unknown) => void = () => {}
+    mockOnAuthStateChange.mockImplementation((callback) => {
+      authCallback = callback
+      return { data: { subscription: { unsubscribe: vi.fn() } } }
+    })
+    await presetPushQueue.push({ kind: 'upsert', userId: 'user-1', preset: { id: 'p1', name: 'X', config: {} as never } })
+    expect(presetPushQueue.getStatus()).not.toBe('idle')
+
+    renderHook(() => useAuth())
+    await waitFor(() => expect(mockOnAuthStateChange).toHaveBeenCalled())
+
+    act(() => {
+      authCallback('SIGNED_OUT', null)
+    })
+
+    expect(presetPushQueue.getStatus()).toBe('idle')
   })
 
   it('reacts to onAuthStateChange callbacks', async () => {

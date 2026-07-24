@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Preset } from '../hooks/usePresets'
 
 const mockSelect = vi.fn()
@@ -16,7 +16,14 @@ vi.mock('../auth/supabaseClient', () => ({
 
 let mockSupabase: { from: typeof mockFrom } | null = { from: mockFrom }
 
-import { fetchRemotePresets, mergePresets, pushPreset, pushTombstone, type RemotePresetRecord } from './presetSync'
+import {
+  fetchRemotePresets,
+  mergePresets,
+  presetPushQueue,
+  pushPreset,
+  pushTombstone,
+  type RemotePresetRecord,
+} from './presetSync'
 
 const config: Preset['config'] = {
   n: 2,
@@ -36,10 +43,16 @@ function resetMocks() {
   mockEq2.mockReset()
   mockUpsert.mockReset()
   mockUpdate.mockReset()
+  window.localStorage.clear()
+  presetPushQueue.clear()
 }
 
 beforeEach(() => {
   resetMocks()
+})
+
+afterAll(() => {
+  presetPushQueue.clear()
 })
 
 describe('fetchRemotePresets', () => {
@@ -136,6 +149,38 @@ describe('pushPreset', () => {
     await expect(
       pushPreset('user-1', { id: 'preset-1', name: 'Warm-up', config }),
     ).resolves.toBeUndefined()
+  })
+
+  it('queues a failed push for retry instead of dropping it', async () => {
+    mockFrom.mockReturnValue({ upsert: mockUpsert })
+    mockUpsert.mockRejectedValue(new Error('network down'))
+
+    await pushPreset('user-1', { id: 'preset-1', name: 'Warm-up', config })
+
+    expect(presetPushQueue.getStatus()).toBe('retrying')
+    presetPushQueue.clear()
+  })
+
+  it('treats a Supabase-reported error (not just a thrown rejection) as a failed push', async () => {
+    mockFrom.mockReturnValue({ upsert: mockUpsert })
+    mockUpsert.mockResolvedValue({ error: { message: 'row-level security violation' } })
+
+    await pushPreset('user-1', { id: 'preset-1', name: 'Warm-up', config })
+
+    expect(presetPushQueue.getStatus()).toBe('retrying')
+    presetPushQueue.clear()
+  })
+
+  it('retries a queued push once it succeeds and clears the queue', async () => {
+    mockFrom.mockReturnValue({ upsert: mockUpsert })
+    mockUpsert.mockRejectedValueOnce(new Error('network down')).mockResolvedValue({ error: null })
+
+    await pushPreset('user-1', { id: 'preset-1', name: 'Warm-up', config })
+    expect(presetPushQueue.getStatus()).toBe('retrying')
+
+    await pushPreset('user-1', { id: 'preset-2', name: 'Another', config })
+
+    expect(presetPushQueue.getStatus()).toBe('idle')
   })
 })
 

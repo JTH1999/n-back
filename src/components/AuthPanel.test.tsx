@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { UseAuthResult } from '../hooks/useAuth'
 import { useAuth } from '../hooks/useAuth'
@@ -7,6 +7,8 @@ import { AuthPanel } from './AuthPanel'
 vi.mock('../hooks/useAuth', () => ({ useAuth: vi.fn() }))
 
 const mockUseAuth = vi.mocked(useAuth)
+
+const preset = { id: 'p1', name: 'X', config: {} as never }
 
 function authResult(overrides: Partial<UseAuthResult> = {}): UseAuthResult {
   return {
@@ -20,8 +22,11 @@ function authResult(overrides: Partial<UseAuthResult> = {}): UseAuthResult {
   }
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   mockUseAuth.mockReset()
+  window.localStorage.clear()
+  const { presetPushQueue } = await import('../persistence/presetSync')
+  presetPushQueue.clear()
 })
 
 describe('AuthPanel', () => {
@@ -47,6 +52,22 @@ describe('AuthPanel', () => {
     expect(screen.getByText('a@b.com')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /log out/i }))
     expect(signOut).toHaveBeenCalled()
+  })
+
+  it('shows a live sync status indicator that reflects pending/failed queue state', async () => {
+    const { presetPushQueue } = await import('../persistence/presetSync')
+    mockUseAuth.mockReturnValue(authResult({ status: 'authenticated', email: 'a@b.com' }))
+    render(<AuthPanel />)
+
+    expect(screen.getByRole('status')).toHaveTextContent('Synced')
+
+    Object.defineProperty(navigator, 'onLine', { value: false, configurable: true })
+    await act(async () => {
+      await presetPushQueue.push({ kind: 'upsert', userId: 'user-1', preset })
+    })
+
+    expect(screen.getByRole('status')).toHaveTextContent('Pending')
+    Object.defineProperty(navigator, 'onLine', { value: true, configurable: true })
   })
 
   it('calls signIn with the submitted credentials', () => {

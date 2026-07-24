@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { useSyncStatus } from '../hooks/useSyncStatus'
 import { Button } from './Button'
 import { LoginForm } from './LoginForm'
 import { SubHeading } from './SubHeading'
+import { SyncStatusIndicator } from './SyncStatusIndicator'
 
 export function AuthPanel() {
   const { status, email, error, signIn, signOut } = useAuth()
+  const syncStatus = useSyncStatus()
   const [submitting, setSubmitting] = useState(false)
 
   const handleSubmit = async (submittedEmail: string, password: string) => {
@@ -28,6 +31,7 @@ export function AuthPanel() {
           <p className="text-sm">
             Logged in as <span className="font-medium">{email}</span>
           </p>
+          {syncStatus && <SyncStatusIndicator status={syncStatus} />}
           <Button variant="ghost" onClick={() => signOut()} className="w-full">
             Log out
           </Button>

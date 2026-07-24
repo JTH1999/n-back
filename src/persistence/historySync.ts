@@ -1,5 +1,6 @@
 import { supabase } from '../auth/supabaseClient'
 import type { SessionHistoryRecord } from './historyStorage'
+import { createRetryQueue } from './retryQueue'
 
 interface SessionHistoryRow {
   id: string
@@ -32,15 +33,28 @@ export async function fetchRemoteHistory(userId: string): Promise<SessionHistory
   return (data as SessionHistoryRow[]).map(toRecord)
 }
 
-// Upserts a single session-history record. Best-effort — local storage stays
-// the source of truth on failure.
+interface HistoryPushItem {
+  userId: string
+  record: SessionHistoryRecord
+}
+
+async function executeHistoryPush({ userId, record }: HistoryPushItem): Promise<void> {
+  const { error } = await supabase!.from('session_history').upsert(toRow(record, userId), { onConflict: 'id' })
+  if (error) throw error
+}
+
+// Failed pushes are queued (in localStorage) and retried with backoff rather
+// than dropped — local storage stays the source of truth in the meantime.
+export const historyPushQueue = createRetryQueue<HistoryPushItem>({
+  storageKey: 'n-back:history-push-queue',
+  getId: ({ record }) => record.id,
+  execute: executeHistoryPush,
+})
+
+// Upserts a single session-history record.
 export async function pushHistoryRecord(userId: string, record: SessionHistoryRecord): Promise<void> {
   if (!supabase) return
-  try {
-    await supabase.from('session_history').upsert(toRow(record, userId), { onConflict: 'id' })
-  } catch {
-    // best-effort push — local storage stays the source of truth on failure
-  }
+  await historyPushQueue.push({ userId, record })
 }
 
 export interface MergeResult {
