@@ -22,8 +22,12 @@ function authResult(overrides: Partial<UseAuthResult> = {}): UseAuthResult {
     email: 'a@b.com',
     userId: 'user-1',
     error: null,
+    isPasswordRecovery: false,
     signIn: vi.fn(),
     signOut: vi.fn(),
+    resetPasswordForEmail: vi.fn(),
+    updatePassword: vi.fn(),
+    clearError: vi.fn(),
     ...overrides,
   }
 }
